@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+
+# Capacitor (Phase 7 vorbereitet, später hinzugefügt)
+ios/App/Pods
+android
+
+# TS build info
+*.tsbuildinfo
