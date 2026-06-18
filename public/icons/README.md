@@ -1,20 +1,27 @@
-# Icon-Slots (Platzhalter)
+# App-Icons
 
-Diese Dateien sind **Platzhalter-Slots**. Echte Maus-Illustrationen, App-Icons und
-Splash-Screens werden separat beschafft (siehe Gesamtplan, Abschnitt 6) und hier ersetzt.
+Das Icon-Motiv (käse-gelber Würfel mit Mäuse-Ohren und Schwanz) liegt als SVG vor;
+die PNGs werden daraus generiert.
 
-Benötigte Dateien für die PWA (`vite.config.ts` -> `manifest`):
+| Datei                      | Größe      | Zweck                                   |
+|----------------------------|------------|-----------------------------------------|
+| `favicon.svg`              | vektoriell | Browser-Tab                             |
+| `icon.svg`                 | vektoriell | Quelle „any" (volle Fläche)             |
+| `icon-maskable.svg`        | vektoriell | Quelle „maskable" (mit Sicherheitszone) |
+| `icon-192.png`             | 192×192    | PWA-Icon (any)                          |
+| `icon-512.png`             | 512×512    | PWA-Icon / Splash (any)                 |
+| `icon-192-maskable.png`    | 192×192    | PWA-Icon (maskable)                     |
+| `icon-512-maskable.png`    | 512×512    | PWA-Icon (maskable)                     |
+| `apple-touch-icon.png`     | 180×180    | iOS-Homescreen                          |
 
-| Datei            | Größe     | Zweck                          |
-|------------------|-----------|--------------------------------|
-| `favicon.svg`    | vektoriell| Browser-Tab (vorhanden)        |
-| `icon-192.png`   | 192×192   | PWA-Icon (Slot, noch leer)     |
-| `icon-512.png`   | 512×512   | PWA-Icon / Splash (Slot, leer) |
+## Neu generieren
 
-Bis echte PNGs vorliegen, kann der SVG-Favicon als Quelle exportiert werden, z. B.:
+Nach Änderungen an `icon.svg` / `icon-maskable.svg`:
 
 ```sh
-# Beispiel (Tool nach Wahl), nicht Teil des Builds:
-# rsvg-convert -w 192 -h 192 favicon.svg > icon-192.png
-# rsvg-convert -w 512 -h 512 favicon.svg > icon-512.png
+npm run gen:icons
 ```
+
+Das Skript (`scripts/gen-icons.mjs`, nutzt `sharp`) rastert die SVGs zu den PNGs.
+Die PNGs sind eingecheckt, damit der reguläre Client-Build **keine** native
+Abhängigkeit braucht.

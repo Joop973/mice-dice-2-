@@ -4,7 +4,7 @@ Ein eigenständiges Würfelspiel mit Mäuse-Thema (im Geist von Panda Royale, ab
 eigener Name, eigene Grafiken und Regeltexte). Stack: **React + Vite**, PWA-fähig,
 später Capacitor für iOS.
 
-> Status: **Phasen 0–6** sind umgesetzt:
+> Status: **Phasen 0–7** sind umgesetzt:
 > - **Phase 0** – Setup + PWA-Gerüst (Vite, manifest, Service Worker, Icon-Slots)
 > - **Phase 1** – reine Engine + 26 Unit-Tests
 > - **Phase 2** – UI an die Engine angebunden, alle vier Phasen interaktiv (Pass-and-Play)
@@ -22,8 +22,12 @@ später Capacitor für iOS.
 >   verdrahtete Online-UI (Menü → Verbinden → Lobby → Online-Partie). Ohne Server
 >   läuft der Online-Pfad über den Loopback (Solo gegen KI). Voll getestet
 >   (60 Tests, inkl. DOM-Integrationstest der Online-UI).
+> - **Phase 7** – PWA-Feinschliff + Deploy: echtes App-Icon (Maus + Käse-Würfel)
+>   als SVG mit generierten PNGs (any **und** maskable) + Apple-Touch-Icon,
+>   poliertes Manifest, iOS-Meta-Tags, Offline-`navigateFallback`, GitHub-Pages-
+>   Deploy-Workflow.
 >
-> Phase 7 folgt (PWA-Feinschliff/Deploy).
+> Damit ist der Gesamtplan (Phasen 0–7) umgesetzt.
 
 ## Entwicklung
 
@@ -33,7 +37,21 @@ npm run dev        # Dev-Server (Vite)
 npm test           # Unit-Tests der Engine (Vitest)
 npm run build      # Produktions-Build (PWA)
 npm run typecheck  # TypeScript ohne Emit
+npm run gen:icons  # App-Icon-PNGs aus den SVG-Quellen neu rastern (sharp)
 ```
+
+## Deploy
+
+`base: './'` macht den Build portabel (statische Hosts, Capacitor/`file://`).
+
+- **GitHub Pages:** Repo → Settings → Pages → Source = „GitHub Actions". Der
+  Workflow `.github/workflows/deploy.yml` baut + testet + veröffentlicht bei
+  jedem Push auf `main` (oder manuell). Ergebnis: statische PWA (Solo,
+  Pass-and-Play, Offline, Online über den lokalen Loopback).
+- **Beliebiger Static-Host:** `npm run build` → `dist/` ausliefern.
+- **Echter Online-Mehrspieler** braucht zusätzlich den WebSocket-Server
+  (`server/`) auf einem Node-Host. Im Client die Server-URL angeben
+  (`VITE_SERVER_URL` oder Eingabefeld im Online-Menü).
 
 ## Architektur
 
