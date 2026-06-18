@@ -1,11 +1,13 @@
-// Spieler-Karte: Kopf (Krone, Name, Punkte) + Würfelreihe.
+// Spieler-Karte: Kopf (Krone, Name, Punkte) + Würfelreihe (2D oder 3D).
 // In der Swap-Phase sind Klar-Würfel klickbar (Auswahl zum Neu-Würfeln).
 
 import type { Player } from '../engine';
-import { Die } from './Die';
+import { DiceView } from './DiceView';
 
 interface PlayerCardProps {
   player: Player;
+  /** 3D-Würfel statt CSS-Platzhalter rendern. */
+  use3d: boolean;
   /** Hebt den Spieler hervor (z. B. „ist gerade am Zug" beim Draften). */
   active?: boolean;
   /** IDs der zum Tausch ausgewählten Klar-Würfel. */
@@ -16,6 +18,7 @@ interface PlayerCardProps {
 
 export function PlayerCard({
   player,
+  use3d,
   active,
   selectedDieIds,
   onToggleClear,
@@ -39,23 +42,12 @@ export function PlayerCard({
           )}
         </span>
       </header>
-      <div className="dice">
-        {player.rolled.length === 0 && (
-          <span className="dice__empty">noch nicht gewürfelt</span>
-        )}
-        {player.rolled.map((d) => {
-          const clickable = onToggleClear && d.color === 'clear';
-          return (
-            <Die
-              key={d.id}
-              die={d}
-              pity={d.isPity}
-              selected={selectedDieIds?.has(d.id)}
-              onClick={clickable ? () => onToggleClear!(d.id) : undefined}
-            />
-          );
-        })}
-      </div>
+      <DiceView
+        dice={player.rolled}
+        use3d={use3d}
+        selectedDieIds={selectedDieIds}
+        onToggleClear={onToggleClear}
+      />
     </article>
   );
 }

@@ -4,14 +4,16 @@ Ein eigenständiges Würfelspiel mit Mäuse-Thema (im Geist von Panda Royale, ab
 eigener Name, eigene Grafiken und Regeltexte). Stack: **React + Vite**, PWA-fähig,
 später Capacitor für iOS.
 
-> Status: **Phasen 0–3** sind umgesetzt:
+> Status: **Phasen 0–4** sind umgesetzt:
 > - **Phase 0** – Setup + PWA-Gerüst (Vite, manifest, Service Worker, Icon-Slots)
 > - **Phase 1** – reine Engine + 26 Unit-Tests
 > - **Phase 2** – UI an die Engine angebunden, alle vier Phasen interaktiv (Pass-and-Play)
 > - **Phase 3** – KI-Gegner (Solo) mit 3 Schwierigkeitsgraden, gekapselt für spätere
 >   serverseitige Wiederverwendung
+> - **Phase 4** – 3D-Würfel (react-three-fiber) mit Wurf-/Tumble-Animation,
+>   2D-Fallback + Error-Boundary, lazy geladenes three.js-Bundle, 3D/2D-Umschalter
 >
-> Würfel sind weiterhin CSS-Platzhalter (Phase 4 -> 3D). Phasen 4–7 folgen.
+> Phasen 5–7 folgen (Sound/Animationen, Online-Multiplayer, PWA-Feinschliff/Deploy).
 
 ## Entwicklung
 
@@ -39,8 +41,11 @@ src/
     __tests__/       #   Unit-Tests je Wertungsregel + Phasenfolge
   ai/                # KI-Gegner – hängt nur von der Engine ab, KEINE UI
     ai.ts            #   Entscheidungen (swap/draft) + Schwierigkeitsgrade
-  ui/                # Präsentation (Phase 4: 3D-Würfel ersetzen Platzhalter)
-  App.tsx            # Setup-Screen + Spielablauf, KI-Treiber
+  ui/                # Präsentation
+    Die.tsx          #   2D-Platzhalter-Würfel
+    DiceView.tsx     #   wählt 3D oder 2D (lazy three.js, Error-Boundary)
+    dice3d/          #   react-three-fiber: Canvas, Würfel, Zahlen-Textur
+  App.tsx            # Setup-Screen + Spielablauf, KI-Treiber, 3D/2D-Umschalter
 ```
 
 > Die KI (`src/ai`) ist bewusst von der UI getrennt. `aiTakePhaseAction` ist der

@@ -64,6 +64,7 @@ export function App() {
 
   const [state, setState] = useState<GameState | null>(null);
   const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
+  const [use3d, setUse3d] = useState(true);
 
   function start() {
     const seed = newSeed();
@@ -132,6 +133,8 @@ export function App() {
     <Game
       state={state}
       difficulty={difficulty}
+      use3d={use3d}
+      onToggle3d={() => setUse3d((v) => !v)}
       selectedClear={selectedClear}
       onToggleClear={(id) =>
         setSelectedClear((prev) => {
@@ -249,6 +252,8 @@ function Counter({
 interface GameProps {
   state: GameState;
   difficulty: Difficulty;
+  use3d: boolean;
+  onToggle3d: () => void;
   selectedClear: Set<string>;
   onToggleClear: (id: string) => void;
   onRerollSelected: () => void;
@@ -260,6 +265,8 @@ interface GameProps {
 
 function Game({
   state,
+  use3d,
+  onToggle3d,
   selectedClear,
   onToggleClear,
   onRerollSelected,
@@ -316,6 +323,9 @@ function Game({
             Runde {state.round} / {state.config.totalRounds}
           </span>
           <span className="badge">{PHASE_LABEL[state.phase]}</span>
+          <button className="toggle3d" onClick={onToggle3d}>
+            {use3d ? '3D' : '2D'}
+          </button>
         </div>
       </header>
 
@@ -326,6 +336,7 @@ function Game({
           <PlayerCard
             key={p.id}
             player={p}
+            use3d={use3d}
             active={activeDrafter?.id === p.id}
             selectedDieIds={state.phase === 'swap' ? selectedClear : undefined}
             onToggleClear={state.phase === 'swap' && !p.isAI ? onToggleClear : undefined}
