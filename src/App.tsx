@@ -1,7 +1,7 @@
-// Phase 2: vollständige Anbindung der UI an die Engine.
-// Alle vier Rundenphasen sind im Interface abgebildet; lokales Pass-and-Play.
-// Die UI hält nur GameState + RNG und ruft reine Engine-Funktionen auf
-// (strikte Trennung). Würfel sind CSS-Platzhalter (Phase 4 -> 3D).
+// Phasen 2 + 3: vollständige UI-Anbindung inkl. KI-Gegner (Solo).
+// Die UI hält nur GameState + RNG und ruft reine Engine-/KI-Funktionen auf
+// (strikte Trennung). KI-Spieler agieren automatisch über das gekapselte
+// ai-Modul. Würfel sind CSS-Platzhalter (Phase 4 -> 3D).
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -12,10 +12,17 @@ import {
   startGame,
   swapClearDice,
   type GameState,
+  type NewPlayer,
   type Phase,
   type Player,
   type RNG,
 } from './engine';
+import {
+  aiTakePhaseAction,
+  DIFFICULTIES,
+  DIFFICULTY_LABELS,
+  type Difficulty,
+} from './ai';
 import { PlayerCard } from './ui/PlayerCard';
 import { DIE_COLORS, DIE_LABELS } from './ui/colors';
 
@@ -33,85 +40,253 @@ const PHASE_HINT: Record<Phase, string> = {
   draft: 'Reihum einen Würfel aus dem Angebot wählen – oder passen.',
 };
 
-const DEFAULT_PLAYERS = [{ name: 'Maus 1' }, { name: 'Maus 2' }];
+const AI_STEP_DELAY_MS = 400;
 
 function newSeed(): number {
   return Date.now() >>> 0;
 }
 
+function buildPlayers(humans: number, ais: number): NewPlayer[] {
+  const players: NewPlayer[] = [];
+  for (let i = 0; i < humans; i++) players.push({ name: `Maus ${i + 1}` });
+  for (let i = 0; i < ais; i++) players.push({ name: `KI ${i + 1}`, isAI: true });
+  return players;
+}
+
 export function App() {
   const rngRef = useRef<RNG>(createRNG(newSeed()));
-  const [state, setState] = useState<GameState>(() => {
-    const seed = newSeed();
-    rngRef.current = createRNG(seed);
-    return startGame({ players: DEFAULT_PLAYERS, seed }).state;
-  });
+  const aiSwapRoundRef = useRef(0);
+
+  const [started, setStarted] = useState(false);
+  const [humans, setHumans] = useState(1);
+  const [ais, setAis] = useState(1);
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+
+  const [state, setState] = useState<GameState | null>(null);
   const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
 
-  // Auswahl zurücksetzen, sobald sich die Phase ändert.
-  useEffect(() => {
-    setSelectedClear(new Set());
-  }, [state.phase, state.round]);
-
-  const leader = useMemo(
-    () => state.players.reduce((best, p) => (p.totalScore > best.totalScore ? p : best)),
-    [state.players]
-  );
-
-  // Wer ist in der Draft-Phase als Nächstes am Zug?
-  const activeDrafter: Player | undefined = useMemo(() => {
-    if (state.phase !== 'draft') return undefined;
-    return state.players.find((p) => !state.draftedThisPhase.includes(p.id));
-  }, [state]);
-
-  const draftComplete = state.phase === 'draft' && !activeDrafter;
-
-  function newGame() {
+  function start() {
     const seed = newSeed();
     rngRef.current = createRNG(seed);
-    setState(startGame({ players: DEFAULT_PLAYERS, seed }).state);
-  }
-
-  function toggleClear(dieId: string) {
-    setSelectedClear((prev) => {
-      const next = new Set(prev);
-      if (next.has(dieId)) next.delete(dieId);
-      else next.add(dieId);
-      return next;
-    });
-  }
-
-  function rerollSelected() {
-    if (selectedClear.size === 0) return;
-    let next = state;
-    // Ausgewählte IDs je Spieler gruppieren und tauschen.
-    for (const p of state.players) {
-      const ids = p.rolled
-        .filter((d) => d.color === 'clear' && selectedClear.has(d.id))
-        .map((d) => d.id);
-      if (ids.length > 0) next = swapClearDice(next, p.id, ids, rngRef.current);
-    }
-    setState(next);
+    aiSwapRoundRef.current = 0;
+    setState(startGame({ players: buildPlayers(humans, ais), seed }).state);
     setSelectedClear(new Set());
+    setStarted(true);
   }
 
-  const hasClearDice = state.players.some((p) =>
-    p.rolled.some((d) => d.color === 'clear')
+  // Auswahl zurücksetzen, sobald sich Phase/Runde ändern.
+  useEffect(() => {
+    setSelectedClear(new Set());
+  }, [state?.phase, state?.round]);
+
+  // KI-Treiber: agiert automatisch in der Swap- und Draft-Phase.
+  useEffect(() => {
+    if (!state || state.finished) return;
+
+    if (state.phase === 'swap' && aiSwapRoundRef.current !== state.round) {
+      aiSwapRoundRef.current = state.round;
+      if (state.players.some((p) => p.isAI)) {
+        setState((s) => {
+          if (!s) return s;
+          let next = s;
+          for (const p of s.players) {
+            if (p.isAI) next = aiTakePhaseAction(next, p.id, difficulty, rngRef.current);
+          }
+          return next;
+        });
+      }
+      return;
+    }
+
+    if (state.phase === 'draft') {
+      const drafter = state.players.find((p) => !state.draftedThisPhase.includes(p.id));
+      if (drafter?.isAI) {
+        const t = setTimeout(() => {
+          setState((s) => {
+            if (!s || s.phase !== 'draft') return s;
+            const d = s.players.find((p) => !s.draftedThisPhase.includes(p.id));
+            if (!d || !d.isAI) return s;
+            return aiTakePhaseAction(s, d.id, difficulty, rngRef.current);
+          });
+        }, AI_STEP_DELAY_MS);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [state, difficulty]);
+
+  if (!started || !state) {
+    return (
+      <Setup
+        humans={humans}
+        ais={ais}
+        difficulty={difficulty}
+        setHumans={setHumans}
+        setAis={setAis}
+        setDifficulty={setDifficulty}
+        onStart={start}
+      />
+    );
+  }
+
+  return (
+    <Game
+      state={state}
+      difficulty={difficulty}
+      selectedClear={selectedClear}
+      onToggleClear={(id) =>
+        setSelectedClear((prev) => {
+          const next = new Set(prev);
+          next.has(id) ? next.delete(id) : next.add(id);
+          return next;
+        })
+      }
+      onRerollSelected={() => {
+        if (selectedClear.size === 0) return;
+        let next = state;
+        for (const p of state.players) {
+          const ids = p.rolled
+            .filter((d) => d.color === 'clear' && selectedClear.has(d.id))
+            .map((d) => d.id);
+          if (ids.length > 0) next = swapClearDice(next, p.id, ids, rngRef.current);
+        }
+        setState(next);
+        setSelectedClear(new Set());
+      }}
+      onAdvance={() => setState(advancePhase(state, rngRef.current))}
+      onPick={(playerId, offerId) => setState(draftPick(state, playerId, offerId))}
+      onPass={(playerId) => setState(draftPass(state, playerId))}
+      onNewGame={() => setStarted(false)}
+    />
   );
+}
+
+interface SetupProps {
+  humans: number;
+  ais: number;
+  difficulty: Difficulty;
+  setHumans: (n: number) => void;
+  setAis: (n: number) => void;
+  setDifficulty: (d: Difficulty) => void;
+  onStart: () => void;
+}
+
+function Setup({
+  humans,
+  ais,
+  difficulty,
+  setHumans,
+  setAis,
+  setDifficulty,
+  onStart,
+}: SetupProps) {
+  const total = humans + ais;
+  const valid = total >= 2 && total <= 4 && humans >= 1;
 
   return (
     <div className="app">
       <header className="app__header">
         <h1>🧀 Dice Mice</h1>
-        <div className="app__meta">
-          <span>
-            Runde {state.round} / {state.config.totalRounds}
-          </span>
-          <span className="badge">{PHASE_LABEL[state.phase]}</span>
-        </div>
+        <p className="hint">Neue Partie einrichten</p>
       </header>
 
-      {state.finished ? (
+      <section className="panel">
+        <Counter label="Menschen (Pass-and-Play)" value={humans} min={1} max={4} onChange={setHumans} />
+        <Counter label="KI-Gegner" value={ais} min={0} max={3} onChange={setAis} />
+
+        <div className="field">
+          <span className="field__label">KI-Schwierigkeit</span>
+          <div className="seg">
+            {DIFFICULTIES.map((d) => (
+              <button
+                key={d}
+                className={`seg__btn${d === difficulty ? ' seg__btn--on' : ''}`}
+                onClick={() => setDifficulty(d)}
+              >
+                {DIFFICULTY_LABELS[d]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {!valid && <p className="muted">2–4 Mäuse insgesamt, mindestens 1 Mensch.</p>}
+        <button onClick={onStart} disabled={!valid}>
+          Partie starten →
+        </button>
+      </section>
+    </div>
+  );
+}
+
+function Counter({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <div className="field">
+      <span className="field__label">{label}</span>
+      <div className="counter">
+        <button onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>
+          −
+        </button>
+        <span className="counter__value">{value}</span>
+        <button onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface GameProps {
+  state: GameState;
+  difficulty: Difficulty;
+  selectedClear: Set<string>;
+  onToggleClear: (id: string) => void;
+  onRerollSelected: () => void;
+  onAdvance: () => void;
+  onPick: (playerId: string, offerId: string) => void;
+  onPass: (playerId: string) => void;
+  onNewGame: () => void;
+}
+
+function Game({
+  state,
+  selectedClear,
+  onToggleClear,
+  onRerollSelected,
+  onAdvance,
+  onPick,
+  onPass,
+  onNewGame,
+}: GameProps) {
+  const leader = useMemo(
+    () => state.players.reduce((best, p) => (p.totalScore > best.totalScore ? p : best)),
+    [state.players]
+  );
+
+  const activeDrafter: Player | undefined =
+    state.phase === 'draft'
+      ? state.players.find((p) => !state.draftedThisPhase.includes(p.id))
+      : undefined;
+  const draftComplete = state.phase === 'draft' && !activeDrafter;
+  const humanDrafting = activeDrafter && !activeDrafter.isAI;
+  const hasClearDice = state.players.some((p) => p.rolled.some((d) => d.color === 'clear'));
+
+  if (state.finished) {
+    return (
+      <div className="app">
+        <header className="app__header">
+          <h1>🧀 Dice Mice</h1>
+        </header>
         <section className="panel">
           <h2>Partie beendet 🎉</h2>
           <p>
@@ -126,91 +301,99 @@ export function App() {
                 </li>
               ))}
           </ol>
-          <button onClick={newGame}>Neue Partie</button>
+          <button onClick={onNewGame}>Neue Partie</button>
         </section>
-      ) : (
-        <>
-          <p className="hint">{PHASE_HINT[state.phase]}</p>
+      </div>
+    );
+  }
 
-          <section className="players">
-            {state.players.map((p) => (
-              <PlayerCard
-                key={p.id}
-                player={p}
-                active={activeDrafter?.id === p.id}
-                selectedDieIds={state.phase === 'swap' ? selectedClear : undefined}
-                onToggleClear={state.phase === 'swap' ? toggleClear : undefined}
-              />
-            ))}
-          </section>
+  return (
+    <div className="app">
+      <header className="app__header">
+        <h1>🧀 Dice Mice</h1>
+        <div className="app__meta">
+          <span>
+            Runde {state.round} / {state.config.totalRounds}
+          </span>
+          <span className="badge">{PHASE_LABEL[state.phase]}</span>
+        </div>
+      </header>
 
-          {state.phase === 'swap' && (
-            <section className="panel">
-              {hasClearDice ? (
-                <button onClick={rerollSelected} disabled={selectedClear.size === 0}>
-                  {selectedClear.size > 0
-                    ? `${selectedClear.size} Klar-Würfel neu würfeln`
-                    : 'Klar-Würfel auswählen'}
-                </button>
-              ) : (
-                <p className="muted">Keine Klar-Würfel im Spiel.</p>
-              )}
-            </section>
-          )}
+      <p className="hint">{PHASE_HINT[state.phase]}</p>
 
-          {state.phase === 'draft' && (
-            <section className="panel">
-              <h2>
-                Angebot
-                {activeDrafter && <> · {activeDrafter.name} ist am Zug</>}
-              </h2>
-              <div className="offers">
-                {state.draftOffers.map((o) => (
-                  <button
-                    key={o.id}
-                    className="offer"
-                    style={{ borderColor: DIE_COLORS[o.die.color] }}
-                    disabled={!activeDrafter}
-                    onClick={() =>
-                      activeDrafter &&
-                      setState(draftPick(state, activeDrafter.id, o.id))
-                    }
-                  >
-                    {DIE_LABELS[o.die.color]} W{o.die.sides}
-                    {o.die.variant === 'glitter' ? ' ✨' : ''}
-                  </button>
-                ))}
-              </div>
-              {activeDrafter ? (
-                <button
-                  className="ghost"
-                  onClick={() => setState(draftPass(state, activeDrafter.id))}
-                >
-                  {activeDrafter.name} passt
-                </button>
-              ) : (
-                <p className="muted">Alle haben gewählt.</p>
-              )}
-            </section>
-          )}
+      <section className="players">
+        {state.players.map((p) => (
+          <PlayerCard
+            key={p.id}
+            player={p}
+            active={activeDrafter?.id === p.id}
+            selectedDieIds={state.phase === 'swap' ? selectedClear : undefined}
+            onToggleClear={state.phase === 'swap' && !p.isAI ? onToggleClear : undefined}
+          />
+        ))}
+      </section>
 
-          <div className="actions">
-            <button
-              onClick={() => setState(advancePhase(state, rngRef.current))}
-              disabled={state.phase === 'draft' && !draftComplete}
-            >
-              {state.phase === 'draft'
-                ? state.round >= state.config.totalRounds
-                  ? 'Partie beenden →'
-                  : 'Nächste Runde →'
-                : 'Weiter →'}
+      {state.phase === 'swap' && (
+        <section className="panel">
+          {hasClearDice ? (
+            <button onClick={onRerollSelected} disabled={selectedClear.size === 0}>
+              {selectedClear.size > 0
+                ? `${selectedClear.size} Klar-Würfel neu würfeln`
+                : 'Klar-Würfel auswählen'}
             </button>
-            <button className="ghost" onClick={newGame}>
-              Neue Partie
-            </button>
-          </div>
-        </>
+          ) : (
+            <p className="muted">Keine Klar-Würfel im Spiel.</p>
+          )}
+        </section>
       )}
+
+      {state.phase === 'draft' && (
+        <section className="panel">
+          <h2>
+            Angebot
+            {activeDrafter && (
+              <>
+                {' '}
+                · {activeDrafter.name}
+                {activeDrafter.isAI ? ' (KI) wählt …' : ' ist am Zug'}
+              </>
+            )}
+          </h2>
+          <div className="offers">
+            {state.draftOffers.map((o) => (
+              <button
+                key={o.id}
+                className="offer"
+                style={{ borderColor: DIE_COLORS[o.die.color] }}
+                disabled={!humanDrafting}
+                onClick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
+              >
+                {DIE_LABELS[o.die.color]} W{o.die.sides}
+                {o.die.variant === 'glitter' ? ' ✨' : ''}
+              </button>
+            ))}
+          </div>
+          {humanDrafting && (
+            <button className="ghost" onClick={() => onPass(activeDrafter!.id)}>
+              {activeDrafter!.name} passt
+            </button>
+          )}
+          {draftComplete && <p className="muted">Alle haben gewählt.</p>}
+        </section>
+      )}
+
+      <div className="actions">
+        <button onClick={onAdvance} disabled={state.phase === 'draft' && !draftComplete}>
+          {state.phase === 'draft'
+            ? state.round >= state.config.totalRounds
+              ? 'Partie beenden →'
+              : 'Nächste Runde →'
+            : 'Weiter →'}
+        </button>
+        <button className="ghost" onClick={onNewGame}>
+          Neue Partie
+        </button>
+      </div>
 
       {state.log.length > 0 && (
         <details className="log">

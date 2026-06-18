@@ -150,6 +150,58 @@ body {
   padding-left: 20px;
 }
 
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.field__label {
+  font-weight: 600;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.counter button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.counter__value {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.seg {
+  display: flex;
+  gap: 6px;
+}
+
+.seg__btn {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid #4a3d33;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.seg__btn--on {
+  background: var(--accent);
+  color: #1c1410;
+  border-color: var(--accent);
+}
+
 .panel {
   background: var(--panel);
   border-radius: 14px;

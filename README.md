@@ -4,9 +4,14 @@ Ein eigenständiges Würfelspiel mit Mäuse-Thema (im Geist von Panda Royale, ab
 eigener Name, eigene Grafiken und Regeltexte). Stack: **React + Vite**, PWA-fähig,
 später Capacitor für iOS.
 
-> Status: **Phase 0 (Setup + PWA-Gerüst)** und **Phase 1 (Engine + Tests)** sind
-> umgesetzt. Eine minimal lauffähige UI (CSS-Platzhalter-Würfel) treibt die Engine
-> bereits an. Phasen 2–7 folgen.
+> Status: **Phasen 0–3** sind umgesetzt:
+> - **Phase 0** – Setup + PWA-Gerüst (Vite, manifest, Service Worker, Icon-Slots)
+> - **Phase 1** – reine Engine + 26 Unit-Tests
+> - **Phase 2** – UI an die Engine angebunden, alle vier Phasen interaktiv (Pass-and-Play)
+> - **Phase 3** – KI-Gegner (Solo) mit 3 Schwierigkeitsgraden, gekapselt für spätere
+>   serverseitige Wiederverwendung
+>
+> Würfel sind weiterhin CSS-Platzhalter (Phase 4 -> 3D). Phasen 4–7 folgen.
 
 ## Entwicklung
 
@@ -32,9 +37,15 @@ src/
     scoring.ts       #   reine Wertungslogik (alle Farben, Tie-Breaks)
     gameEngine.ts    #   Zustands-Maschine (4 Phasen pro Runde)
     __tests__/       #   Unit-Tests je Wertungsregel + Phasenfolge
+  ai/                # KI-Gegner – hängt nur von der Engine ab, KEINE UI
+    ai.ts            #   Entscheidungen (swap/draft) + Schwierigkeitsgrade
   ui/                # Präsentation (Phase 4: 3D-Würfel ersetzen Platzhalter)
-  App.tsx            # minimaler Engine-Treiber
+  App.tsx            # Setup-Screen + Spielablauf, KI-Treiber
 ```
+
+> Die KI (`src/ai`) ist bewusst von der UI getrennt. `aiTakePhaseAction` ist der
+> gemeinsame Einstiegspunkt für den Solo-Modus **und** später für serverseitige
+> Spielerausfälle im Online-Modus (Phase 6).
 
 ## Spielregeln (Kurzfassung)
 
