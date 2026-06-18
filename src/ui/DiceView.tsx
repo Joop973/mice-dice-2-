@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react';
 import type { RolledDie } from '../engine';
 import { Die } from './Die';
 import { DiceErrorBoundary } from './dice3d/DiceErrorBoundary';
+import { isWebGLAvailable } from './dice3d/webgl';
 
 // three.js + r3f werden erst geladen, wenn der 3D-Modus tatsächlich aktiv ist.
 // Hält den Initial-Load klein; der 2D-/Solo-Modus läuft ohne 3D-Bundle.
@@ -44,7 +45,7 @@ export function DiceView({ dice, use3d, selectedDieIds, onToggleClear }: DiceVie
     <TwoD dice={dice} selectedDieIds={selectedDieIds} onToggleClear={onToggleClear} />
   );
 
-  if (!use3d || dice.length === 0) return twoD;
+  if (!use3d || dice.length === 0 || !isWebGLAvailable()) return twoD;
 
   return (
     <div className="dice3d">
