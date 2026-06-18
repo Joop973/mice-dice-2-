@@ -4,7 +4,7 @@ Ein eigenständiges Würfelspiel mit Mäuse-Thema (im Geist von Panda Royale, ab
 eigener Name, eigene Grafiken und Regeltexte). Stack: **React + Vite**, PWA-fähig,
 später Capacitor für iOS.
 
-> Status: **Phasen 0–5** sind umgesetzt:
+> Status: **Phasen 0–6** sind umgesetzt:
 > - **Phase 0** – Setup + PWA-Gerüst (Vite, manifest, Service Worker, Icon-Slots)
 > - **Phase 1** – reine Engine + 26 Unit-Tests
 > - **Phase 2** – UI an die Engine angebunden, alle vier Phasen interaktiv (Pass-and-Play)
@@ -16,8 +16,13 @@ später Capacitor für iOS.
 >   echte Assets) und Klang-/Animations-Feedback für Wurf, Kronenwechsel,
 >   Punkte-Tick, Draft-Pick/-Pass, Rundenwechsel, Sieger-Sequenz und Negativ-Wertung;
 >   Mute-Schalter, `prefers-reduced-motion` respektiert
+> - **Phase 6** – Online-Kern: server-autoritativer Raum (wiederverwendet Engine +
+>   KI), Lobby mit Beitrittscodes, Transport-Abstraktion mit Loopback- **und**
+>   WebSocket-Implementierung, echter Node-`ws`-Server. Voll getestet (58 Tests).
+>   **Noch offen:** Verdrahtung der Lobby-UI im Client (nächster Schritt).
 >
-> Phasen 6–7 folgen (Online-Multiplayer, PWA-Feinschliff/Deploy).
+> Phase 7 folgt (PWA-Feinschliff/Deploy). Die Online-Lobby-UI ist der verbleibende
+> Teil von Phase 6.
 
 ## Entwicklung
 
@@ -56,8 +61,34 @@ src/
     events.ts        #   Ereignis-Katalog + prozedurale Töne (Slots für Assets)
     SoundManager.ts  #   WebAudio-Synth/Asset-Player, Mute, Autoplay-Unlock
     useSound.ts      #   React-Hook (Singleton-Manager, Geste-Freischaltung)
+  net/               # Online-Kern – server-autoritativ, hängt nur von Engine + KI ab
+    protocol.ts      #   Client-/Server-Nachrichten + Aktionen (nur Typen)
+    room.ts          #   autoritativer Raum: validiert Aktionen, wendet Engine an
+    lobby.ts         #   Raum-Registry + Beitrittscodes (hält pro Raum den RNG)
+    transport.ts     #   Transport-Abstraktion (Loopback ⟷ WebSocket)
+    LocalTransport.ts#   In-Process-Loopback (Online-Pfad ohne Netzwerk)
+    WebSocketTransport.ts # Online-Transport (JSON über WebSocket)
   App.tsx            # Setup-Screen + Spielablauf, KI-Treiber, 3D/2D + Mute
+server/
+  index.ts           # echter Node-ws-Server – dünn, nutzt den getesteten net-Kern
+  tsconfig.json      # eigener Typecheck (npm run typecheck:server), NICHT im Build
 ```
+
+### Online-Modus (Server)
+
+Der Server ist **autoritativ**: Clients schicken nur Absichten (`GameAction`),
+der Server validiert sie gegen die reine Engine und broadcastet den maßgeblichen
+`GameState`. Würfeln/Zufall passieren serverseitig (geteilter RNG pro Raum), KI
+bzw. Auto-Play übernimmt getrennte oder KI-Sitze.
+
+```sh
+npm install            # zieht ws / tsx (Server-Devabhängigkeiten)
+npm run dev:server     # WebSocket-Server auf ws://localhost:8787 (Auto-Reload)
+npm run typecheck:server
+```
+
+Dieselbe Logik läuft ohne Netzwerk über `LocalTransport` (Loopback) – so ist der
+Online-Code-Pfad auch offline nutzbar und vollständig testbar.
 
 > Die KI (`src/ai`) ist bewusst von der UI getrennt. `aiTakePhaseAction` ist der
 > gemeinsame Einstiegspunkt für den Solo-Modus **und** später für serverseitige
