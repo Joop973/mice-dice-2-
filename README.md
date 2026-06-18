@@ -4,7 +4,7 @@ Ein eigenständiges Würfelspiel mit Mäuse-Thema (im Geist von Panda Royale, ab
 eigener Name, eigene Grafiken und Regeltexte). Stack: **React + Vite**, PWA-fähig,
 später Capacitor für iOS.
 
-> Status: **Phasen 0–4** sind umgesetzt:
+> Status: **Phasen 0–5** sind umgesetzt:
 > - **Phase 0** – Setup + PWA-Gerüst (Vite, manifest, Service Worker, Icon-Slots)
 > - **Phase 1** – reine Engine + 26 Unit-Tests
 > - **Phase 2** – UI an die Engine angebunden, alle vier Phasen interaktiv (Pass-and-Play)
@@ -12,8 +12,12 @@ später Capacitor für iOS.
 >   serverseitige Wiederverwendung
 > - **Phase 4** – 3D-Würfel (react-three-fiber) mit Wurf-/Tumble-Animation,
 >   2D-Fallback + Error-Boundary, lazy geladenes three.js-Bundle, 3D/2D-Umschalter
+> - **Phase 5** – Sound + Animationen: prozedurale WebAudio-Klänge (mit Slots für
+>   echte Assets) und Klang-/Animations-Feedback für Wurf, Kronenwechsel,
+>   Punkte-Tick, Draft-Pick/-Pass, Rundenwechsel, Sieger-Sequenz und Negativ-Wertung;
+>   Mute-Schalter, `prefers-reduced-motion` respektiert
 >
-> Phasen 5–7 folgen (Sound/Animationen, Online-Multiplayer, PWA-Feinschliff/Deploy).
+> Phasen 6–7 folgen (Online-Multiplayer, PWA-Feinschliff/Deploy).
 
 ## Entwicklung
 
@@ -45,7 +49,14 @@ src/
     Die.tsx          #   2D-Platzhalter-Würfel
     DiceView.tsx     #   wählt 3D oder 2D (lazy three.js, Error-Boundary)
     dice3d/          #   react-three-fiber: Canvas, Würfel, Zahlen-Textur
-  App.tsx            # Setup-Screen + Spielablauf, KI-Treiber, 3D/2D-Umschalter
+    AnimatedNumber.tsx #  weicher Punkte-Tick (ease-out, reduced-motion-fähig)
+    gameEvents.ts    #   reine Ereignis-Erkennung (Zustands-Diff -> Klang/Flags)
+    useGameEvents.ts #   React-Brücke: feuert Klänge + kurzlebige Animations-Flags
+  sound/             # Audio – hängt nur von benannten Ereignissen ab, KEINE Engine
+    events.ts        #   Ereignis-Katalog + prozedurale Töne (Slots für Assets)
+    SoundManager.ts  #   WebAudio-Synth/Asset-Player, Mute, Autoplay-Unlock
+    useSound.ts      #   React-Hook (Singleton-Manager, Geste-Freischaltung)
+  App.tsx            # Setup-Screen + Spielablauf, KI-Treiber, 3D/2D + Mute
 ```
 
 > Die KI (`src/ai`) ist bewusst von der UI getrennt. `aiTakePhaseAction` ist der

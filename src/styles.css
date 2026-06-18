@@ -283,3 +283,171 @@ button.ghost {
   margin: 8px 0 0;
   padding-left: 18px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Phase 5: Animationen & visuelles Feedback
+ * ------------------------------------------------------------------------- */
+
+/* Würfel-Eintritt: rollt bei jedem frischen Wurf kurz herein. */
+@keyframes die-roll-in {
+  0% {
+    transform: translateY(-8px) rotate(-12deg) scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(0) rotate(6deg) scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+.die {
+  animation: die-roll-in 320ms ease-out both;
+}
+
+/* Kronenwechsel: goldener Puls auf der Spielerkarte. */
+@keyframes crown-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(244, 197, 66, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgba(244, 197, 66, 0);
+  }
+}
+
+.player--crowned {
+  outline: 2px solid var(--accent);
+  animation: crown-pulse 900ms ease-out 2;
+}
+
+/* Negativ-Wertung (Rot/Sabotage): roter Shake. */
+@keyframes warn-shake {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-5px);
+  }
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+}
+
+.player--warn {
+  animation: warn-shake 600ms ease-in-out both;
+  box-shadow: 0 0 0 2px #c0392b inset;
+}
+
+/* Runden-/Sieger-Banner: blendet kurz mittig ein. */
+@keyframes banner-pop {
+  0% {
+    transform: translateY(-10px) scale(0.9);
+    opacity: 0;
+  }
+  15%,
+  80% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-6px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+.banner {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 12px;
+  pointer-events: none;
+}
+
+.banner span {
+  background: var(--accent);
+  color: #1c1410;
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 8px 22px;
+  border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  animation: banner-pop 1600ms ease-out both;
+}
+
+/* Sieger-Sequenz: Panel skaliert herein, Konfetti rieselt. */
+@keyframes win-in {
+  0% {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.panel--win {
+  animation: win-in 500ms ease-out both;
+}
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(540deg);
+    opacity: 0.9;
+  }
+}
+
+.confetti span {
+  position: absolute;
+  top: -10vh;
+  left: calc(var(--i) * 7%);
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: confetti-fall 2.4s linear infinite;
+  animation-delay: calc(var(--i) * 140ms);
+}
+
+.confetti span:nth-child(3n) {
+  background: #5fbf6a;
+}
+.confetti span:nth-child(3n + 1) {
+  background: #e0568a;
+}
+.confetti span:nth-child(4n) {
+  background: #5aa9e6;
+}
+
+/* Bewegungsreduzierung respektieren: keine dekorativen Animationen. */
+@media (prefers-reduced-motion: reduce) {
+  .die,
+  .player--crowned,
+  .player--warn,
+  .banner span,
+  .panel--win,
+  .confetti span {
+    animation: none;
+  }
+}

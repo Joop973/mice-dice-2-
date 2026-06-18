@@ -3,6 +3,7 @@
 
 import type { Player } from '../engine';
 import { DiceView } from './DiceView';
+import { AnimatedNumber } from './AnimatedNumber';
 
 interface PlayerCardProps {
   player: Player;
@@ -10,6 +11,10 @@ interface PlayerCardProps {
   use3d: boolean;
   /** Hebt den Spieler hervor (z. B. „ist gerade am Zug" beim Draften). */
   active?: boolean;
+  /** Spieler hat gerade die Krone gewonnen (Puls-Animation). */
+  crowned?: boolean;
+  /** Spieler hat gerade eine Negativ-Wertung kassiert (Warn-Shake). */
+  warn?: boolean;
   /** IDs der zum Tausch ausgewählten Klar-Würfel. */
   selectedDieIds?: Set<string>;
   /** Callback, wenn ein Klar-Würfel an-/abgewählt wird (nur Swap-Phase). */
@@ -20,11 +25,22 @@ export function PlayerCard({
   player,
   use3d,
   active,
+  crowned,
+  warn,
   selectedDieIds,
   onToggleClear,
 }: PlayerCardProps) {
+  const className = [
+    'player',
+    active ? 'player--active' : '',
+    crowned ? 'player--crowned' : '',
+    warn ? 'player--warn' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <article className={`player${active ? ' player--active' : ''}`}>
+    <article className={className}>
       <header className="player__head">
         <span className="player__name">
           {player.hasCrown ? '👑 ' : ''}
@@ -32,7 +48,7 @@ export function PlayerCard({
           {player.isAI ? ' 🤖' : ''}
         </span>
         <span className="player__score">
-          {player.totalScore}
+          <AnimatedNumber value={player.totalScore} />
           {player.roundScore !== 0 && (
             <em>
               {' '}

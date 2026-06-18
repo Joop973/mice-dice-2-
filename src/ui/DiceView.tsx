@@ -28,7 +28,7 @@ function TwoD({ dice, selectedDieIds, onToggleClear }: Omit<DiceViewProps, 'use3
         const clickable = onToggleClear && d.color === 'clear';
         return (
           <Die
-            key={d.id}
+            key={`${d.id}#${d.value}`}
             die={d}
             pity={d.isPity}
             selected={selectedDieIds?.has(d.id)}

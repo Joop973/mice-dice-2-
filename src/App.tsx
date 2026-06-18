@@ -3,7 +3,7 @@
 // (strikte Trennung). KI-Spieler agieren automatisch über das gekapselte
 // ai-Modul. Würfel sind CSS-Platzhalter (Phase 4 -> 3D).
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import {
   advancePhase,
   createRNG,
@@ -24,6 +24,8 @@ import {
   type Difficulty,
 } from './ai';
 import { PlayerCard } from './ui/PlayerCard';
+import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
+import { useSound } from './sound';
 import { DIE_COLORS, DIE_LABELS } from './ui/colors';
 
 const PHASE_LABEL: Record<Phase, string> = {
@@ -65,6 +67,9 @@ export function App() {
   const [state, setState] = useState<GameState | null>(null);
   const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
   const [use3d, setUse3d] = useState(true);
+
+  const { play, muted, toggleMuted } = useSound();
+  const fx = useGameEvents(state, play);
 
   function start() {
     const seed = newSeed();
@@ -135,6 +140,9 @@ export function App() {
       difficulty={difficulty}
       use3d={use3d}
       onToggle3d={() => setUse3d((v) => !v)}
+      muted={muted}
+      onToggleMute={toggleMuted}
+      fx={fx}
       selectedClear={selectedClear}
       onToggleClear={(id) =>
         setSelectedClear((prev) => {
@@ -254,6 +262,9 @@ interface GameProps {
   difficulty: Difficulty;
   use3d: boolean;
   onToggle3d: () => void;
+  muted: boolean;
+  onToggleMute: () => void;
+  fx: GameEventFx;
   selectedClear: Set<string>;
   onToggleClear: (id: string) => void;
   onRerollSelected: () => void;
@@ -267,6 +278,9 @@ function Game({
   state,
   use3d,
   onToggle3d,
+  muted,
+  onToggleMute,
+  fx,
   selectedClear,
   onToggleClear,
   onRerollSelected,
@@ -291,10 +305,15 @@ function Game({
   if (state.finished) {
     return (
       <div className="app">
+        <div className="confetti" aria-hidden="true">
+          {Array.from({ length: 14 }, (_, i) => (
+            <span key={i} style={{ '--i': i } as CSSProperties} />
+          ))}
+        </div>
         <header className="app__header">
           <h1>🧀 Dice Mice</h1>
         </header>
-        <section className="panel">
+        <section className="panel panel--win">
           <h2>Partie beendet 🎉</h2>
           <p>
             Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
@@ -326,8 +345,22 @@ function Game({
           <button className="toggle3d" onClick={onToggle3d}>
             {use3d ? '3D' : '2D'}
           </button>
+          <button
+            className="toggle3d"
+            onClick={onToggleMute}
+            aria-label={muted ? 'Ton einschalten' : 'Ton ausschalten'}
+            aria-pressed={muted}
+          >
+            {muted ? '🔇' : '🔊'}
+          </button>
         </div>
       </header>
+
+      {fx.banner && (
+        <div className="banner" role="status" aria-live="polite">
+          <span>{fx.banner}</span>
+        </div>
+      )}
 
       <p className="hint">{PHASE_HINT[state.phase]}</p>
 
@@ -338,6 +371,8 @@ function Game({
             player={p}
             use3d={use3d}
             active={activeDrafter?.id === p.id}
+            crowned={fx.crownedNow.has(p.id)}
+            warn={fx.warnNow.has(p.id)}
             selectedDieIds={state.phase === 'swap' ? selectedClear : undefined}
             onToggleClear={state.phase === 'swap' && !p.isAI ? onToggleClear : undefined}
           />
