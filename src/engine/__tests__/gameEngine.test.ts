@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   advancePhase,
   createGame,
+  draftPass,
   draftPick,
   performRoll,
   startGame,
@@ -91,6 +92,18 @@ describe('Draft', () => {
     const afterFirst = s.players[0].bag.length;
     s = draftPick(s, 'p0', s.draftOffers[0].id);
     expect(s.players[0].bag).toHaveLength(afterFirst); // zweiter Pick ignoriert
+  });
+
+  it('lässt einen Spieler passen, ohne einen Würfel zu nehmen', () => {
+    const rng = createRNG(77);
+    let s = performRoll(createGame({ players: [{ name: 'A' }] }), rng);
+    s = advancePhase(advancePhase(advancePhase(s, rng), rng), rng); // -> draft
+    const bagBefore = s.players[0].bag.length;
+    const offersBefore = s.draftOffers.length;
+    s = draftPass(s, 'p0');
+    expect(s.players[0].bag).toHaveLength(bagBefore);
+    expect(s.draftOffers).toHaveLength(offersBefore);
+    expect(s.draftedThisPhase).toContain('p0');
   });
 });
 

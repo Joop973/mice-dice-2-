@@ -141,7 +141,7 @@ export function distributePity(state: GameState, rng: RNG): GameState {
   for (const p of next.players) {
     if (p.totalScore < leaderScore) {
       const die = instantiate(STARTER, next.config, `d${next.nextId++}`);
-      p.rolled.push(rollDie(die, rng));
+      p.rolled.push({ ...rollDie(die, rng), isPity: true });
       next.log.push(`${p.name} erhält einen Mitleidswürfel.`);
     }
   }
@@ -200,6 +200,19 @@ export function draftPick(
   if (!player) return state;
   player.bag.push(offer.die);
   next.draftOffers = next.draftOffers.filter((o) => o.id !== offerId);
+  next.draftedThisPhase.push(playerId);
+  return next;
+}
+
+/**
+ * Draft-Phase: ein Spieler verzichtet auf einen Pick. Markiert ihn als fertig,
+ * ohne einen Würfel zu nehmen.
+ */
+export function draftPass(state: GameState, playerId: string): GameState {
+  if (state.phase !== 'draft') return state;
+  if (state.draftedThisPhase.includes(playerId)) return state;
+  if (!state.players.some((p) => p.id === playerId)) return state;
+  const next = cloneState(state);
   next.draftedThisPhase.push(playerId);
   return next;
 }

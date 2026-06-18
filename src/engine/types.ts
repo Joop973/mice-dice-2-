@@ -40,6 +40,8 @@ export interface DieDef {
 /** Ein geworfener Würfel: Definition plus konkret gewürfelter Wert. */
 export interface RolledDie extends DieDef {
   value: number;
+  /** true, wenn dieser Würfel als Mitleidswürfel dazugekommen ist. */
+  isPity?: boolean;
 }
 
 /** Eintrag im Draft-Angebot. */
