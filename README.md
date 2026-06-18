@@ -16,13 +16,14 @@ später Capacitor für iOS.
 >   echte Assets) und Klang-/Animations-Feedback für Wurf, Kronenwechsel,
 >   Punkte-Tick, Draft-Pick/-Pass, Rundenwechsel, Sieger-Sequenz und Negativ-Wertung;
 >   Mute-Schalter, `prefers-reduced-motion` respektiert
-> - **Phase 6** – Online-Kern: server-autoritativer Raum (wiederverwendet Engine +
->   KI), Lobby mit Beitrittscodes, Transport-Abstraktion mit Loopback- **und**
->   WebSocket-Implementierung, echter Node-`ws`-Server. Voll getestet (58 Tests).
->   **Noch offen:** Verdrahtung der Lobby-UI im Client (nächster Schritt).
+> - **Phase 6** – Online-Multiplayer: server-autoritativer Raum (wiederverwendet
+>   Engine + KI), Lobby mit Beitrittscodes, Transport-Abstraktion mit Loopback-
+>   **und** WebSocket-Implementierung, echter Node-`ws`-Server **und** die
+>   verdrahtete Online-UI (Menü → Verbinden → Lobby → Online-Partie). Ohne Server
+>   läuft der Online-Pfad über den Loopback (Solo gegen KI). Voll getestet
+>   (60 Tests, inkl. DOM-Integrationstest der Online-UI).
 >
-> Phase 7 folgt (PWA-Feinschliff/Deploy). Die Online-Lobby-UI ist der verbleibende
-> Teil von Phase 6.
+> Phase 7 folgt (PWA-Feinschliff/Deploy).
 
 ## Entwicklung
 
@@ -68,7 +69,10 @@ src/
     transport.ts     #   Transport-Abstraktion (Loopback ⟷ WebSocket)
     LocalTransport.ts#   In-Process-Loopback (Online-Pfad ohne Netzwerk)
     WebSocketTransport.ts # Online-Transport (JSON über WebSocket)
-  App.tsx            # Setup-Screen + Spielablauf, KI-Treiber, 3D/2D + Mute
+  ui/
+    useGameClient.ts #   React-Hook über den Transport (Verbindung + Aktionen)
+    OnlineFlow.tsx   #   Online-UI: Verbinden → Lobby → Online-Partie
+  App.tsx            # Menü (Lokal/Online) + lokaler Spielablauf, KI-Treiber, Mute
 server/
   index.ts           # echter Node-ws-Server – dünn, nutzt den getesteten net-Kern
   tsconfig.json      # eigener Typecheck (npm run typecheck:server), NICHT im Build

@@ -284,6 +284,38 @@ button.ghost {
   padding-left: 18px;
 }
 
+/* Online-Modus: Formulare, Codes, Fehlertexte */
+.input {
+  background: #1c1410;
+  color: var(--text);
+  border: 1px solid #4a3d33;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  min-width: 0;
+  flex: 1;
+  max-width: 60%;
+}
+
+.input::placeholder {
+  color: #7d7164;
+}
+
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 2px;
+  background: #1c1410;
+  border: 1px solid #4a3d33;
+  border-radius: 8px;
+  padding: 1px 8px;
+}
+
+.error {
+  color: #ff8a7a;
+  font-size: 0.9rem;
+  margin: 10px 0 0;
+}
+
 /* ---------------------------------------------------------------------------
  * Phase 5: Animationen & visuelles Feedback
  * ------------------------------------------------------------------------- */

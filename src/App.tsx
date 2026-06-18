@@ -25,6 +25,7 @@ import {
 } from './ai';
 import { PlayerCard } from './ui/PlayerCard';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
+import { OnlineFlow } from './ui/OnlineFlow';
 import { useSound } from './sound';
 import { DIE_COLORS, DIE_LABELS } from './ui/colors';
 
@@ -59,6 +60,7 @@ export function App() {
   const rngRef = useRef<RNG>(createRNG(newSeed()));
   const aiSwapRoundRef = useRef(0);
 
+  const [mode, setMode] = useState<'menu' | 'local' | 'online'>('menu');
   const [started, setStarted] = useState(false);
   const [humans, setHumans] = useState(1);
   const [ais, setAis] = useState(1);
@@ -120,6 +122,14 @@ export function App() {
     }
   }, [state, difficulty]);
 
+  if (mode === 'menu') {
+    return <Menu onLocal={() => setMode('local')} onOnline={() => setMode('online')} />;
+  }
+
+  if (mode === 'online') {
+    return <OnlineFlow onBack={() => setMode('menu')} />;
+  }
+
   if (!started || !state) {
     return (
       <Setup
@@ -130,6 +140,7 @@ export function App() {
         setAis={setAis}
         setDifficulty={setDifficulty}
         onStart={start}
+        onBack={() => setMode('menu')}
       />
     );
   }
@@ -171,6 +182,27 @@ export function App() {
   );
 }
 
+function Menu({ onLocal, onOnline }: { onLocal: () => void; onOnline: () => void }) {
+  return (
+    <div className="app">
+      <header className="app__header">
+        <h1>🧀 Dice Mice</h1>
+        <p className="hint">Würfelspiel mit Mäuse-Thema</p>
+      </header>
+      <section className="panel">
+        <button onClick={onLocal}>🎲 Solo / Pass-and-Play</button>
+        <p className="muted" style={{ margin: '10px 0 18px' }}>
+          Lokal an einem Gerät – allein gegen die KI oder reihum.
+        </p>
+        <button onClick={onOnline}>🌐 Online spielen</button>
+        <p className="muted" style={{ marginTop: 10 }}>
+          Raum erstellen und Code teilen. Ohne Server lokal simuliert.
+        </p>
+      </section>
+    </div>
+  );
+}
+
 interface SetupProps {
   humans: number;
   ais: number;
@@ -179,6 +211,7 @@ interface SetupProps {
   setAis: (n: number) => void;
   setDifficulty: (d: Difficulty) => void;
   onStart: () => void;
+  onBack: () => void;
 }
 
 function Setup({
@@ -189,6 +222,7 @@ function Setup({
   setAis,
   setDifficulty,
   onStart,
+  onBack,
 }: SetupProps) {
   const total = humans + ais;
   const valid = total >= 2 && total <= 4 && humans >= 1;
@@ -224,6 +258,12 @@ function Setup({
           Partie starten →
         </button>
       </section>
+
+      <div className="actions">
+        <button className="ghost" onClick={onBack}>
+          ← Zurück
+        </button>
+      </div>
     </div>
   );
 }
