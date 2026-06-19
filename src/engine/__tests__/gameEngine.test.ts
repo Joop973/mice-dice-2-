@@ -24,6 +24,18 @@ describe('createGame', () => {
   });
 });
 
+describe('lastScores', () => {
+  it('ist nach der Wertung (swap -> draft) gesetzt, davor nicht', () => {
+    const rng = createRNG(99);
+    let s = startGame({ players: [{ name: 'A' }, { name: 'B' }], seed: 99 }).state;
+    expect(s.lastScores).toBeUndefined();
+    while (s.phase !== 'draft') s = advancePhase(s, rng);
+    expect(s.lastScores).toBeDefined();
+    expect(s.lastScores).toHaveLength(2);
+    expect(s.lastScores![0]).toHaveProperty('contributions');
+  });
+});
+
 describe('performRoll', () => {
   it('würfelt alle Beutel und ist deterministisch bei gleicher Seed', () => {
     const rng1 = createRNG(42);

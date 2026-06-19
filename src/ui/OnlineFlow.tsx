@@ -11,6 +11,7 @@ import { LocalTransport, WebSocketTransport, type Transport } from '../net';
 import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from '../ai';
 import type { GameState, Phase, Player } from '../engine';
 import { PlayerCard } from './PlayerCard';
+import { RoundSummary } from './RoundSummary';
 import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
@@ -356,6 +357,10 @@ function OnlineGame({
             <p className="muted">Du hast keine Klar-Würfel.</p>
           )}
         </section>
+      )}
+
+      {state.phase === 'draft' && state.lastScores && (
+        <RoundSummary scores={state.lastScores} players={state.players} />
       )}
 
       {state.phase === 'draft' && (

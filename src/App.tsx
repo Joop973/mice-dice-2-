@@ -24,6 +24,7 @@ import {
   type Difficulty,
 } from './ai';
 import { PlayerCard } from './ui/PlayerCard';
+import { RoundSummary } from './ui/RoundSummary';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
 import { useSound } from './sound';
@@ -431,6 +432,10 @@ function Game({
             <p className="muted">Keine Klar-Würfel im Spiel.</p>
           )}
         </section>
+      )}
+
+      {state.phase === 'draft' && state.lastScores && (
+        <RoundSummary scores={state.lastScores} players={state.players} />
       )}
 
       {state.phase === 'draft' && (

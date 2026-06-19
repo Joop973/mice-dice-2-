@@ -8,7 +8,13 @@
 // Reihenfolge-Mehrdeutigkeit. Orange zählt die Farbvielfalt des JEWEILIGEN
 // Spielers (seine eigenen, in dieser Runde geworfenen Würfel).
 
-import type { DieColor, Player, RolledDie } from './types';
+import type {
+  DieColor,
+  Player,
+  RolledDie,
+  ScoreBreakdown,
+  ScoreContributions,
+} from './types';
 
 /** Normalisiert eine Farbe für die Orange-Zählung: Blau-Glitzer zählt als Blau. */
 export function colorKey(die: RolledDie): DieColor {
@@ -63,37 +69,40 @@ export function brownScore(rolled: RolledDie[]): number {
 }
 
 /**
+ * Punkt-Beitrag je Farbe für einen Spieler (Grundlage für Basis-Punkte UND die
+ * Auswertungsanzeige). Sabotage zählt NICHT zu den eigenen Punkten (Angriff).
+ */
+export function scoreContributions(
+  rolled: RolledDie[],
+  clearScores: boolean
+): ScoreContributions {
+  return {
+    yellow: sumOfColor(rolled, 'yellow'),
+    green: sumOfColor(rolled, 'green'),
+    blue: sumOfColor(rolled, 'blue'),
+    purple: sumOfColor(rolled, 'purple'),
+    pink: sumOfColor(rolled, 'pink'),
+    red: sumOfColor(rolled, 'red'),
+    clear: clearScores ? sumOfColor(rolled, 'clear') : 0,
+    orange: orangeScore(rolled),
+    brown: brownScore(rolled),
+  };
+}
+
+/** Summe aller Farb-Beiträge. */
+export function sumContributions(c: ScoreContributions): number {
+  return (
+    c.yellow + c.green + c.blue + c.purple + c.pink + c.red + c.clear + c.orange + c.brown
+  );
+}
+
+/**
  * Basis-Rundenpunkte eines Spielers OHNE Sabotage-Interaktion.
  * Enthält: Gelb, Grün, Blau (beide Varianten), Lila, Pink, Rot (kann negativ
  * sein), Orange, Braun und — falls konfiguriert — Klar.
- * Sabotage zählt NICHT zu den eigenen Punkten (sie ist ein Angriff).
  */
-export function baseRoundScore(
-  rolled: RolledDie[],
-  clearScores: boolean
-): number {
-  let total = 0;
-  total += sumOfColor(rolled, 'yellow');
-  total += sumOfColor(rolled, 'green');
-  total += sumOfColor(rolled, 'blue');
-  total += sumOfColor(rolled, 'purple');
-  total += sumOfColor(rolled, 'pink');
-  total += sumOfColor(rolled, 'red');
-  if (clearScores) total += sumOfColor(rolled, 'clear');
-  total += orangeScore(rolled);
-  total += brownScore(rolled);
-  return total;
-}
-
-export interface ScoreBreakdown {
-  playerId: string;
-  yellow: number;
-  base: number;
-  distinctColors: number;
-  sabotageThrown: number;
-  sabotageReceived: number;
-  final: number;
-  hasCrown: boolean;
+export function baseRoundScore(rolled: RolledDie[], clearScores: boolean): number {
+  return sumContributions(scoreContributions(rolled, clearScores));
 }
 
 /**
@@ -124,7 +133,8 @@ export function scoreRound(
   players: Player[],
   clearScores: boolean
 ): ScoreBreakdown[] {
-  const base = players.map((p) => baseRoundScore(p.rolled, clearScores));
+  const contributions = players.map((p) => scoreContributions(p.rolled, clearScores));
+  const base = contributions.map(sumContributions);
   const yellow = players.map((p) => yellowSum(p.rolled));
   const sabotageThrown = players.map((p) => sumOfColor(p.rolled, 'sabotage'));
 
@@ -146,6 +156,7 @@ export function scoreRound(
     playerId: p.id,
     yellow: yellow[i],
     base: base[i],
+    contributions: contributions[i],
     distinctColors: distinctColorCount(p.rolled),
     sabotageThrown: sabotageThrown[i],
     sabotageReceived: sabotageReceived[i],

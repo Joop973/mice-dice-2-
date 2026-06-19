@@ -55,6 +55,38 @@ export type Phase = 'roll' | 'pity' | 'swap' | 'draft';
 
 export const PHASE_ORDER: readonly Phase[] = ['roll', 'pity', 'swap', 'draft'] as const;
 
+/** Punkt-Beitrag je Farbe in einer Runde (für die Auswertungsanzeige). */
+export interface ScoreContributions {
+  yellow: number;
+  green: number;
+  blue: number;
+  purple: number;
+  pink: number;
+  red: number;
+  clear: number;
+  orange: number;
+  brown: number;
+}
+
+/** Vollständige Auswertung eines Spielers für eine Runde. */
+export interface ScoreBreakdown {
+  playerId: string;
+  /** Gelb-Summe (entscheidet über die Krone). */
+  yellow: number;
+  /** Basis-Rundenpunkte (Summe aller Beiträge, vor Sabotage). */
+  base: number;
+  /** Beitrag je Farbe. */
+  contributions: ScoreContributions;
+  distinctColors: number;
+  /** Eigene Sabotage-Summe (gegen den Kronenhalter geworfen). */
+  sabotageThrown: number;
+  /** Erlittene Sabotage (von anderen abgezogen). */
+  sabotageReceived: number;
+  /** Endpunkte der Runde (base − erlittene Sabotage); darf negativ sein. */
+  final: number;
+  hasCrown: boolean;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -86,6 +118,8 @@ export interface GameState {
   nextId: number;
   /** Protokoll wichtiger Ereignisse (z. B. Sabotage, Kronenwechsel). */
   log: string[];
+  /** Auswertung der zuletzt gewerteten Runde (für die UI-Anzeige). */
+  lastScores?: ScoreBreakdown[];
 }
 
 /**

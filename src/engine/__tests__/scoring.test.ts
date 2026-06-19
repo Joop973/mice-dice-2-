@@ -4,7 +4,9 @@ import {
   brownScore,
   distinctColorCount,
   orangeScore,
+  scoreContributions,
   scoreRound,
+  sumContributions,
   sumOfColor,
   yellowSum,
 } from '../scoring';
@@ -44,6 +46,36 @@ describe('Basis-Summen', () => {
     const r = [rd('yellow', 3), rd('yellow', 5), rd('green', 10)];
     expect(sumOfColor(r, 'yellow')).toBe(8);
     expect(yellowSum(r)).toBe(8);
+  });
+});
+
+describe('scoreContributions', () => {
+  it('schlüsselt die Beiträge je Farbe auf und summiert zur Basis', () => {
+    const r = [
+      rd('yellow', 4),
+      rd('green', 10, { sides: 20 }),
+      rd('orange', 3, { sides: 3 }), // × 3 verschiedene Farben = 9
+    ];
+    const c = scoreContributions(r, false);
+    expect(c.yellow).toBe(4);
+    expect(c.green).toBe(10);
+    expect(c.orange).toBe(9);
+    expect(c.clear).toBe(0);
+    expect(sumContributions(c)).toBe(baseRoundScore(r, false));
+    expect(sumContributions(c)).toBe(23);
+  });
+
+  it('zählt Klar nur, wenn clearScores aktiv ist', () => {
+    const r = [rd('clear', 6)];
+    expect(scoreContributions(r, false).clear).toBe(0);
+    expect(scoreContributions(r, true).clear).toBe(6);
+  });
+
+  it('scoreRound liefert die Beiträge pro Spieler mit', () => {
+    const breakdown = scoreRound([player('A', [rd('yellow', 5), rd('red', -2)])], false);
+    expect(breakdown[0].contributions.yellow).toBe(5);
+    expect(breakdown[0].contributions.red).toBe(-2);
+    expect(breakdown[0].final).toBe(3);
   });
 });
 

@@ -21,7 +21,7 @@ import {
   type DieBlueprint,
 } from './diceCatalog';
 import { createRNG, pick, randInt, type RNG } from './rng';
-import { scoreRound, type ScoreBreakdown } from './scoring';
+import { scoreRound } from './scoring';
 import type {
   DieDef,
   DraftOffer,
@@ -29,6 +29,7 @@ import type {
   GameState,
   Player,
   RolledDie,
+  ScoreBreakdown,
 } from './types';
 
 export interface NewPlayer {
@@ -257,6 +258,7 @@ export function advancePhase(state: GameState, rng: RNG): GameState {
       const next = cloneState(state);
       const breakdown = scoreRound(next.players, next.config.clearScores);
       applyScores(next, breakdown);
+      next.lastScores = breakdown;
       const { offers, nextId } = generateDraftOffers(next, rng);
       next.draftOffers = offers;
       next.draftedThisPhase = [];
