@@ -121,8 +121,12 @@ Dieselbe Logik läuft ohne Netzwerk über `LocalTransport` (Loopback) – so ist
 Online-Code-Pfad auch offline nutzbar und vollständig testbar.
 
 > Die KI (`src/ai`) ist bewusst von der UI getrennt. `aiTakePhaseAction` ist der
-> gemeinsame Einstiegspunkt für den Solo-Modus **und** später für serverseitige
-> Spielerausfälle im Online-Modus (Phase 6).
+> gemeinsame Einstiegspunkt für den Solo-Modus **und** für serverseitige
+> Spielerausfälle im Online-Modus. Drei Stufen: **leicht** (zufällig), **mittel**
+> (reiner Erwartungswert), **hart** (kontextbewusste Strategie: Farb-Synergien,
+> Braun-Build-Around, Sabotage je nach Spielstand, kein wertloser Kronen-Bonus).
+> Belegt per Simulation (`npm run sim`): hart schlägt mittel ~60 %, mittel schlägt
+> leicht ~88 %.
 
 ## Spielregeln (Kurzfassung)
 

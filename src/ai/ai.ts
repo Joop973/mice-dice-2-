@@ -110,6 +110,74 @@ export function aiChooseSwap(
     .map((d) => d.id);
 }
 
+/** Spielkontext aus Sicht eines Spielers, für die strategische (harte) KI. */
+interface DraftContext {
+  /** Künftige Runden, in denen ein jetzt gedrafteter Würfel noch geworfen wird. */
+  roundsLeft: number;
+  /** Führt der Spieler (>= bester Gegner)? */
+  amLeader: boolean;
+  /** Punkte-Rückstand auf den besten Gegner (>= 0). */
+  behind: number;
+}
+
+function draftContext(state: GameState, player: Player): DraftContext {
+  const others = state.players.filter((p) => p.id !== player.id);
+  const leaderScore = others.length ? Math.max(...others.map((p) => p.totalScore)) : 0;
+  return {
+    roundsLeft: Math.max(0, state.config.totalRounds - state.round),
+    amLeader: player.totalScore >= leaderScore,
+    behind: Math.max(0, leaderScore - player.totalScore),
+  };
+}
+
+/**
+ * Strategischer Würfelwert für die HARTE KI. Anders als der reine
+ * Erwartungswert (mittlere KI) berücksichtigt sie:
+ *  - Farb-Synergien (Orange × Farbvielfalt, Braun-Stapel),
+ *  - dass die Krone in dieser Engine KEINE Punkte gibt (kein Gelb-Bonus —
+ *    Gelb zählt nur über seine Summe wie jede andere Farbe),
+ *  - Spielstand (Sabotage/Risiko sind im Rückstand mehr wert),
+ *  - verbleibende Runden (Build-Arounds wie Braun brauchen Zeit).
+ */
+export function strategicDraftValue(
+  state: GameState,
+  player: Player,
+  die: DieDef
+): number {
+  const ev = expectedValue(die);
+  const ctx = draftContext(state, player);
+
+  switch (die.color) {
+    case 'orange': {
+      // Skaliert mit der erreichbaren Farbvielfalt des Spielers.
+      const distinct = Math.max(2, distinctColorsInBag(player.bag));
+      return ev * distinct;
+    }
+    case 'brown': {
+      // Build-Around: stark steigend mit eigenen Braun-Würfeln. Ein moderater
+      // Start-Bonus zündet den Aufbau, solange genug Runden bleiben.
+      const browns = countColor(player.bag, 'brown');
+      const ramp = 1 + browns * 0.9;
+      const starter = browns === 0 ? (ctx.roundsLeft >= 4 ? 1.6 : 0) : browns * 0.6;
+      return ev * ramp + starter;
+    }
+    case 'sabotage': {
+      // Zieht dem Kronenhalter Punkte ab: wertvoll, wenn jemand vor mir liegt;
+      // defensiv schwächer, wenn ich selbst führe. Skaliert mit dem Rückstand.
+      const aggression = ctx.amLeader ? 0.5 : 0.9 + Math.min(0.8, ctx.behind / 40);
+      return ev * aggression;
+    }
+    case 'red':
+      // High-Variance: im Rückstand attraktiver (Swings nötig), in Führung weniger.
+      return ev * (ctx.amLeader ? 0.95 : 1.1);
+    case 'clear':
+      return state.config.clearScores ? ev : 0.5;
+    default:
+      // Gelb, Grün, Blau, Lila, Pink: schlicht die erwartete Summe.
+      return ev;
+  }
+}
+
 export type DraftDecision =
   | { kind: 'pick'; offerId: string }
   | { kind: 'pass' };
@@ -129,11 +197,16 @@ export function aiChooseDraft(
     return { kind: 'pick', offerId: state.draftOffers[idx].id };
   }
 
-  const synergy = difficulty === 'hard';
+  // Mittel: reiner Erwartungswert. Hart: kontextbewusste Strategie.
+  const value =
+    difficulty === 'hard'
+      ? (die: DieDef) => strategicDraftValue(state, player, die)
+      : (die: DieDef) => draftHeuristic(state, player, die, false);
+
   let best = state.draftOffers[0];
   let bestScore = -Infinity;
   for (const offer of state.draftOffers) {
-    const score = draftHeuristic(state, player, offer.die, synergy);
+    const score = value(offer.die);
     if (score > bestScore) {
       bestScore = score;
       best = offer;

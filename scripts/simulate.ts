@@ -47,13 +47,18 @@ function countColors(rolled: { color: DieColor }[]): Record<DieColor, number> {
 }
 
 /** Treibt eine komplette KI-Partie und protokolliert jede gewertete Runde. */
-function playGame(seed: number, difficulty: Difficulty, config?: Partial<GameConfig>): GameRecord {
+function playGame(
+  seed: number,
+  difficulties: Difficulty[],
+  config?: Partial<GameConfig>
+): GameRecord {
   const rng: RNG = createRNG(seed);
   let state: GameState = startGame({
-    players: [{ name: 'P0', isAI: true }, { name: 'P1', isAI: true }, { name: 'P2', isAI: true }, { name: 'P3', isAI: true }],
+    players: difficulties.map((_, i) => ({ name: `P${i}`, isAI: true })),
     seed,
     config,
   }).state;
+  const diffOf = (id: string) => difficulties[Number(id.slice(1))] ?? 'medium';
 
   const rounds: RoundRecord[][] = [];
   let pityCount = 0;
@@ -63,7 +68,7 @@ function playGame(seed: number, difficulty: Difficulty, config?: Partial<GameCon
   for (let guard = 0; guard < 200 && !state.finished; guard++) {
     if (state.phase === 'swap') {
       // KI-Tausch (no-op bei clearScores=false), dann werten.
-      for (const p of state.players) state = aiTakePhaseAction(state, p.id, difficulty, rng);
+      for (const p of state.players) state = aiTakePhaseAction(state, p.id, diffOf(p.id), rng);
       const before = state;
       state = advancePhase(state, rng); // swap -> draft: wertet
       // Mitleidswürfel dieser Runde zählen (rolled enthält isPity-Marker).
@@ -93,7 +98,7 @@ function playGame(seed: number, difficulty: Difficulty, config?: Partial<GameCon
       while (state.phase === 'draft' && g++ < 6) {
         const next = state.players.find((p) => !state.draftedThisPhase.includes(p.id));
         if (!next) break;
-        state = aiTakePhaseAction(state, next.id, difficulty, rng);
+        state = aiTakePhaseAction(state, next.id, diffOf(next.id), rng);
       }
       state = advancePhase(state, rng); // draft -> nächste Runde / Ende
       continue;
@@ -128,10 +133,53 @@ function fmt(n: number): string {
   return n.toFixed(1).padStart(7);
 }
 
+/** Rotiert ein Array um n Positionen (für faire Sitzverteilung). */
+function rotate<T>(xs: T[], n: number): T[] {
+  const k = ((n % xs.length) + xs.length) % xs.length;
+  return [...xs.slice(k), ...xs.slice(0, k)];
+}
+
+/**
+ * Kopf-an-Kopf: gibt eine Liste von Sitz-Schwierigkeiten vor und rotiert sie pro
+ * Partie durch alle Sitze (eliminiert Positionsbias). Meldet die Siegquote je
+ * Schwierigkeitsgrad. Fair-Share = Sitzanteil des Grades.
+ */
+function runMatchup(games: number, lineup: Difficulty[], baseSeed: number) {
+  const wins: Record<string, number> = {};
+  const seats: Record<string, number> = {};
+  for (const d of lineup) seats[d] = (seats[d] ?? 0) + 1;
+
+  for (let i = 0; i < games; i++) {
+    const order = rotate(lineup, i); // Sitzrotation
+    const g = playGame(baseSeed + i, order);
+    const winnerDiff = order[g.winner];
+    wins[winnerDiff] = (wins[winnerDiff] ?? 0) + 1;
+  }
+
+  console.log(`\n=== Kopf-an-Kopf (${games} Partien, Sitzrotation) ===`);
+  console.log(`Aufstellung: ${lineup.join(', ')}\n`);
+  console.log(`  Grad      Siege%   Fair-Share%   Index (Sieg/Fair)`);
+  for (const d of Object.keys(seats)) {
+    const winPct = (100 * (wins[d] ?? 0)) / games;
+    const fair = (100 * seats[d]) / lineup.length;
+    console.log(
+      `  ${d.padEnd(8)} ${winPct.toFixed(1).padStart(6)}   ${fair.toFixed(1).padStart(8)}     ${(winPct / fair).toFixed(2)}`
+    );
+  }
+  console.log('');
+}
+
 function run() {
   const games = Number(process.argv[2] ?? 3000);
-  const difficulty = (process.argv[3] as Difficulty) ?? 'hard';
+  const difficultyArg = (process.argv[3] as string) ?? 'hard';
   const baseSeed = Number(process.argv[4] ?? 1);
+
+  // Komma-getrennt -> Kopf-an-Kopf-Modus (z. B. "hard,hard,medium,medium").
+  if (difficultyArg.includes(',')) {
+    runMatchup(games, difficultyArg.split(',') as Difficulty[], baseSeed);
+    return;
+  }
+  const difficulty = difficultyArg as Difficulty;
 
   const allFinals: number[] = [];
   const winnerScores: number[] = [];
@@ -149,8 +197,9 @@ function run() {
   const colorDice = Object.fromEntries(COLORS.map((c) => [c, 0])) as Record<DieColor, number>;
   const maxColorRound = Object.fromEntries(COLORS.map((c) => [c, 0])) as Record<DieColor, number>;
 
+  const lineup: Difficulty[] = [difficulty, difficulty, difficulty, difficulty];
   for (let i = 0; i < games; i++) {
-    const g = playGame(baseSeed + i, difficulty);
+    const g = playGame(baseSeed + i, lineup);
     allFinals.push(...g.finals);
     winnerScores.push(g.finals[g.winner]);
     totalPity += g.pityCount;

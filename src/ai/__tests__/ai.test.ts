@@ -4,12 +4,14 @@ import {
   aiChooseSwap,
   aiTakePhaseAction,
   expectedValue,
+  strategicDraftValue,
 } from '../ai';
 import {
   advancePhase,
   createGame,
   createRNG,
   performRoll,
+  type DieDef,
   type GameState,
 } from '../../engine';
 
@@ -84,6 +86,38 @@ describe('aiChooseSwap', () => {
     const clear = s.players[0].rolled.find((d) => d.id === 'c1')!;
     clear.value = 1;
     expect(aiChooseSwap(s, 'p0', 'hard')).toContain('c1');
+  });
+});
+
+describe('strategicDraftValue (harte KI)', () => {
+  const brown: DieDef = {
+    id: 'b', color: 'brown', sides: 6, variant: 'normal', faces: [2, 2, 2, 3, 3, 3],
+  };
+  const sabotage: DieDef = { id: 's', color: 'sabotage', sides: 8, variant: 'normal' };
+
+  it('bewertet Braun als Build-Around höher, je mehr Braun man schon hat', () => {
+    const s = createGame({ players: [{ name: 'A' }] });
+    const p = s.players[0];
+    const v0 = strategicDraftValue(s, p, brown);
+    p.bag.push({ ...brown, id: 'b0' }, { ...brown, id: 'b1' });
+    const v2 = strategicDraftValue(s, p, brown);
+    expect(v2).toBeGreaterThan(v0);
+  });
+
+  it('vergibt für Gelb keinen Kronen-Bonus (Krone gibt keine Punkte)', () => {
+    const s = createGame({ players: [{ name: 'A' }] });
+    const yellow: DieDef = { id: 'y', color: 'yellow', sides: 8, variant: 'normal' };
+    // Gelb wird wie eine normale Summe bewertet (= Erwartungswert), kein Aufschlag.
+    expect(strategicDraftValue(s, s.players[0], yellow)).toBe(expectedValue(yellow));
+  });
+
+  it('bewertet Sabotage im Rückstand höher als in Führung', () => {
+    const s = createGame({ players: [{ name: 'A' }, { name: 'B' }] });
+    s.players[0].totalScore = 0; // A liegt zurück
+    s.players[1].totalScore = 80; // B führt
+    const behind = strategicDraftValue(s, s.players[0], sabotage);
+    const leading = strategicDraftValue(s, s.players[1], sabotage);
+    expect(behind).toBeGreaterThan(leading);
   });
 });
 
