@@ -123,6 +123,14 @@ export interface GameState {
 }
 
 /**
+ * Verteilregel für Mitleidswürfel (Rubberbanding-Stärke):
+ *  - 'belowMax':     jeder unter dem Spitzenstand (großzügig, ~3/4 Spieler)
+ *  - 'belowAverage': jeder unter dem Durchschnitt (gezielter, ~1/2 Spieler)
+ *  - 'lastPlace':    nur die hinterste(n) Maus/Mäuse
+ */
+export type PityMode = 'belowMax' | 'belowAverage' | 'lastPlace';
+
+/**
  * Konfigurierbare Balance-Parameter. Bewusst nach außen gelegt, damit im
  * Playtesting an Braun, Rot und Timing-Fragen geschraubt werden kann, ohne die
  * Engine-Logik anzufassen.
@@ -143,4 +151,6 @@ export interface GameConfig {
   clearScores: boolean;
   /** Anzahl der Würfel im Draft-Angebot pro Runde. */
   draftOfferSize: number;
+  /** Verteilregel für Mitleidswürfel (siehe PityMode). */
+  pityMode: PityMode;
 }

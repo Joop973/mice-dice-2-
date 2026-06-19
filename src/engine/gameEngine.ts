@@ -130,22 +130,42 @@ export function performRoll(state: GameState, rng: RNG): GameState {
   return next;
 }
 
+/** Entscheidet anhand des pityMode, welche Spieler einen Mitleidswürfel erhalten. */
+function pityEligible(scores: number[], mode: GameConfig['pityMode']): boolean[] {
+  const max = Math.max(...scores);
+  const min = Math.min(...scores);
+  // Alle gleichauf (z. B. Runde 1, alle 0): niemand bekommt einen Mitleidswürfel.
+  if (max === min) return scores.map(() => false);
+  switch (mode) {
+    case 'belowMax':
+      return scores.map((s) => s < max);
+    case 'belowAverage': {
+      const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+      return scores.map((s) => s < avg);
+    }
+    case 'lastPlace':
+      return scores.map((s) => s === min);
+  }
+}
+
 /**
- * Mitleidswürfel-Phase (PLATZHALTER-REGEL, im Playtesting zu verfeinern):
- * Jeder Spieler mit unterdurchschnittlichem Gesamtstand erhält einen zusätzlichen
- * gelben W6, der sofort geworfen und dieser Runde gutgeschrieben wird (nicht im
- * Beutel behalten). In Runde 1 (alle 0 Punkte) passiert nichts.
+ * Mitleidswürfel-Phase: Spieler im Rückstand (gemäß `config.pityMode`) erhalten
+ * einen zusätzlichen gelben W6, der sofort geworfen und dieser Runde
+ * gutgeschrieben wird (nicht im Beutel behalten). In Runde 1 (alle 0 Punkte)
+ * passiert nichts.
  */
 export function distributePity(state: GameState, rng: RNG): GameState {
   const next = cloneState(state);
-  const leaderScore = Math.max(...next.players.map((p) => p.totalScore));
-  for (const p of next.players) {
-    if (p.totalScore < leaderScore) {
-      const die = instantiate(STARTER, next.config, `d${next.nextId++}`);
-      p.rolled.push({ ...rollDie(die, rng), isPity: true });
-      next.log.push(`${p.name} erhält einen Mitleidswürfel.`);
-    }
-  }
+  const eligible = pityEligible(
+    next.players.map((p) => p.totalScore),
+    next.config.pityMode
+  );
+  next.players.forEach((p, i) => {
+    if (!eligible[i]) return;
+    const die = instantiate(STARTER, next.config, `d${next.nextId++}`);
+    p.rolled.push({ ...rollDie(die, rng), isPity: true });
+    next.log.push(`${p.name} erhält einen Mitleidswürfel.`);
+  });
   return next;
 }
 

@@ -14,7 +14,8 @@
     "typecheck:server": "tsc -p server --noEmit",
     "dev:server": "tsx watch server/index.ts",
     "start:server": "tsx server/index.ts",
-    "gen:icons": "node scripts/gen-icons.mjs"
+    "gen:icons": "node scripts/gen-icons.mjs",
+    "sim": "tsx scripts/simulate.ts"
   },
   "dependencies": {
     "@react-three/fiber": "^8.17.10",

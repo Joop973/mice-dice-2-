@@ -57,22 +57,47 @@ Skalierungsrisiko (Summe **und** Multiplikator wachsen). Presets in
 `diceCatalog.ts` (`BROWN_FACE_PRESETS`): `standard {2,3}`, `lowOneTwo {1,2}`,
 `oneTwoThree {1,2,3}`. Im Playtesting beobachten.
 
-## Entscheidung 5 — Rot-Faces (konfigurierbar)
+## Entscheidung 5 — Rot-Faces (balance-getunt)
 
-`GameConfig.redFaces` — Default:
-- W6: `[-2, -1, 1, 2, 3, 4]`
-- W8: `[-3, -2, -1, 1, 2, 3, 4, 5]`
+`GameConfig.redFaces` — Default (nach Balance-Simulation):
+- W6: `[-3, -1, 4, 6, 7, 9]` (Summe 22, Mittel **3.67**)
+- W8: `[-4, -2, 5, 6, 8, 9, 10, 12]` (Summe 44, Mittel **5.5**)
 
-Bewusst als Slot ausgelegt; exakte Werte stehen im Plan nicht fest und sind
-Balance-Material.
+**Begründung:** Die ursprünglichen Slots (EV ~1) machten Rot zu *totem Inhalt* —
+in 4000 simulierten Partien nur **0.3 %** Punktanteil, kaum gedraftet. Rot ist als
+High-Variance-Würfel gedacht: echte Negativ-Faces (Risiko) **und** eine lohnende
+Oberkante. Der EV liegt nun leicht über einem normalen Würfel gleicher Größe
+(Prämie fürs Risiko). Nach dem Tuning: **8 %** Anteil, regelmäßig gedraftet.
 
-## Entscheidung 6 — Mitleidswürfel (Platzhalter-Regel)
+## Entscheidung 6 — Mitleidswürfel (konfigurierbar)
 
-Der Plan nennt die Phase, aber keine exakte Verteilregel. **Platzhalter-Default:**
-jeder Spieler mit **unterdurchschnittlichem** Gesamtstand (`totalScore < Maximum`)
-erhält einen zusätzlichen gelben W6, der sofort geworfen und dieser Runde
-gutgeschrieben wird (nicht im Beutel behalten). In Runde 1 (alle 0 Punkte) passiert
-nichts. **Im Playtesting zu verfeinern.**
+`GameConfig.pityMode` steuert die Rubberbanding-Stärke:
+- `belowMax` — jeder unter dem Spitzenstand (großzügig, ~3/4 Spieler)
+- `belowAverage` — **Default**: jeder unter dem Punkte-Durchschnitt (~1/2 Spieler)
+- `lastPlace` — nur die hinterste(n) Maus/Mäuse
+
+Wer berechtigt ist, erhält einen zusätzlichen gelben W6, der sofort geworfen und
+dieser Runde gutgeschrieben wird (nicht im Beutel behalten). Bei Gleichstand
+(z. B. Runde 1, alle 0) passiert nichts.
+
+**Begründung:** `belowMax` verteilte in der Simulation ~26 Mitleidswürfel pro
+Partie (praktisch „alle außer dem Führenden, jede Runde"). `belowAverage` zielt
+gezielter auf echte Nachzügler (~19/Partie), ohne die Rennen-Enge zu verlieren
+(Sieger-Streuung und Krone-Wechsel praktisch unverändert).
+
+## Balance-Methodik
+
+`npm run sim [partien] [difficulty] [seed]` (`scripts/simulate.ts`) spielt viele
+vollständige KI-Partien über die reine Engine und misst u. a. Punktverteilungen,
+Punktanteil **je Farbe**, Sabotage-Häufigkeit, Krone-Wechsel und negative Runden.
+Die obigen Default-Werte sind aus diesen Messungen abgeleitet (4000 Partien, je
+Schwierigkeitsgrad geprüft).
+
+**Braun** bleibt bewusst ein **High-Variance-Build-Around**: als Einzelwürfel
+schwach, gestapelt (Summe × größte Gruppe) mit hoher Decke (bis ~110 Punkte/Runde
+in der Sim). Greedy gedraftet wird es selten — das ist gewollte Nischen-Tiefe, kein
+Balance-Fehler. Presets in `diceCatalog.ts`, falls im echten Playtesting anders
+gewünscht.
 
 ## Wertungszeitpunkt zusammengefasst
 

@@ -8,7 +8,7 @@ const PHASES: { title: string; text: string }[] = [
   { title: '1 · Würfeln', text: 'Alle Mäuse werfen ihren kompletten Würfelbeutel.' },
   {
     title: '2 · Mitleidswürfel',
-    text: 'Mäuse unter dem Spitzenstand erhalten einen zusätzlichen gelben W6 für diese Runde.',
+    text: 'Mäuse unter dem Punkte-Durchschnitt erhalten einen zusätzlichen gelben W6 für diese Runde (Aufholhilfe).',
   },
   {
     title: '3 · Klar tauschen',

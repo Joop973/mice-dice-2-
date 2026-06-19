@@ -2,13 +2,58 @@ import { describe, it, expect } from 'vitest';
 import {
   advancePhase,
   createGame,
+  distributePity,
   draftPass,
   draftPick,
   performRoll,
   startGame,
   swapClearDice,
 } from '../gameEngine';
+import { DEFAULT_CONFIG } from '../diceCatalog';
 import { createRNG } from '../rng';
+import type { PityMode } from '../types';
+
+function pityDiceFor(scores: number[], pityMode: PityMode): number[] {
+  const s = createGame({
+    players: scores.map((_, i) => ({ name: `P${i}` })),
+    config: { pityMode },
+  });
+  s.players.forEach((p, i) => {
+    p.totalScore = scores[i];
+  });
+  const after = distributePity(s, createRNG(1));
+  return after.players.map((p) => p.rolled.filter((d) => d.isPity).length);
+}
+
+describe('Mitleilswürfel-Verteilung (pityMode)', () => {
+  it('belowMax: jeder unter dem Spitzenstand', () => {
+    expect(pityDiceFor([10, 5, 5, 0], 'belowMax')).toEqual([0, 1, 1, 1]);
+  });
+  it('belowAverage: nur unter dem Durchschnitt', () => {
+    // avg = 5 -> nur der mit 0 liegt darunter
+    expect(pityDiceFor([10, 5, 5, 0], 'belowAverage')).toEqual([0, 0, 0, 1]);
+  });
+  it('lastPlace: nur die hinterste Maus', () => {
+    expect(pityDiceFor([10, 5, 3, 0], 'lastPlace')).toEqual([0, 0, 0, 1]);
+  });
+  it('niemand bei Gleichstand (z. B. Runde 1)', () => {
+    expect(pityDiceFor([0, 0, 0, 0], 'belowAverage')).toEqual([0, 0, 0, 0]);
+  });
+});
+
+describe('Rot-Balance (Default-Config)', () => {
+  it('Rot ist ein fairer High-Variance-Würfel (EV ≥ normaler Würfel, mit Negativ-Faces)', () => {
+    const w6 = DEFAULT_CONFIG.redFaces[6];
+    const w8 = DEFAULT_CONFIG.redFaces[8];
+    const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    expect(w6).toHaveLength(6);
+    expect(w8).toHaveLength(8);
+    expect(mean(w6)).toBeGreaterThanOrEqual(3.5); // ≥ normaler W6
+    expect(mean(w8)).toBeGreaterThanOrEqual(4.5); // ≥ normaler W8
+    expect(Math.min(...w6)).toBeLessThan(0); // echtes Risiko
+    expect(Math.min(...w8)).toBeLessThan(0);
+  });
+});
 
 describe('createGame', () => {
   it('gibt jeder Maus genau einen gelben W6 als Startwürfel', () => {

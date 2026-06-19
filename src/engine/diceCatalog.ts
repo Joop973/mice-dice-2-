@@ -9,12 +9,19 @@ export const DEFAULT_CONFIG: GameConfig = {
   totalRounds: 10,
   // Braun-Standard {2,3} -> Faces {2,2,2,3,3,3}.
   brownFaces: [2, 2, 2, 3, 3, 3],
+  // Rot: High-Variance-Würfel mit echtem Risiko (negative Faces) UND lohnender
+  // Oberkante. Erwartungswert leicht über einem normalen Würfel gleicher Größe
+  // (W6: 3.67 vs 3.5; W8: 5.5 vs 4.5) als Prämie fürs Risiko, damit Rot
+  // überhaupt gewählt wird (Balance-Sim: vorher totes Inhalt bei EV ~1).
   redFaces: {
-    6: [-2, -1, 1, 2, 3, 4],
-    8: [-3, -2, -1, 1, 2, 3, 4, 5],
+    6: [-3, -1, 4, 6, 7, 9], // Summe 22, mean 3.67
+    8: [-4, -2, 5, 6, 8, 9, 10, 12], // Summe 44, mean 5.5
   },
   clearScores: false,
   draftOfferSize: 6,
+  // Gezielteres Rubberbanding als „unter dem Spitzenstand": nur Mäuse unter dem
+  // Durchschnitt erhalten Mitleidswürfel (Balance-Sim: ~26 -> ~16 pro Partie).
+  pityMode: 'belowAverage',
 };
 
 /** Alternative Braun-Face-Sätze für Playtesting. */
