@@ -131,7 +131,8 @@ function crownRanking(
  */
 export function scoreRound(
   players: Player[],
-  clearScores: boolean
+  clearScores: boolean,
+  crownBonusPerRound = 0
 ): ScoreBreakdown[] {
   const contributions = players.map((p) => scoreContributions(p.rolled, clearScores));
   const base = contributions.map(sumContributions);
@@ -152,16 +153,20 @@ export function scoreRound(
     sabotageReceived[targetIdx] += sabotageThrown[i];
   }
 
-  return players.map((p, i) => ({
-    playerId: p.id,
-    yellow: yellow[i],
-    base: base[i],
-    contributions: contributions[i],
-    distinctColors: distinctColorCount(p.rolled),
-    sabotageThrown: sabotageThrown[i],
-    sabotageReceived: sabotageReceived[i],
-    // Werte dürfen negativ werden (Rot/Sabotage).
-    final: base[i] - sabotageReceived[i],
-    hasCrown: i === crownIdx,
-  }));
+  return players.map((p, i) => {
+    const crownBonus = i === crownIdx ? crownBonusPerRound : 0;
+    return {
+      playerId: p.id,
+      yellow: yellow[i],
+      base: base[i],
+      contributions: contributions[i],
+      distinctColors: distinctColorCount(p.rolled),
+      sabotageThrown: sabotageThrown[i],
+      sabotageReceived: sabotageReceived[i],
+      crownBonus,
+      // Werte dürfen negativ werden (Rot/Sabotage).
+      final: base[i] - sabotageReceived[i] + crownBonus,
+      hasCrown: i === crownIdx,
+    };
+  });
 }

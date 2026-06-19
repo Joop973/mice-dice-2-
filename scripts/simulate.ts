@@ -28,6 +28,7 @@ interface RoundRecord {
   contributions: Record<DieColor, number>;
   sabotageThrown: number;
   sabotageReceived: number;
+  crownBonus: number;
   hasCrown: boolean;
   colorCounts: Record<DieColor, number>;
 }
@@ -38,6 +39,7 @@ interface GameRecord {
   rounds: RoundRecord[][]; // [round][player]
   pityCount: number;
   crownChanges: number;
+  crownRoundsByPlayer: number[];
 }
 
 function countColors(rolled: { color: DieColor }[]): Record<DieColor, number> {
@@ -84,6 +86,7 @@ function playGame(
         contributions: s.contributions as Record<DieColor, number>,
         sabotageThrown: s.sabotageThrown,
         sabotageReceived: s.sabotageReceived,
+        crownBonus: s.crownBonus,
         hasCrown: s.hasCrown,
         colorCounts: countColors(before.players[i].rolled),
       }));
@@ -108,7 +111,8 @@ function playGame(
 
   const finals = state.players.map((p) => p.totalScore);
   const winner = finals.indexOf(Math.max(...finals));
-  return { finals, winner, rounds, pityCount, crownChanges };
+  const crownRoundsByPlayer = state.players.map((p) => p.crownRounds);
+  return { finals, winner, rounds, pityCount, crownChanges, crownRoundsByPlayer };
 }
 
 // --- Statistik-Helfer ---
@@ -191,6 +195,11 @@ function run() {
   let gamesWithSabotage = 0;
   let sabotageHitRounds = 0;
   let sabotageTotal = 0;
+  // Kronen-Metriken
+  let crownHolderRounds = 0;
+  let crownHolderNet = 0; // Summe (Bonus - erlittene Sabotage) über Kronen-Runden
+  let winnerCrownRounds = 0;
+  let crownLeaderWins = 0; // Sieger hielt die meisten Kronen-Runden?
 
   // Per-Farbe: Gesamt-Beitrag und Gesamt-Würfelzahl (für Durchschnitt je Würfel).
   const colorContrib = Object.fromEntries(COLORS.map((c) => [c, 0])) as Record<DieColor, number>;
@@ -218,6 +227,10 @@ function run() {
         }
         sabThisRound += r.sabotageReceived;
         sabInGame += r.sabotageThrown;
+        if (r.hasCrown) {
+          crownHolderRounds++;
+          crownHolderNet += r.crownBonus - r.sabotageReceived;
+        }
       }
       if (sabThisRound > 0) {
         sabotageHitRounds++;
@@ -225,6 +238,9 @@ function run() {
       }
     }
     if (sabInGame > 0) gamesWithSabotage++;
+    winnerCrownRounds += g.crownRoundsByPlayer[g.winner];
+    const mostCrown = Math.max(...g.crownRoundsByPlayer);
+    if (g.crownRoundsByPlayer[g.winner] === mostCrown && mostCrown > 0) crownLeaderWins++;
   }
 
   console.log(`\n=== Dice Mice Balance-Simulation ===`);
@@ -242,6 +258,9 @@ function run() {
   console.log(`Sabotage: Partien mit      ${(100 * gamesWithSabotage / games).toFixed(0)}%` +
     ` · getroffene Runden ${(100 * sabotageHitRounds / totalRounds).toFixed(1)}%` +
     ` · Ø Abzug/Treffer ${(sabotageTotal / Math.max(1, sabotageHitRounds)).toFixed(1)}`);
+  console.log(`Krone: Ø Netto/Kronen-Runde ${(crownHolderNet / Math.max(1, crownHolderRounds)).toFixed(1)}` +
+    ` (Bonus − Sabotage)  ·  Sieger Ø Kronen-Runden ${(winnerCrownRounds / games).toFixed(2)}` +
+    `  ·  Kronen-Leader gewinnt ${(100 * crownLeaderWins / games).toFixed(0)}%`);
 
   console.log(`\nFarb-Beitrag (über alle Runden):`);
   console.log(`  Farbe      Ø/Würfel   Gesamt%   maxRunde   #Würfel`);

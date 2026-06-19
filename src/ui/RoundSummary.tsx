@@ -45,7 +45,7 @@ export function RoundSummary({
                 </strong>
               </div>
               <div className="summary__chips">
-                {parts.length === 0 && s.sabotageReceived === 0 && (
+                {parts.length === 0 && s.sabotageReceived === 0 && s.crownBonus === 0 && (
                   <span className="muted">keine Basis-Punkte</span>
                 )}
                 {parts.map((c) => (
@@ -54,6 +54,9 @@ export function RoundSummary({
                     {s.contributions[c]}
                   </span>
                 ))}
+                {s.crownBonus > 0 && (
+                  <span className="chip chip--crown">👑 Krone +{s.crownBonus}</span>
+                )}
                 {s.sabotageReceived > 0 && (
                   <span className="chip chip--bad">Sabotage −{s.sabotageReceived}</span>
                 )}

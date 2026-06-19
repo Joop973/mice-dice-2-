@@ -90,6 +90,7 @@ export function createGame(opts: CreateGameOptions): GameState {
       roundScore: 0,
       totalScore: 0,
       hasCrown: false,
+      crownRounds: 0,
     };
   });
 
@@ -238,6 +239,25 @@ export function draftPass(state: GameState, playerId: string): GameState {
   return next;
 }
 
+/**
+ * Vergibt am Partie-Ende den Kronen-Endspiel-Bonus an die Maus/Mäuse mit den
+ * meisten gehaltenen Kronen-Runden (bei Gleichstand erhalten alle den Bonus).
+ */
+function awardCrownEndgameBonus(next: GameState): void {
+  const bonus = next.config.crownEndgameBonus;
+  if (bonus <= 0) return;
+  const most = Math.max(...next.players.map((p) => p.crownRounds));
+  if (most <= 0) return;
+  for (const p of next.players) {
+    if (p.crownRounds === most) {
+      p.totalScore += bonus;
+      next.log.push(
+        `${p.name} erhält ${bonus} Kronen-Bonus (${most} Runden als Kronenhalter).`
+      );
+    }
+  }
+}
+
 /** Wendet das Ergebnis von scoreRound auf die Spieler an. */
 function applyScores(next: GameState, breakdown: ScoreBreakdown[]): void {
   const byId = new Map(breakdown.map((b) => [b.playerId, b]));
@@ -248,6 +268,7 @@ function applyScores(next: GameState, breakdown: ScoreBreakdown[]): void {
     p.totalScore += b.final;
     const hadCrown = p.hasCrown;
     p.hasCrown = b.hasCrown;
+    if (b.hasCrown) p.crownRounds += 1;
     if (b.hasCrown && !hadCrown) next.log.push(`${p.name} trägt jetzt die Käse-Krone.`);
     if (b.sabotageReceived > 0) {
       next.log.push(`${p.name} verliert ${b.sabotageReceived} durch Sabotage.`);
@@ -276,7 +297,11 @@ export function advancePhase(state: GameState, rng: RNG): GameState {
     }
     case 'swap': {
       const next = cloneState(state);
-      const breakdown = scoreRound(next.players, next.config.clearScores);
+      const breakdown = scoreRound(
+        next.players,
+        next.config.clearScores,
+        next.config.crownBonusPerRound
+      );
       applyScores(next, breakdown);
       next.lastScores = breakdown;
       const { offers, nextId } = generateDraftOffers(next, rng);
@@ -289,6 +314,7 @@ export function advancePhase(state: GameState, rng: RNG): GameState {
     case 'draft': {
       const next = cloneState(state);
       if (next.round >= next.config.totalRounds) {
+        awardCrownEndgameBonus(next);
         next.finished = true;
         next.log.push('Partie beendet.');
         return next;

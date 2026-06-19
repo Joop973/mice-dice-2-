@@ -8,7 +8,7 @@ liegen in `GameConfig` (`src/engine/types.ts`, Defaults in `diceCatalog.ts`).
 
 | Farbe     | Würfel              | Wertung |
 |-----------|---------------------|---------|
-| Gelb      | W6, W8              | Summe; höchste Gelb-Summe = Käse-Krone |
+| Gelb      | W6, W8              | Summe; höchste Gelb-Summe = Käse-Krone (Rundenbonus + Endspiel-Bonus, siehe Entscheidung 7) |
 | Grün      | W20                 | Standard-Summe |
 | Blau      | W6, W8, W12 (+Glitzer) | Standard-Summe; Blau + Blau-Glitzer = **eine** Farbe für Orange |
 | Lila      | W8, W12             | Standard-Summe |
@@ -84,6 +84,32 @@ dieser Runde gutgeschrieben wird (nicht im Beutel behalten). Bei Gleichstand
 Partie (praktisch „alle außer dem Führenden, jede Runde"). `belowAverage` zielt
 gezielter auf echte Nachzügler (~19/Partie), ohne die Rennen-Enge zu verlieren
 (Sieger-Streuung und Krone-Wechsel praktisch unverändert).
+
+## Entscheidung 7 — Kronen-Aufwertung (Rundenbonus + Endspiel-Bonus)
+
+**Problem:** Ursprünglich gab die Krone **keine Punkte** — sie war nur das
+Sabotage-Ziel. Kombiniert mit Sabotage (trifft den Kronenhalter in ~78 % der
+Runden, Ø −19) war Krone-haben **rein schädlich**: ein perverser Anreiz, Gelb zu
+*meiden*.
+
+**Lösung (konfigurierbar):**
+- `crownBonusPerRound` (Default **14**): der Kronenhalter erhält diese Punkte pro
+  Runde zusätzlich.
+- `crownEndgameBonus` (Default **15**): am Spielende für die Maus mit den **meisten**
+  gehaltenen Kronen-Runden (bei Gleichstand alle).
+
+**Balance (Simulation):** Mit Bonus 14 ist das Netto pro Kronen-Runde **+2.5**
+(Bonus − erlittene Sabotage) — die Krone ist nun ein **milder Vorteil** statt
+Liability. Krone und Sabotage bilden ein **selbstbalancierendes** Paar (je wertvoller
+die Krone, desto mehr Sabotage zieht sie an). Die KI-Rangfolge bleibt intakt
+(hart schlägt mittel ~59 %), Rennen bleiben eng (Sieger-Streuung unverändert).
+
+**Bewusst:** Es lohnt **nicht**, Gelb aktiv zu stapeln (die selbstbalancierende
+Sabotage frisst den Gewinn) — die Krone entsteht meist organisch aus Start- und
+Mitleidswürfeln. Da Mitleids-Gelbe an Nachzügler gehen, landet die Krone oft bei
+zurückliegenden Mäusen: der Bonus wirkt so als zusätzliche, thematische Aufholhilfe
+(„der Nachzügler schnappt sich den Käse, wird aber zur Zielscheibe"). Der
+Endspiel-Bonus ist bewusst klein gehalten, damit er Partien nicht zufällig kippt.
 
 ## Balance-Methodik
 

@@ -380,6 +380,11 @@ button.ghost {
   color: #b9c0c9;
 }
 
+.chip--crown {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Regel-Screen */
 .rules__p {
   margin: 0;

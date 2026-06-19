@@ -22,6 +22,10 @@ export const DEFAULT_CONFIG: GameConfig = {
   // Gezielteres Rubberbanding als „unter dem Spitzenstand": nur Mäuse unter dem
   // Durchschnitt erhalten Mitleidswürfel (Balance-Sim: ~26 -> ~16 pro Partie).
   pityMode: 'belowAverage',
+  // Kronen-Aufwertung (sonst ist die Krone nur Sabotage-Ziel). Werte per
+  // Balance-Simulation justiert; siehe RULES_AND_DECISIONS.md.
+  crownBonusPerRound: 14,
+  crownEndgameBonus: 15,
 };
 
 /** Alternative Braun-Face-Sätze für Playtesting. */

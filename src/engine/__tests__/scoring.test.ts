@@ -38,6 +38,7 @@ function player(name: string, rolled: RolledDie[]): Player {
     roundScore: 0,
     totalScore: 0,
     hasCrown: false,
+    crownRounds: 0,
   };
 }
 
@@ -76,6 +77,26 @@ describe('scoreContributions', () => {
     expect(breakdown[0].contributions.yellow).toBe(5);
     expect(breakdown[0].contributions.red).toBe(-2);
     expect(breakdown[0].final).toBe(3);
+  });
+});
+
+describe('Kronen-Rundenbonus', () => {
+  it('addiert den Bonus nur beim Kronenhalter (höchste Gelb-Summe)', () => {
+    const players = [player('A', [rd('yellow', 8)]), player('B', [rd('yellow', 3)])];
+    const bd = scoreRound(players, false, 10);
+    const crown = bd.find((b) => b.hasCrown)!;
+    const other = bd.find((b) => !b.hasCrown)!;
+    expect(crown.playerId).toBe('A');
+    expect(crown.crownBonus).toBe(10);
+    expect(crown.final).toBe(8 + 10); // Basis 8 + Kronenbonus 10
+    expect(other.crownBonus).toBe(0);
+    expect(other.final).toBe(3);
+  });
+
+  it('ohne Bonus-Parameter (Default 0) ändert sich nichts', () => {
+    const bd = scoreRound([player('A', [rd('yellow', 8)])], false);
+    expect(bd[0].crownBonus).toBe(0);
+    expect(bd[0].final).toBe(8);
   });
 });
 

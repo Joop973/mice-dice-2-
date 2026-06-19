@@ -81,6 +81,30 @@ describe('lastScores', () => {
   });
 });
 
+describe('Kronen-Endspiel-Bonus', () => {
+  function playOut(endgameBonus: number) {
+    const rng = createRNG(5);
+    let s = startGame({
+      players: [{ name: 'A' }, { name: 'B' }],
+      seed: 5,
+      config: { totalRounds: 1, crownBonusPerRound: 0, crownEndgameBonus: endgameBonus },
+    }).state;
+    while (!s.finished) s = advancePhase(s, rng);
+    return s.players;
+  }
+
+  it('zählt Kronen-Runden und vergibt den Endspiel-Bonus an den Spitzenreiter', () => {
+    const withoutBonus = playOut(0);
+    const withBonus = playOut(25);
+    const crownIdx = withoutBonus.findIndex((p) => p.crownRounds === 1);
+    expect(crownIdx).toBeGreaterThanOrEqual(0); // genau ein Kronenhalter
+    // Nur der Kronen-Spitzenreiter erhält die 25 extra.
+    expect(withBonus[crownIdx].totalScore - withoutBonus[crownIdx].totalScore).toBe(25);
+    const otherIdx = crownIdx === 0 ? 1 : 0;
+    expect(withBonus[otherIdx].totalScore - withoutBonus[otherIdx].totalScore).toBe(0);
+  });
+});
+
 describe('performRoll', () => {
   it('würfelt alle Beutel und ist deterministisch bei gleicher Seed', () => {
     const rng1 = createRNG(42);

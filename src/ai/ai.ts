@@ -134,8 +134,9 @@ function draftContext(state: GameState, player: Player): DraftContext {
  * Strategischer Würfelwert für die HARTE KI. Anders als der reine
  * Erwartungswert (mittlere KI) berücksichtigt sie:
  *  - Farb-Synergien (Orange × Farbvielfalt, Braun-Stapel),
- *  - dass die Krone in dieser Engine KEINE Punkte gibt (kein Gelb-Bonus —
- *    Gelb zählt nur über seine Summe wie jede andere Farbe),
+ *  - dass es sich NICHT lohnt, Gelb aktiv zu stapeln: die Krone bringt zwar
+ *    Bonuspunkte, zieht aber Sabotage an (selbstbalancierend) — Gelb wird daher
+ *    wie eine normale Summe bewertet, die Krone entsteht organisch,
  *  - Spielstand (Sabotage/Risiko sind im Rückstand mehr wert),
  *  - verbleibende Runden (Build-Arounds wie Braun brauchen Zeit).
  */

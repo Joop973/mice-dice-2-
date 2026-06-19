@@ -82,7 +82,9 @@ export interface ScoreBreakdown {
   sabotageThrown: number;
   /** Erlittene Sabotage (von anderen abgezogen). */
   sabotageReceived: number;
-  /** Endpunkte der Runde (base − erlittene Sabotage); darf negativ sein. */
+  /** Kronen-Rundenbonus (0, falls dieser Spieler die Krone nicht hält). */
+  crownBonus: number;
+  /** Endpunkte der Runde (base − erlittene Sabotage + Kronenbonus); darf negativ sein. */
   final: number;
   hasCrown: boolean;
 }
@@ -101,6 +103,8 @@ export interface Player {
   totalScore: number;
   /** Hält dieser Spieler aktuell die Käse-Krone? */
   hasCrown: boolean;
+  /** Anzahl Runden, in denen dieser Spieler die Krone hielt (für Endspiel-Bonus). */
+  crownRounds: number;
 }
 
 export interface GameState {
@@ -153,4 +157,14 @@ export interface GameConfig {
   draftOfferSize: number;
   /** Verteilregel für Mitleidswürfel (siehe PityMode). */
   pityMode: PityMode;
+  /**
+   * Punkte, die der Kronenhalter PRO Runde zusätzlich erhält. Macht den
+   * Gelb-Wettstreit lohnend (die Krone ist sonst nur Sabotage-Ziel). 0 = aus.
+   */
+  crownBonusPerRound: number;
+  /**
+   * Endspiel-Bonus für die Maus, die über die Partie die MEISTEN Runden die
+   * Krone hielt (bei Gleichstand erhalten alle Spitzenreiter den Bonus). 0 = aus.
+   */
+  crownEndgameBonus: number;
 }
