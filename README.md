@@ -28,6 +28,14 @@ später Capacitor für iOS.
 >   Deploy-Workflow.
 >
 > Damit ist der Gesamtplan (Phasen 0–7) umgesetzt.
+>
+> **Spiel-Feinschliff (nach den Phasen):**
+> - **Rundenauswertung** – sichtbare Aufschlüsselung pro Spieler (Farb-Beiträge,
+>   Sabotage, Krone) in der Draft-Phase, lokal **und** online.
+> - **In-App-Regeln** – Erklär-Screen (Ziel, Ablauf, Würfel-Katalog mit Wertung).
+> - **Persistenz** – laufende lokale Partie übersteht einen Reload („Fortsetzen").
+>
+> Insgesamt **70 Tests** (Engine, Wertung, KI, Netzwerk, UI-Integration via jsdom).
 
 ## Entwicklung
 

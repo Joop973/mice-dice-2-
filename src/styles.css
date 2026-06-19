@@ -380,6 +380,63 @@ button.ghost {
   color: #b9c0c9;
 }
 
+/* Regel-Screen */
+.rules__p {
+  margin: 0;
+  line-height: 1.5;
+  color: #e8ddcd;
+}
+
+.rules__phases {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.rules__phase-title {
+  font-weight: 700;
+  display: block;
+}
+
+.rules__phase-text {
+  color: #cbbfae;
+  font-size: 0.92rem;
+}
+
+.rules__catalog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.rules__die {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.rules__swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.rules__die-name {
+  font-weight: 600;
+  display: block;
+}
+
+.rules__die-scoring {
+  color: #cbbfae;
+  font-size: 0.92rem;
+}
+
 /* ---------------------------------------------------------------------------
  * Phase 5: Animationen & visuelles Feedback
  * ------------------------------------------------------------------------- */

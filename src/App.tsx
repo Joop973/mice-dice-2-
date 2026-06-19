@@ -25,6 +25,8 @@ import {
 } from './ai';
 import { PlayerCard } from './ui/PlayerCard';
 import { RoundSummary } from './ui/RoundSummary';
+import { Rules } from './ui/Rules';
+import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
 import { useSound } from './sound';
@@ -61,7 +63,7 @@ export function App() {
   const rngRef = useRef<RNG>(createRNG(newSeed()));
   const aiSwapRoundRef = useRef(0);
 
-  const [mode, setMode] = useState<'menu' | 'local' | 'online'>('menu');
+  const [mode, setMode] = useState<'menu' | 'local' | 'online' | 'rules'>('menu');
   const [started, setStarted] = useState(false);
   const [humans, setHumans] = useState(1);
   const [ais, setAis] = useState(1);
@@ -74,7 +76,37 @@ export function App() {
   const { play, muted, toggleMuted } = useSound();
   const fx = useGameEvents(state, play);
 
+  // Gespeicherte lokale Partie für „Fortsetzen" (beim Menü-Eintritt aktualisiert).
+  const [saved, setSaved] = useState(() => loadLocalGame());
+  useEffect(() => {
+    if (mode === 'menu') setSaved(loadLocalGame());
+  }, [mode]);
+
+  // Laufende lokale Partie sichern; beendete/aufgegebene Partien verwerfen.
+  useEffect(() => {
+    if (mode === 'local' && started && state && !state.finished) {
+      saveLocalGame({ state, humans, ais, difficulty });
+    } else if (state?.finished) {
+      clearLocalGame();
+    }
+  }, [mode, started, state, humans, ais, difficulty]);
+
+  function resume() {
+    if (!saved) return;
+    rngRef.current = createRNG(newSeed());
+    aiSwapRoundRef.current = saved.state.round;
+    setHumans(saved.humans);
+    setAis(saved.ais);
+    setDifficulty(saved.difficulty);
+    setState(saved.state);
+    setSelectedClear(new Set());
+    setStarted(true);
+    setMode('local');
+  }
+
   function start() {
+    clearLocalGame();
+    setSaved(null);
     const seed = newSeed();
     rngRef.current = createRNG(seed);
     aiSwapRoundRef.current = 0;
@@ -124,7 +156,19 @@ export function App() {
   }, [state, difficulty]);
 
   if (mode === 'menu') {
-    return <Menu onLocal={() => setMode('local')} onOnline={() => setMode('online')} />;
+    return (
+      <Menu
+        onLocal={() => setMode('local')}
+        onOnline={() => setMode('online')}
+        onRules={() => setMode('rules')}
+        onResume={saved ? resume : undefined}
+        resumeRound={saved?.state.round}
+      />
+    );
+  }
+
+  if (mode === 'rules') {
+    return <Rules onBack={() => setMode('menu')} />;
   }
 
   if (mode === 'online') {
@@ -183,7 +227,19 @@ export function App() {
   );
 }
 
-function Menu({ onLocal, onOnline }: { onLocal: () => void; onOnline: () => void }) {
+function Menu({
+  onLocal,
+  onOnline,
+  onRules,
+  onResume,
+  resumeRound,
+}: {
+  onLocal: () => void;
+  onOnline: () => void;
+  onRules: () => void;
+  onResume?: () => void;
+  resumeRound?: number;
+}) {
   return (
     <div className="app">
       <header className="app__header">
@@ -191,14 +247,25 @@ function Menu({ onLocal, onOnline }: { onLocal: () => void; onOnline: () => void
         <p className="hint">Würfelspiel mit Mäuse-Thema</p>
       </header>
       <section className="panel">
+        {onResume && (
+          <>
+            <button onClick={onResume}>▶️ Partie fortsetzen (Runde {resumeRound})</button>
+            <p className="muted" style={{ margin: '10px 0 18px' }}>
+              Deine zuletzt gespeicherte lokale Partie.
+            </p>
+          </>
+        )}
         <button onClick={onLocal}>🎲 Solo / Pass-and-Play</button>
         <p className="muted" style={{ margin: '10px 0 18px' }}>
           Lokal an einem Gerät – allein gegen die KI oder reihum.
         </p>
         <button onClick={onOnline}>🌐 Online spielen</button>
-        <p className="muted" style={{ marginTop: 10 }}>
+        <p className="muted" style={{ margin: '10px 0 18px' }}>
           Raum erstellen und Code teilen. Ohne Server lokal simuliert.
         </p>
+        <button className="ghost" onClick={onRules}>
+          📖 Spielregeln
+        </button>
       </section>
     </div>
   );
