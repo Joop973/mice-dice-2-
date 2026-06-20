@@ -118,15 +118,20 @@ interface DraftContext {
   amLeader: boolean;
   /** Punkte-Rückstand auf den besten Gegner (>= 0). */
   behind: number;
+  /** Hält ein Gegner, der mindestens gleichauf/vor mir liegt, die Käse-Krone? */
+  crownLeaderAhead: boolean;
 }
 
 function draftContext(state: GameState, player: Player): DraftContext {
   const others = state.players.filter((p) => p.id !== player.id);
   const leaderScore = others.length ? Math.max(...others.map((p) => p.totalScore)) : 0;
+  const crownHolder = state.players.find((p) => p.hasCrown);
   return {
     roundsLeft: Math.max(0, state.config.totalRounds - state.round),
     amLeader: player.totalScore >= leaderScore,
     behind: Math.max(0, leaderScore - player.totalScore),
+    crownLeaderAhead:
+      !!crownHolder && crownHolder.id !== player.id && crownHolder.totalScore >= player.totalScore,
   };
 }
 
@@ -165,8 +170,11 @@ export function strategicDraftValue(
     case 'sabotage': {
       // Zieht dem Kronenhalter Punkte ab: wertvoll, wenn jemand vor mir liegt;
       // defensiv schwächer, wenn ich selbst führe. Skaliert mit dem Rückstand.
+      // Extra-Anreiz, wenn ein führender Gegner gerade die Krone trägt – dann
+      // trifft die Sabotage genau den richtigen Spieler.
       const aggression = ctx.amLeader ? 0.5 : 0.9 + Math.min(0.8, ctx.behind / 40);
-      return ev * aggression;
+      const crownBonus = ctx.crownLeaderAhead ? 0.35 : 0;
+      return ev * (aggression + crownBonus);
     }
     case 'red':
       // High-Variance: im Rückstand attraktiver (Swings nötig), in Führung weniger.
