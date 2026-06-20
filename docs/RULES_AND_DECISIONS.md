@@ -111,6 +111,14 @@ zurückliegenden Mäusen: der Bonus wirkt so als zusätzliche, thematische Aufho
 („der Nachzügler schnappt sich den Käse, wird aber zur Zielscheibe"). Der
 Endspiel-Bonus ist bewusst klein gehalten, damit er Partien nicht zufällig kippt.
 
+## Entscheidung 8 — Draft-Angebotsgröße = Spieleranzahl + 1
+
+`GameConfig.draftOfferSize` ist **optional**. Ist es nicht gesetzt (Default), gilt
+die Brettspiel-Regel: das Angebot in der Tischmitte umfasst **Spieleranzahl + 1**
+Würfel. Da jede Maus pro Draft genau einen Würfel nimmt, bleibt immer **einer
+übrig** — die zuletzt ziehende Maus hat also noch eine echte Wahl statt nur den
+Rest. Ein fester Wert kann weiterhin als Override gesetzt werden (Playtesting).
+
 ## Balance-Methodik
 
 `npm run sim [partien] [difficulty] [seed]` (`scripts/simulate.ts`) spielt viele

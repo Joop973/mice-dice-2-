@@ -81,6 +81,35 @@ describe('lastScores', () => {
   });
 });
 
+describe('Draft-Angebotsgröße', () => {
+  function offersFor(playerCount: number): number {
+    const rng = createRNG(3);
+    let s = startGame({
+      players: Array.from({ length: playerCount }, (_, i) => ({ name: `P${i}` })),
+      seed: 3,
+    }).state;
+    while (s.phase !== 'draft') s = advancePhase(s, rng);
+    return s.draftOffers.length;
+  }
+
+  it('bietet Spieleranzahl + 1 Würfel an', () => {
+    expect(offersFor(2)).toBe(3);
+    expect(offersFor(3)).toBe(4);
+    expect(offersFor(4)).toBe(5);
+  });
+
+  it('respektiert einen festen Override', () => {
+    const rng = createRNG(3);
+    let s = startGame({
+      players: [{ name: 'A' }, { name: 'B' }],
+      seed: 3,
+      config: { draftOfferSize: 6 },
+    }).state;
+    while (s.phase !== 'draft') s = advancePhase(s, rng);
+    expect(s.draftOffers).toHaveLength(6);
+  });
+});
+
 describe('Kronen-Endspiel-Bonus', () => {
   function playOut(endgameBonus: number) {
     const rng = createRNG(5);

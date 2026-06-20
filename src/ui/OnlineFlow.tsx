@@ -12,10 +12,10 @@ import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from '../ai';
 import type { GameState, Phase, Player } from '../engine';
 import { PlayerCard } from './PlayerCard';
 import { RoundSummary } from './RoundSummary';
+import { DraftTable } from './DraftTable';
 import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
-import { DIE_COLORS, DIE_LABELS } from './colors';
 
 const ENV_SERVER_URL: string =
   (import.meta.env as Record<string, string | undefined>).VITE_SERVER_URL ?? '';
@@ -364,37 +364,15 @@ function OnlineGame({
       )}
 
       {state.phase === 'draft' && (
-        <section className="panel">
-          <h2>
-            Angebot
-            {activeDrafter && (
-              <>
-                {' '}· {activeDrafter.name}
-                {activeDrafter.id === you ? ' (du) wählst' : ' wählt …'}
-              </>
-            )}
-          </h2>
-          <div className="offers">
-            {state.draftOffers.map((o) => (
-              <button
-                key={o.id}
-                className="offer"
-                style={{ borderColor: DIE_COLORS[o.die.color] }}
-                disabled={!youAreActiveDrafter}
-                onClick={() => client.sendAction({ type: 'draftPick', offerId: o.id })}
-              >
-                {DIE_LABELS[o.die.color]} W{o.die.sides}
-                {o.die.variant === 'glitter' ? ' ✨' : ''}
-              </button>
-            ))}
-          </div>
-          {youAreActiveDrafter && (
-            <button className="ghost" onClick={() => client.sendAction({ type: 'draftPass' })}>
-              Passen
-            </button>
-          )}
-          {draftComplete && <p className="muted">Alle haben gewählt.</p>}
-        </section>
+        <DraftTable
+          offers={state.draftOffers}
+          activeName={activeDrafter ? (activeDrafter.id === you ? 'Du' : activeDrafter.name) : undefined}
+          isAITurn={!!activeDrafter && activeDrafter.id !== you}
+          canPick={youAreActiveDrafter}
+          onPick={(offerId) => client.sendAction({ type: 'draftPick', offerId })}
+          onPass={youAreActiveDrafter ? () => client.sendAction({ type: 'draftPass' }) : undefined}
+          complete={draftComplete}
+        />
       )}
 
       <div className="actions">

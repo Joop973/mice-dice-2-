@@ -385,6 +385,101 @@ button.ghost {
   color: var(--accent);
 }
 
+/* Tischmitte (Draft) – Brettspiel-Look */
+.table {
+  margin-top: 16px;
+}
+
+.table__felt {
+  background: radial-gradient(ellipse at center, #2f6b46 0%, #244f35 68%, #1b3a27 100%);
+  border: 6px solid #3a2a1d; /* Holzrahmen */
+  border-radius: 26px;
+  padding: 18px 16px 16px;
+  text-align: center;
+  box-shadow: inset 0 0 42px rgba(0, 0, 0, 0.45), 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+.table__prompt {
+  margin: 0 0 14px;
+  color: #eaf3ec;
+  font-weight: 600;
+}
+
+.table__dice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.table__empty {
+  color: #c9d8cd;
+  font-size: 0.9rem;
+}
+
+@keyframes deal-in {
+  from {
+    transform: translateY(-16px) scale(0.6) rotate(-8deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.draft-die {
+  width: 66px;
+  height: 66px;
+  border: none;
+  border-radius: 12px;
+  display: grid;
+  place-content: center;
+  gap: 2px;
+  color: #1c1410;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.22), 0 3px 6px rgba(0, 0, 0, 0.4);
+  animation: deal-in 360ms ease-out both;
+  animation-delay: calc(var(--n, 0) * 70ms);
+  transition: transform 120ms ease;
+}
+
+.draft-die:disabled {
+  cursor: default;
+  opacity: 0.95;
+}
+
+.draft-die:not(:disabled):hover {
+  transform: translateY(-5px) scale(1.06);
+}
+
+.draft-die:not(:disabled):active {
+  transform: translateY(-1px) scale(0.97);
+}
+
+.draft-die__sides {
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.draft-die__name {
+  font-size: 0.6rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.table__pass {
+  margin-top: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draft-die {
+    animation: none;
+  }
+}
+
 /* Regel-Screen */
 .rules__p {
   margin: 0;

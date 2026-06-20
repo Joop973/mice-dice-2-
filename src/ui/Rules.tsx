@@ -16,7 +16,7 @@ const PHASES: { title: string; text: string }[] = [
   },
   {
     title: '4 · Drafting',
-    text: 'Die Runde wird gewertet, dann wählt reihum jede Maus einen neuen Würfel aus dem Angebot (oder passt). Er kommt erst ab der nächsten Runde zum Einsatz.',
+    text: 'Die Runde wird gewertet, dann liegen Würfel in der Tischmitte (Spieleranzahl + 1). Reihum nimmt sich jede Maus einen davon – es bleibt immer einer übrig, die letzte hat also noch die Wahl. Der neue Würfel kommt ab der nächsten Runde zum Einsatz.',
   },
 ];
 

@@ -198,7 +198,9 @@ function generateDraftOffers(state: GameState, rng: RNG): {
 } {
   const offers: DraftOffer[] = [];
   let nextId = state.nextId;
-  for (let i = 0; i < state.config.draftOfferSize; i++) {
+  // Brettspiel-Regel: Angebot = Spieleranzahl + 1 (es bleibt immer einer übrig).
+  const offerSize = state.config.draftOfferSize ?? state.players.length + 1;
+  for (let i = 0; i < offerSize; i++) {
     const blueprint = pick(rng, DICE_CATALOG);
     const die = instantiate(blueprint, state.config, `d${nextId++}`);
     offers.push({ id: `o${nextId++}`, die });

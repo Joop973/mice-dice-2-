@@ -25,12 +25,12 @@ import {
 } from './ai';
 import { PlayerCard } from './ui/PlayerCard';
 import { RoundSummary } from './ui/RoundSummary';
+import { DraftTable } from './ui/DraftTable';
 import { Rules } from './ui/Rules';
 import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
 import { useSound } from './sound';
-import { DIE_COLORS, DIE_LABELS } from './ui/colors';
 
 const PHASE_LABEL: Record<Phase, string> = {
   roll: '1 · Würfeln',
@@ -506,38 +506,15 @@ function Game({
       )}
 
       {state.phase === 'draft' && (
-        <section className="panel">
-          <h2>
-            Angebot
-            {activeDrafter && (
-              <>
-                {' '}
-                · {activeDrafter.name}
-                {activeDrafter.isAI ? ' (KI) wählt …' : ' ist am Zug'}
-              </>
-            )}
-          </h2>
-          <div className="offers">
-            {state.draftOffers.map((o) => (
-              <button
-                key={o.id}
-                className="offer"
-                style={{ borderColor: DIE_COLORS[o.die.color] }}
-                disabled={!humanDrafting}
-                onClick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
-              >
-                {DIE_LABELS[o.die.color]} W{o.die.sides}
-                {o.die.variant === 'glitter' ? ' ✨' : ''}
-              </button>
-            ))}
-          </div>
-          {humanDrafting && (
-            <button className="ghost" onClick={() => onPass(activeDrafter!.id)}>
-              {activeDrafter!.name} passt
-            </button>
-          )}
-          {draftComplete && <p className="muted">Alle haben gewählt.</p>}
-        </section>
+        <DraftTable
+          offers={state.draftOffers}
+          activeName={activeDrafter?.name}
+          isAITurn={!!activeDrafter?.isAI}
+          canPick={!!humanDrafting}
+          onPick={(offerId) => activeDrafter && onPick(activeDrafter.id, offerId)}
+          onPass={humanDrafting ? () => onPass(activeDrafter!.id) : undefined}
+          complete={draftComplete}
+        />
       )}
 
       <div className="actions">
