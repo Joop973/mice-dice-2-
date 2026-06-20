@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { GameState } from '../engine';
-import type { SoundEvent } from '../sound';
+import { vibrate, type SoundEvent } from '../sound';
 import {
   detectEvents,
   snapshot,
@@ -36,7 +36,8 @@ const EMPTY: GameEventFx = {
 
 export function useGameEvents(
   state: GameState | null,
-  play: (event: SoundEvent) => void
+  play: (event: SoundEvent) => void,
+  muted = false
 ): GameEventFx {
   const prevRef = useRef<Snapshot | null>(null);
   const [fx, setFx] = useState<GameEventFx>(EMPTY);
@@ -52,7 +53,10 @@ export function useGameEvents(
     if (!prev) return; // Erster Zustand: keine Differenz, kein Effekt.
 
     const { sounds, crownedNow, warnNow, banner, crownMove, sabotage } = detectEvents(prev, cur);
-    for (const s of sounds) play(s);
+    for (const s of sounds) {
+      play(s);
+      if (!muted) vibrate(s); // Haptik an Mute gekoppelt
+    }
 
     if (
       crownedNow.size > 0 ||
@@ -66,7 +70,7 @@ export function useGameEvents(
       const t = setTimeout(() => setFx(EMPTY), duration);
       return () => clearTimeout(t);
     }
-  }, [state, play]);
+  }, [state, play, muted]);
 
   return fx;
 }

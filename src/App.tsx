@@ -73,7 +73,7 @@ export function App() {
   const [use3d, setUse3d] = useState(true);
 
   const { play, muted, toggleMuted, musicAvailable, musicOn, toggleMusic } = useSound();
-  const fx = useGameEvents(state, play);
+  const fx = useGameEvents(state, play, muted);
 
   // Gespeicherte lokale Partie für „Fortsetzen" (beim Menü-Eintritt aktualisiert).
   const [saved, setSaved] = useState(() => loadLocalGame());

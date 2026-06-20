@@ -3,7 +3,7 @@
 // kurzen Schüttel-Moment auf und spielt den Wurf-Sound. Kein Engine-/Netz-Effekt.
 
 import { useState } from 'react';
-import { useSound } from '../sound';
+import { useSound, vibrate } from '../sound';
 
 const SHAKE_MS = 350;
 
@@ -14,12 +14,13 @@ function shouldAnimate(): boolean {
 }
 
 export function RollButton({ onReveal }: { onReveal: () => void }) {
-  const { play } = useSound();
+  const { play, muted } = useSound();
   const [rolling, setRolling] = useState(false);
 
   function roll() {
     if (rolling) return;
     play('roll');
+    if (!muted) vibrate('roll');
     if (!shouldAnimate()) {
       onReveal();
       return;

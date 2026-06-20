@@ -33,8 +33,8 @@ function transportFactory(serverUrl: string): () => Transport {
 
 export function OnlineFlow({ onBack }: { onBack: () => void }) {
   const client = useGameClient();
-  const { play } = useSound();
-  const fx = useGameEvents(client.state, play);
+  const { play, muted } = useSound();
+  const fx = useGameEvents(client.state, play, muted);
 
   if (client.state && client.started) {
     return <OnlineGame client={client} fx={fx} onBack={onBack} />;

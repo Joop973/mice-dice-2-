@@ -132,11 +132,41 @@ export class SoundManager {
 
     const ctx = this.ensureCtx();
     if (!ctx) return;
-    let at = ctx.currentTime;
+    const base = ctx.currentTime;
+    let cursor = base;
     for (const tone of spec.tones) {
-      this.playTone(ctx, tone, at);
-      at += tone.dur;
+      // `delay` -> ab Ereignisbeginn überlagern; sonst sequenziell anhängen.
+      const start = tone.delay !== undefined ? base + tone.delay : cursor;
+      if (tone.noise) this.playNoise(ctx, tone, start);
+      else this.playTone(ctx, tone, start);
+      if (tone.delay === undefined) cursor = start + tone.dur;
     }
+  }
+
+  /** Kurzer Rausch-Burst (Würfelrattern/Holzklack) mit Tiefpass + Hüllkurve. */
+  private playNoise(ctx: AudioContext, tone: ToneSpec, start: number): void {
+    const dur = tone.dur;
+    const length = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(tone.freq, start);
+
+    const gain = ctx.createGain();
+    const peak = tone.gain ?? 0.15;
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(peak, start + Math.min(0.005, dur / 2));
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+    src.connect(filter).connect(gain).connect(ctx.destination);
+    src.start(start);
+    src.stop(start + dur + 0.02);
   }
 
   private playTone(ctx: AudioContext, tone: ToneSpec, start: number): void {
