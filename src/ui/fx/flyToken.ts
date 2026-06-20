@@ -3,13 +3,7 @@
 // + Web Animations API. Degradiert sauber: ohne Layout (jsdom, Rects = 0),
 // ohne WAAPI oder bei reduced-motion passiert schlicht nichts.
 
-function reducedMotion(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
-}
+import { prefersReducedMotion as reducedMotion } from '../motion';
 
 /** Bounding-Rect des ersten Treffers für einen Selektor (oder null). */
 export function rectOf(selector: string): DOMRect | null {

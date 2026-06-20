@@ -14,6 +14,7 @@ export const HAPTIC_PATTERNS: Record<SoundEvent, number | number[]> = {
   round: [10, 40, 10],
   win: [30, 60, 30, 60, 60],
   warn: [40, 30, 24],
+  land: 8,
 };
 
 function reducedMotion(): boolean {

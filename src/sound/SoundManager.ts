@@ -10,6 +10,7 @@ import { hasMusic, MUSIC } from './music';
 
 const STORAGE_KEY = 'dicemice.muted';
 const MUSIC_KEY = 'dicemice.music';
+const VOLUME_KEY = 'dicemice.volume';
 
 type AudioCtor = typeof AudioContext;
 
@@ -30,21 +31,65 @@ function persistFlag(key: string, on: boolean): void {
   }
 }
 
+function readNum(key: string, fallback: number): number {
+  try {
+    const v = localStorage.getItem(key);
+    const n = v === null ? NaN : Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export class SoundManager {
   private ctx: AudioContext | null = null;
   private muted: boolean;
+  /** Master-Gain zwischen allen Klängen und dem Ausgang (Lautstärke). */
+  private masterGain: GainNode | null = null;
+  private volume: number;
   /** Cache für echte Audio-Assets (pro src eine wiederverwendbare Quelle). */
   private assets = new Map<string, HTMLAudioElement>();
   private musicEl: HTMLAudioElement | null = null;
   private musicOn: boolean;
+  // Prozeduraler Musik-Generator (wenn kein echtes Asset hinterlegt ist).
+  private musicGain: GainNode | null = null;
+  private musicTimer: ReturnType<typeof setInterval> | null = null;
+  private musicNextTime = 0;
+  private musicStep = 0;
 
   constructor() {
     this.muted = readFlag(STORAGE_KEY, false);
     this.musicOn = readFlag(MUSIC_KEY, false);
+    this.volume = readNum(VOLUME_KEY, 0.8);
   }
 
   isMuted(): boolean {
     return this.muted;
+  }
+
+  getVolume(): number {
+    return this.volume;
+  }
+
+  setVolume(v: number): void {
+    this.volume = Math.max(0, Math.min(1, v));
+    try {
+      localStorage.setItem(VOLUME_KEY, String(this.volume));
+    } catch {
+      // ignorieren
+    }
+    if (this.masterGain) this.masterGain.gain.value = this.volume;
+    if (this.musicEl) this.musicEl.volume = 0.35 * this.volume;
+  }
+
+  /** Lazy-erzeugter Master-Gain-Knoten (Lautstärke), an den alles geht. */
+  private master(ctx: AudioContext): GainNode {
+    if (!this.masterGain) {
+      this.masterGain = ctx.createGain();
+      this.masterGain.gain.value = this.volume;
+      this.masterGain.connect(ctx.destination);
+    }
+    return this.masterGain;
   }
 
   setMuted(muted: boolean): void {
@@ -58,9 +103,9 @@ export class SoundManager {
     return this.muted;
   }
 
-  // --- Hintergrundmusik (slot-basiert; aktiv nur wenn ein Track hinterlegt ist) ---
+  // --- Hintergrundmusik: echtes Asset (falls hinterlegt) oder prozeduraler Loop ---
   musicAvailable(): boolean {
-    return hasMusic();
+    return true; // ohne Asset wird prozedural erzeugt
   }
 
   isMusicOn(): boolean {
@@ -79,19 +124,81 @@ export class SoundManager {
   }
 
   private syncMusic(): void {
-    if (!this.musicAvailable()) return;
-    if (this.musicOn && !this.muted) {
-      if (!this.musicEl) {
-        this.musicEl = new Audio(MUSIC.src);
-        this.musicEl.loop = true;
-        this.musicEl.volume = 0.35;
+    const wantMusic = this.musicOn && !this.muted;
+    if (hasMusic()) {
+      // Echtes Asset hat Vorrang.
+      if (wantMusic) {
+        if (!this.musicEl) {
+          this.musicEl = new Audio(MUSIC.src);
+          this.musicEl.loop = true;
+        }
+        this.musicEl.volume = 0.35 * this.volume;
+        void this.musicEl.play().catch(() => {
+          // Wiedergabe blockiert (fehlende Geste) – startet bei nächster Geste.
+        });
+      } else if (this.musicEl) {
+        this.musicEl.pause();
       }
-      void this.musicEl.play().catch(() => {
-        // Wiedergabe blockiert (z. B. fehlende Geste) – startet bei nächster Geste.
-      });
-    } else if (this.musicEl) {
-      this.musicEl.pause();
+      return;
     }
+    // Kein Asset -> prozeduraler Pad-Loop.
+    if (wantMusic) this.startProceduralMusic();
+    else this.stopProceduralMusic();
+  }
+
+  // Sanfter Ambient-Loop: warme Pad-Akkorde, im Voraus geplant (Lookahead-Scheduler).
+  private startProceduralMusic(): void {
+    if (this.musicTimer) return;
+    const ctx = this.ensureCtx();
+    if (!ctx) return;
+    if (!this.musicGain) {
+      this.musicGain = ctx.createGain();
+      this.musicGain.gain.value = 0.16;
+      this.musicGain.connect(this.master(ctx));
+    }
+    this.musicNextTime = ctx.currentTime + 0.1;
+    this.musicStep = 0;
+    const schedule = () => {
+      const c = this.ctx;
+      if (!c || !this.musicGain) return;
+      // Plane alle fälligen Akkorde der nächsten Sekunde ein.
+      while (this.musicNextTime < c.currentTime + 1) {
+        this.scheduleChord(c, this.musicGain, this.musicNextTime);
+        this.musicNextTime += 2.6; // Akkord-Abstand (s)
+        this.musicStep++;
+      }
+    };
+    schedule();
+    this.musicTimer = setInterval(schedule, 500);
+  }
+
+  private stopProceduralMusic(): void {
+    if (this.musicTimer) {
+      clearInterval(this.musicTimer);
+      this.musicTimer = null;
+    }
+  }
+
+  /** Ein warmer, leiser Akkord (Maus-/Käse-Stimmung), sanft ein-/ausgeblendet. */
+  private scheduleChord(ctx: AudioContext, out: GainNode, at: number): void {
+    // Vier-Akkord-Schleife in A-Moll-Pentatonik (ruhig, freundlich).
+    const roots = [220, 196, 174.61, 164.81]; // A3 G3 F3 E3
+    const root = roots[this.musicStep % roots.length];
+    const voices = [root, root * 1.5, root * 2]; // Grundton, Quinte, Oktave
+    const dur = 2.8;
+    voices.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = i === 2 ? 'triangle' : 'sine';
+      osc.frequency.value = freq;
+      const peak = i === 0 ? 0.5 : 0.3;
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(peak, at + 0.6);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      osc.connect(g).connect(out);
+      osc.start(at);
+      osc.stop(at + dur + 0.05);
+    });
   }
 
   /**
@@ -164,7 +271,7 @@ export class SoundManager {
     gain.gain.linearRampToValueAtTime(peak, start + Math.min(0.005, dur / 2));
     gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
 
-    src.connect(filter).connect(gain).connect(ctx.destination);
+    src.connect(filter).connect(gain).connect(this.master(ctx));
     src.start(start);
     src.stop(start + dur + 0.02);
   }
@@ -185,7 +292,7 @@ export class SoundManager {
     gain.gain.linearRampToValueAtTime(peak, start + Math.min(0.01, tone.dur / 2));
     gain.gain.linearRampToValueAtTime(0, start + tone.dur);
 
-    osc.connect(gain).connect(ctx.destination);
+    osc.connect(gain).connect(this.master(ctx));
     osc.start(start);
     osc.stop(start + tone.dur + 0.02);
   }

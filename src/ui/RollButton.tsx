@@ -4,14 +4,10 @@
 
 import { useState } from 'react';
 import { useSound, vibrate } from '../sound';
+import { shouldAnimate } from './motion';
+import { getSettings } from './settings';
 
 const SHAKE_MS = 350;
-
-/** Animation nur, wenn matchMedia verfügbar ist UND reduced-motion NICHT gesetzt. */
-function shouldAnimate(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
 
 export function RollButton({ onReveal }: { onReveal: () => void }) {
   const { play, muted } = useSound();
@@ -20,7 +16,7 @@ export function RollButton({ onReveal }: { onReveal: () => void }) {
   function roll() {
     if (rolling) return;
     play('roll');
-    if (!muted) vibrate('roll');
+    if (!muted && getSettings().haptics) vibrate('roll');
     if (!shouldAnimate()) {
       onReveal();
       return;

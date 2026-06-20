@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameState } from '../engine';
 import { vibrate, type SoundEvent } from '../sound';
+import { getSettings } from './settings';
 import {
   detectEvents,
   snapshot,
@@ -34,6 +35,10 @@ const EMPTY: GameEventFx = {
   sabotage: [],
 };
 
+// Verzögerung des „Landungs"-Sounds nach einem Draft-Pick – passend zur
+// flyToken-Standarddauer (fx/flyToken.ts), damit Ton und Bild zusammenfallen.
+const LAND_DELAY_MS = 650;
+
 export function useGameEvents(
   state: GameState | null,
   play: (event: SoundEvent) => void,
@@ -52,10 +57,22 @@ export function useGameEvents(
     prevRef.current = cur;
     if (!prev) return; // Erster Zustand: keine Differenz, kein Effekt.
 
+    const haptics = !muted && getSettings().haptics;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
     const { sounds, crownedNow, warnNow, banner, crownMove, sabotage } = detectEvents(prev, cur);
     for (const s of sounds) {
       play(s);
-      if (!muted) vibrate(s); // Haptik an Mute gekoppelt
+      if (haptics) vibrate(s); // Haptik an Mute + Setting gekoppelt
+      // Draft-Pick: „Landung" passend zur Flug-Animation (~650 ms) nachklingen.
+      if (s === 'pick') {
+        timers.push(
+          setTimeout(() => {
+            play('land');
+            if (haptics) vibrate('land');
+          }, LAND_DELAY_MS)
+        );
+      }
     }
 
     if (
@@ -67,9 +84,10 @@ export function useGameEvents(
     ) {
       setFx({ crownedNow, warnNow, banner, crownMove, sabotage });
       const duration = banner ? 1600 : 1000;
-      const t = setTimeout(() => setFx(EMPTY), duration);
-      return () => clearTimeout(t);
+      timers.push(setTimeout(() => setFx(EMPTY), duration));
     }
+
+    if (timers.length > 0) return () => timers.forEach(clearTimeout);
   }, [state, play, muted]);
 
   return fx;

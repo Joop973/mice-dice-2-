@@ -15,7 +15,8 @@ export type SoundEvent =
   | 'tick' // Punkte gutgeschrieben (positive Wertung)
   | 'round' // neue Runde beginnt
   | 'win' // Partie beendet / Sieger-Sequenz
-  | 'warn'; // negative Wertung (Rot / Sabotage)
+  | 'warn' // negative Wertung (Rot / Sabotage)
+  | 'land'; // gedrafteter Würfel landet im Beutel (nach Flug-Animation)
 
 /** Ein einzelner Ton/Geräusch des Platzhalter-Synths. */
 export interface ToneSpec {
@@ -100,6 +101,13 @@ export const SOUNDS: Record<SoundEvent, SoundSpec> = {
     tones: [
       { freq: 170, to: 90, dur: 0.3, type: 'sawtooth', gain: 0.16 },
       { freq: 300, dur: 0.12, gain: 0.12, noise: true, delay: 0 },
+    ],
+  },
+  // Würfel landet im Beutel: leiser Holz-Tap (kurzer Klack + tiefer Anschlag).
+  land: {
+    tones: [
+      { freq: 520, dur: 0.04, gain: 0.12, noise: true, delay: 0 },
+      { freq: 200, to: 130, dur: 0.07, type: 'triangle', gain: 0.14, delay: 0 },
     ],
   },
 };
