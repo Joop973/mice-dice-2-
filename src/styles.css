@@ -734,6 +734,41 @@ button.ghost {
   background: #5aa9e6;
 }
 
+/* „Würfeln"-Knopf */
+.roll {
+  display: flex;
+  justify-content: center;
+  margin: 18px 0 4px;
+}
+
+.roll__btn {
+  font-size: 1.3rem;
+  padding: 16px 34px;
+}
+
+@keyframes roll-shake {
+  0%,
+  100% {
+    transform: rotate(0) translateY(0);
+  }
+  20% {
+    transform: rotate(-7deg) translateY(-3px);
+  }
+  40% {
+    transform: rotate(7deg) translateY(0);
+  }
+  60% {
+    transform: rotate(-5deg) translateY(-2px);
+  }
+  80% {
+    transform: rotate(5deg) translateY(0);
+  }
+}
+
+.roll__btn--shake {
+  animation: roll-shake 350ms ease-in-out;
+}
+
 /* Bewegungsreduzierung respektieren: keine dekorativen Animationen. */
 @media (prefers-reduced-motion: reduce) {
   .die,
@@ -741,7 +776,8 @@ button.ghost {
   .player--warn,
   .banner span,
   .panel--win,
-  .confetti span {
+  .confetti span,
+  .roll__btn--shake {
     animation: none;
   }
 }

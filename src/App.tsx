@@ -26,6 +26,7 @@ import {
 import { PlayerCard } from './ui/PlayerCard';
 import { RoundSummary } from './ui/RoundSummary';
 import { DraftTable } from './ui/DraftTable';
+import { RollButton } from './ui/RollButton';
 import { Rules } from './ui/Rules';
 import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
@@ -410,6 +411,13 @@ function Game({
   const humanDrafting = activeDrafter && !activeDrafter.isAI;
   const hasClearDice = state.players.some((p) => p.rolled.some((d) => d.color === 'clear'));
 
+  // „Würfeln"-Reveal: zu Rundenbeginn sind die (längst geworfenen) Würfel
+  // verdeckt, bis der Knopf gedrückt wird. Pro Runde zurücksetzen.
+  const [rolledRevealed, setRolledRevealed] = useState(false);
+  useEffect(() => setRolledRevealed(false), [state.round]);
+  const diceRevealed = state.phase !== 'roll' || rolledRevealed;
+  const awaitingRoll = state.phase === 'roll' && !rolledRevealed;
+
   if (state.finished) {
     return (
       <div className="app">
@@ -483,9 +491,12 @@ function Game({
             warn={fx.warnNow.has(p.id)}
             selectedDieIds={state.phase === 'swap' ? selectedClear : undefined}
             onToggleClear={state.phase === 'swap' && !p.isAI ? onToggleClear : undefined}
+            revealed={diceRevealed}
           />
         ))}
       </section>
+
+      {awaitingRoll && <RollButton onReveal={() => setRolledRevealed(true)} />}
 
       {state.phase === 'swap' && (
         <section className="panel">
@@ -518,13 +529,15 @@ function Game({
       )}
 
       <div className="actions">
-        <button onClick={onAdvance} disabled={state.phase === 'draft' && !draftComplete}>
-          {state.phase === 'draft'
-            ? state.round >= state.config.totalRounds
-              ? 'Partie beenden →'
-              : 'Nächste Runde →'
-            : 'Weiter →'}
-        </button>
+        {!awaitingRoll && (
+          <button onClick={onAdvance} disabled={state.phase === 'draft' && !draftComplete}>
+            {state.phase === 'draft'
+              ? state.round >= state.config.totalRounds
+                ? 'Partie beenden →'
+                : 'Nächste Runde →'
+              : 'Weiter →'}
+          </button>
+        )}
         <button className="ghost" onClick={onNewGame}>
           Neue Partie
         </button>

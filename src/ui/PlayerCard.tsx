@@ -19,6 +19,8 @@ interface PlayerCardProps {
   selectedDieIds?: Set<string>;
   /** Callback, wenn ein Klar-Würfel an-/abgewählt wird (nur Swap-Phase). */
   onToggleClear?: (dieId: string) => void;
+  /** Würfel anzeigen? false = „noch nicht gewürfelt" (vor dem Würfeln-Knopf). */
+  revealed?: boolean;
 }
 
 export function PlayerCard({
@@ -29,6 +31,7 @@ export function PlayerCard({
   warn,
   selectedDieIds,
   onToggleClear,
+  revealed = true,
 }: PlayerCardProps) {
   const className = [
     'player',
@@ -59,7 +62,7 @@ export function PlayerCard({
         </span>
       </header>
       <DiceView
-        dice={player.rolled}
+        dice={revealed ? player.rolled : []}
         use3d={use3d}
         selectedDieIds={selectedDieIds}
         onToggleClear={onToggleClear}

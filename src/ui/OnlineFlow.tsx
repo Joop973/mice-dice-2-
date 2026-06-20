@@ -6,13 +6,14 @@
 // Der Server ist autoritativ: diese Komponente rendert nur den empfangenen
 // GameState und schickt Aktionen; die Zug-/Rechteprüfung passiert serverseitig.
 
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { LocalTransport, WebSocketTransport, type Transport } from '../net';
 import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from '../ai';
 import type { GameState, Phase, Player } from '../engine';
 import { PlayerCard } from './PlayerCard';
 import { RoundSummary } from './RoundSummary';
 import { DraftTable } from './DraftTable';
+import { RollButton } from './RollButton';
 import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
@@ -257,6 +258,12 @@ function OnlineGame({
     return me ? me.rolled.some((d) => d.color === 'clear') : false;
   }, [state.players, you]);
 
+  // „Würfeln"-Reveal (lokale Ansicht je Client; keine Netz-Aktion).
+  const [rolledRevealed, setRolledRevealed] = useState(false);
+  useEffect(() => setRolledRevealed(false), [state.round]);
+  const diceRevealed = state.phase !== 'roll' || rolledRevealed;
+  const awaitingRoll = state.phase === 'roll' && !rolledRevealed;
+
   if (state.finished) {
     return (
       <div className="app">
@@ -340,10 +347,13 @@ function OnlineGame({
               warn={fx.warnNow.has(p.id)}
               selectedDieIds={state.phase === 'swap' && isYou ? selectedClear : undefined}
               onToggleClear={state.phase === 'swap' && isYou ? toggleClear : undefined}
+              revealed={diceRevealed}
             />
           );
         })}
       </section>
+
+      {awaitingRoll && <RollButton onReveal={() => setRolledRevealed(true)} />}
 
       {state.phase === 'swap' && (
         <section className="panel">
@@ -377,16 +387,18 @@ function OnlineGame({
 
       <div className="actions">
         {isHost ? (
-          <button
-            onClick={() => client.sendAction({ type: 'advance' })}
-            disabled={state.phase === 'draft' && !draftComplete}
-          >
-            {state.phase === 'draft'
-              ? state.round >= state.config.totalRounds
-                ? 'Partie beenden →'
-                : 'Nächste Runde →'
-              : 'Weiter →'}
-          </button>
+          !awaitingRoll && (
+            <button
+              onClick={() => client.sendAction({ type: 'advance' })}
+              disabled={state.phase === 'draft' && !draftComplete}
+            >
+              {state.phase === 'draft'
+                ? state.round >= state.config.totalRounds
+                  ? 'Partie beenden →'
+                  : 'Nächste Runde →'
+                : 'Weiter →'}
+            </button>
+          )
         ) : (
           <p className="muted">Der Host schaltet die Phasen weiter.</p>
         )}
