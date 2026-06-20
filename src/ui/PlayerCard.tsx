@@ -7,6 +7,7 @@ import { AnimatedNumber } from './AnimatedNumber';
 import { MouseAvatar, type AvatarState } from './MouseAvatar';
 import { DiceCollection } from './DiceCollection';
 import { playerIndex } from './colors';
+import { CROWN_SRC } from './avatarArt';
 
 interface PlayerCardProps {
   player: Player;
@@ -63,7 +64,7 @@ export function PlayerCard({
             />
             {player.hasCrown && (
               <span className="crown-badge" aria-label="trägt die Käse-Krone">
-                👑
+                {CROWN_SRC ? <img src={CROWN_SRC} alt="" width={20} height={20} /> : '👑'}
               </span>
             )}
           </span>

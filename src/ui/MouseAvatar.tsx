@@ -3,6 +3,7 @@
 // Zustände steuern eine CSS-Klasse (z. B. Wackeln bei Sabotage).
 
 import { PLAYER_COLORS } from './colors';
+import { avatarSrc } from './avatarArt';
 
 export type AvatarState = 'idle' | 'winning' | 'sabotaged' | 'crowned';
 
@@ -10,7 +11,8 @@ interface MouseAvatarProps {
   colorIndex: number;
   state?: AvatarState;
   isAI?: boolean;
-  /** Optionaler Pfad zu echter Avatar-Grafik (ersetzt das Platzhalter-SVG). */
+  /** Optionaler Pfad zu echter Avatar-Grafik (ersetzt das Platzhalter-SVG).
+   *  Ohne Angabe wird die Sitz-Grafik aus avatarArt genutzt (falls vorhanden). */
   src?: string;
   size?: number;
 }
@@ -24,11 +26,12 @@ export function MouseAvatar({
 }: MouseAvatarProps) {
   const tint = PLAYER_COLORS[colorIndex % PLAYER_COLORS.length];
   const className = `avatar avatar--${state}`;
+  const art = src ?? avatarSrc(colorIndex);
 
-  if (src) {
+  if (art) {
     return (
       <span className={className} style={{ width: size, height: size }} aria-hidden="true">
-        <img src={src} alt="" width={size} height={size} />
+        <img src={art} alt="" width={size} height={size} />
         {isAI && <span className="avatar__ai">KI</span>}
       </span>
     );

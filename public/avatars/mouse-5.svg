@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img">
+  <defs>
+    <radialGradient id="g5" cx="40%" cy="32%" r="72%">
+      <stop offset="0%" stop-color="#e6ddd0"/>
+      <stop offset="70%" stop-color="#cdc3b4"/>
+      <stop offset="100%" stop-color="#b3a899"/>
+    </radialGradient>
+    <linearGradient id="b5" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b15fd6"/>
+      <stop offset="100%" stop-color="#914eaf"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="32" cy="59" rx="17" ry="3.4" fill="#000" opacity="0.18"/>
+  <!-- Ohren -->
+  <g>
+    <circle cx="18" cy="16" r="10" fill="url(#g5)" stroke="#9f56c1" stroke-width="1.5"/>
+    <circle cx="46" cy="16" r="10" fill="url(#g5)" stroke="#9f56c1" stroke-width="1.5"/>
+    <circle cx="18" cy="16" r="5" fill="#f4b9d2"/>
+    <circle cx="46" cy="16" r="5" fill="#f4b9d2"/>
+  </g>
+  <!-- Körper -->
+  <path d="M32 21c-12 0-19 9-19 21 0 9 8 14 19 14s19-5 19-14c0-12-7-21-19-21z" fill="url(#g5)" stroke="#9c54bc" stroke-width="1.2"/>
+  <!-- Bauch -->
+  <ellipse cx="32" cy="45" rx="10" ry="11" fill="#f3ece1" opacity="0.85"/>
+  <!-- Schal -->
+  <path d="M19 38c8 5 18 5 26 0l-2 6c-7 4-15 4-22 0z" fill="url(#b5)"/>
+  <path d="M40 43l6 11-6-2-2-7z" fill="#8a4aa7"/>
+  <!-- Käsestück -->
+  <g transform="translate(33 44)">
+    <path d="M0 0L15 4L13 12L0 11Z" fill="#f6c945" stroke="#caa01f" stroke-width="1"/>
+    <circle cx="5" cy="5" r="1.4" fill="#e0ad28"/>
+    <circle cx="9" cy="8" r="1.1" fill="#e0ad28"/>
+    <circle cx="11" cy="4" r="0.9" fill="#e0ad28"/>
+  </g>
+  <!-- Gesicht -->
+  <circle cx="26" cy="33" r="2.5" fill="#26201a"/>
+  <circle cx="38" cy="33" r="2.5" fill="#26201a"/>
+  <circle cx="26.8" cy="32.2" r="0.8" fill="#fff"/>
+  <circle cx="38.8" cy="32.2" r="0.8" fill="#fff"/>
+  <ellipse cx="32" cy="38" rx="2.6" ry="2" fill="#e0568a"/>
+  <g stroke="#3a322a" stroke-width="1" stroke-linecap="round" opacity="0.5">
+    <line x1="34" y1="38" x2="48" y2="35"/>
+    <line x1="34" y1="39" x2="48" y2="41"/>
+    <line x1="30" y1="38" x2="16" y2="35"/>
+    <line x1="30" y1="39" x2="16" y2="41"/>
+  </g>
+</svg>
