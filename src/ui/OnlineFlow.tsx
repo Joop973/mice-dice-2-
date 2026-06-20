@@ -9,26 +9,21 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { LocalTransport, WebSocketTransport, type Transport } from '../net';
 import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from '../ai';
-import type { GameState, Phase, Player } from '../engine';
+import type { GameState, Player } from '../engine';
 import { PlayerCard } from './PlayerCard';
 import { RoundSummary } from './RoundSummary';
 import { DraftTable } from './DraftTable';
 import { RollButton } from './RollButton';
 import { CrownToken } from './CrownToken';
 import { SabotageFx } from './SabotageFx';
+import { PhaseTrack } from './PhaseTrack';
+import { ScoreTrack } from './ScoreTrack';
 import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
 
 const ENV_SERVER_URL: string =
   (import.meta.env as Record<string, string | undefined>).VITE_SERVER_URL ?? '';
-
-const PHASE_LABEL: Record<Phase, string> = {
-  roll: '1 · Würfeln',
-  pity: '2 · Mitleidswürfel',
-  swap: '3 · Klar tauschen',
-  draft: '4 · Drafting',
-};
 
 function transportFactory(serverUrl: string): () => Transport {
   const url = serverUrl.trim();
@@ -325,10 +320,12 @@ function OnlineGame({
           <span>
             Runde {state.round} / {state.config.totalRounds}
           </span>
-          <span className="badge">{PHASE_LABEL[state.phase]}</span>
           <span className="code">#{client.code}</span>
         </div>
       </header>
+
+      <PhaseTrack phase={state.phase} />
+      <ScoreTrack players={state.players} />
 
       {fx.banner && (
         <div className="banner" role="status" aria-live="polite">

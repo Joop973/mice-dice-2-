@@ -904,6 +904,102 @@ button.ghost {
   white-space: nowrap;
 }
 
+/* Phasen-Leiste */
+.phasetrack {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 2px;
+}
+
+.phasetrack__steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.phasetrack__step {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid transparent;
+  font-size: 0.8rem;
+  opacity: 0.55;
+  filter: grayscale(0.6);
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+
+.phasetrack__step.is-done {
+  opacity: 0.85;
+  filter: none;
+}
+
+.phasetrack__step.is-current {
+  opacity: 1;
+  filter: none;
+  border-color: var(--accent);
+  background: rgba(244, 197, 66, 0.18);
+  transform: scale(1.12);
+}
+
+.phasetrack__label {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* Punkte-Leiste (Score-Track) */
+.scoretrack {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 4px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 12px;
+}
+
+.scoretrack__lane {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scoretrack__rail {
+  position: relative;
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.scoretrack__pawn {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: left 500ms cubic-bezier(0.45, 0.05, 0.3, 1);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4));
+}
+
+.scoretrack__score {
+  min-width: 34px;
+  text-align: right;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scoretrack__pawn,
+  .phasetrack__step {
+    transition: none;
+  }
+}
+
 /* Bewegungsreduzierung respektieren: keine dekorativen Animationen. */
 @media (prefers-reduced-motion: reduce) {
   .die,

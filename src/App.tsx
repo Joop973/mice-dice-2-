@@ -33,14 +33,9 @@ import { Rules } from './ui/Rules';
 import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
+import { PhaseTrack } from './ui/PhaseTrack';
+import { ScoreTrack } from './ui/ScoreTrack';
 import { useSound } from './sound';
-
-const PHASE_LABEL: Record<Phase, string> = {
-  roll: '1 · Würfeln',
-  pity: '2 · Mitleidswürfel',
-  swap: '3 · Klar tauschen',
-  draft: '4 · Drafting',
-};
 
 const PHASE_HINT: Record<Phase, string> = {
   roll: 'Alle Mäuse haben ihren Beutel geworfen.',
@@ -459,7 +454,6 @@ function Game({
           <span>
             Runde {state.round} / {state.config.totalRounds}
           </span>
-          <span className="badge">{PHASE_LABEL[state.phase]}</span>
           <button className="toggle3d" onClick={onToggle3d}>
             {use3d ? '3D' : '2D'}
           </button>
@@ -473,6 +467,9 @@ function Game({
           </button>
         </div>
       </header>
+
+      <PhaseTrack phase={state.phase} />
+      <ScoreTrack players={state.players} />
 
       {fx.banner && (
         <div className="banner" role="status" aria-live="polite">
