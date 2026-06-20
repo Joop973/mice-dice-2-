@@ -1438,3 +1438,29 @@ button.ghost {
     transform: translateY(0);
   }
 }
+
+/* PWA-Hinweis-Toast (unten, schwebend) */
+.pwa-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 24px);
+  padding: 10px 12px;
+  background: linear-gradient(#33271d, #2a211b);
+  border: 2px solid var(--wood-dark);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  font-size: 0.9rem;
+}
+.pwa-toast button {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+.pwa-toast__close {
+  padding: 6px 10px;
+}
