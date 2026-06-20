@@ -1,0 +1,611 @@
+:root {
+  color-scheme: dark;
+  --bg: #1c1410;
+  --panel: #2a211b;
+  --accent: #f4c542;
+  --text: #f6efe6;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top) 16px 32px;
+}
+
+.app__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 0;
+}
+
+.app__header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.app__meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: #cbbfae;
+}
+
+.badge {
+  background: var(--accent);
+  color: #1c1410;
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.players {
+  display: grid;
+  gap: 12px;
+}
+
+.player {
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.player__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.player__name {
+  font-weight: 600;
+}
+
+.player__score em {
+  color: #cbbfae;
+  font-style: normal;
+}
+
+.dice,
+.offers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dice3d {
+  width: 100%;
+  height: 96px;
+}
+
+.dice-canvas {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.toggle3d {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid #4a3d33;
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.die {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #1c1410;
+  font-weight: 700;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.die__value {
+  font-size: 1.2rem;
+}
+
+.die--clickable {
+  cursor: pointer;
+  border: none;
+  font: inherit;
+  position: relative;
+}
+
+.die--selected {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.die--pity {
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px #5fbf6a;
+}
+
+.die__tag {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #5fbf6a;
+  color: #1c1410;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.dice__empty,
+.muted {
+  color: #9c8e7d;
+  font-size: 0.9rem;
+}
+
+.hint {
+  color: #cbbfae;
+  margin: 0 0 12px;
+}
+
+.player--active {
+  outline: 2px solid var(--accent);
+}
+
+.standings {
+  margin: 8px 0 16px;
+  padding-left: 20px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.field__label {
+  font-weight: 600;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.counter button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.counter__value {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.seg {
+  display: flex;
+  gap: 6px;
+}
+
+.seg__btn {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid #4a3d33;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.seg__btn--on {
+  background: var(--accent);
+  color: #1c1410;
+  border-color: var(--accent);
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 16px;
+}
+
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+}
+
+.offer {
+  border: 2px solid var(--accent);
+  background: transparent;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+button {
+  background: var(--accent);
+  color: #1c1410;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid #4a3d33;
+}
+
+.log {
+  margin-top: 24px;
+  color: #cbbfae;
+  font-size: 0.9rem;
+}
+
+.log ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+/* Online-Modus: Formulare, Codes, Fehlertexte */
+.input {
+  background: #1c1410;
+  color: var(--text);
+  border: 1px solid #4a3d33;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  min-width: 0;
+  flex: 1;
+  max-width: 60%;
+}
+
+.input::placeholder {
+  color: #7d7164;
+}
+
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 2px;
+  background: #1c1410;
+  border: 1px solid #4a3d33;
+  border-radius: 8px;
+  padding: 1px 8px;
+}
+
+.error {
+  color: #ff8a7a;
+  font-size: 0.9rem;
+  margin: 10px 0 0;
+}
+
+/* Rundenauswertung */
+.summary__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.summary__row {
+  border-top: 1px solid #4a3d33;
+  padding-top: 10px;
+}
+
+.summary__row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.summary__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.summary__name {
+  font-weight: 600;
+}
+
+.summary__final {
+  font-size: 1.1rem;
+}
+
+.summary__final.neg {
+  color: #ff8a7a;
+}
+
+.summary__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  border: 1px solid #4a3d33;
+  border-left-width: 4px;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  color: #e8ddcd;
+  background: #1c1410;
+}
+
+.chip--bad {
+  border-color: #c0392b;
+  color: #ff9a8a;
+}
+
+.chip--throw {
+  border-color: #3a3f47;
+  color: #b9c0c9;
+}
+
+.chip--crown {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Regel-Screen */
+.rules__p {
+  margin: 0;
+  line-height: 1.5;
+  color: #e8ddcd;
+}
+
+.rules__phases {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.rules__phase-title {
+  font-weight: 700;
+  display: block;
+}
+
+.rules__phase-text {
+  color: #cbbfae;
+  font-size: 0.92rem;
+}
+
+.rules__catalog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.rules__die {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.rules__swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.rules__die-name {
+  font-weight: 600;
+  display: block;
+}
+
+.rules__die-scoring {
+  color: #cbbfae;
+  font-size: 0.92rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Phase 5: Animationen & visuelles Feedback
+ * ------------------------------------------------------------------------- */
+
+/* Würfel-Eintritt: rollt bei jedem frischen Wurf kurz herein. */
+@keyframes die-roll-in {
+  0% {
+    transform: translateY(-8px) rotate(-12deg) scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(0) rotate(6deg) scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+.die {
+  animation: die-roll-in 320ms ease-out both;
+}
+
+/* Kronenwechsel: goldener Puls auf der Spielerkarte. */
+@keyframes crown-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(244, 197, 66, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgba(244, 197, 66, 0);
+  }
+}
+
+.player--crowned {
+  outline: 2px solid var(--accent);
+  animation: crown-pulse 900ms ease-out 2;
+}
+
+/* Negativ-Wertung (Rot/Sabotage): roter Shake. */
+@keyframes warn-shake {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-5px);
+  }
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+}
+
+.player--warn {
+  animation: warn-shake 600ms ease-in-out both;
+  box-shadow: 0 0 0 2px #c0392b inset;
+}
+
+/* Runden-/Sieger-Banner: blendet kurz mittig ein. */
+@keyframes banner-pop {
+  0% {
+    transform: translateY(-10px) scale(0.9);
+    opacity: 0;
+  }
+  15%,
+  80% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-6px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+.banner {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 12px;
+  pointer-events: none;
+}
+
+.banner span {
+  background: var(--accent);
+  color: #1c1410;
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 8px 22px;
+  border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  animation: banner-pop 1600ms ease-out both;
+}
+
+/* Sieger-Sequenz: Panel skaliert herein, Konfetti rieselt. */
+@keyframes win-in {
+  0% {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.panel--win {
+  animation: win-in 500ms ease-out both;
+}
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(540deg);
+    opacity: 0.9;
+  }
+}
+
+.confetti span {
+  position: absolute;
+  top: -10vh;
+  left: calc(var(--i) * 7%);
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: confetti-fall 2.4s linear infinite;
+  animation-delay: calc(var(--i) * 140ms);
+}
+
+.confetti span:nth-child(3n) {
+  background: #5fbf6a;
+}
+.confetti span:nth-child(3n + 1) {
+  background: #e0568a;
+}
+.confetti span:nth-child(4n) {
+  background: #5aa9e6;
+}
+
+/* Bewegungsreduzierung respektieren: keine dekorativen Animationen. */
+@media (prefers-reduced-motion: reduce) {
+  .die,
+  .player--crowned,
+  .player--warn,
+  .banner span,
+  .panel--win,
+  .confetti span {
+    animation: none;
+  }
+}

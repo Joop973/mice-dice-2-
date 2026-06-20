@@ -1,0 +1,17 @@
+{
+  "comment": "Eigenständiger Typecheck des Servers (npm run typecheck:server). Bewusst NICHT Teil von `tsc -b`/dem Client-Build, damit der PWA-Build serverfrei bleibt.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["index.ts", "../src/net", "../src/engine", "../src/ai"]
+}

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Dice Mice">
+  <!-- App-Icon: Käse-gelber Würfel mit Mäuse-Ohren und Schwanz. -->
+  <rect width="512" height="512" rx="108" fill="#1c1410"/>
+
+  <!-- Mäuse-Ohren (hinter dem Würfel) -->
+  <circle cx="192" cy="150" r="46" fill="#f4c542"/>
+  <circle cx="320" cy="150" r="46" fill="#f4c542"/>
+  <circle cx="192" cy="150" r="23" fill="#e0568a"/>
+  <circle cx="320" cy="150" r="23" fill="#e0568a"/>
+
+  <!-- Schwanz -->
+  <path d="M356 372 q70 16 58 78 q-10 44 -58 36" fill="none"
+        stroke="#f4c542" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Würfelkörper (Fünf-Augen-Seite) -->
+  <rect x="148" y="168" width="216" height="216" rx="46" fill="#f4c542"/>
+  <rect x="148" y="168" width="216" height="216" rx="46" fill="#000" opacity="0.06"/>
+  <rect x="148" y="168" width="216" height="200" rx="46" fill="#f4c542"/>
+
+  <!-- Augen (5) -->
+  <circle cx="200" cy="220" r="19" fill="#1c1410"/>
+  <circle cx="312" cy="220" r="19" fill="#1c1410"/>
+  <circle cx="256" cy="276" r="19" fill="#1c1410"/>
+  <circle cx="200" cy="332" r="19" fill="#1c1410"/>
+  <circle cx="312" cy="332" r="19" fill="#1c1410"/>
+</svg>
