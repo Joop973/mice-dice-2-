@@ -4,6 +4,13 @@
   --panel: #2a211b;
   --accent: #f4c542;
   --text: #f6efe6;
+  /* Brettspiel-Theme: grüner Filz + Holz */
+  --felt: #2f6b46;
+  --felt-mid: #244f35;
+  --felt-edge: #1b3a27;
+  --wood: #6b4a2e;
+  --wood-light: #8a6038;
+  --wood-dark: #3a2a1d;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -13,7 +20,8 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  /* Holz-Tischplatte rund um das Spielbrett */
+  background: radial-gradient(ellipse at 50% 30%, #3a2a1d 0%, #271b12 60%, #1c1410 100%);
   color: var(--text);
 }
 
@@ -21,6 +29,12 @@ body {
   max-width: 720px;
   margin: 0 auto;
   padding: env(safe-area-inset-top) 16px 32px;
+  /* Das Spielbrett: grüner Filz mit Holzschienen seitlich */
+  min-height: 100vh;
+  background: radial-gradient(ellipse at center top, var(--felt) 0%, var(--felt-mid) 62%, var(--felt-edge) 100%);
+  border-left: 8px solid var(--wood-dark);
+  border-right: 8px solid var(--wood-dark);
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.45);
 }
 
 .app__header {
@@ -57,9 +71,12 @@ body {
 }
 
 .player {
-  background: var(--panel);
+  /* Holz-Spielermatte auf dem Filz */
+  background: linear-gradient(#33271d, #2a211b);
+  border: 2px solid var(--wood-dark);
   border-radius: 14px;
   padding: 12px 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .player__head {
@@ -224,10 +241,12 @@ body {
 }
 
 .panel {
-  background: var(--panel);
+  background: linear-gradient(#33271d, #2a211b);
+  border: 2px solid var(--wood-dark);
   border-radius: 14px;
   padding: 14px;
   margin-top: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .panel h2 {
@@ -252,14 +271,25 @@ body {
 }
 
 button {
-  background: var(--accent);
-  color: #1c1410;
+  /* Geschnitzter Holz-Token-Knopf */
+  background: linear-gradient(var(--wood-light), var(--wood));
+  color: #fff4e0;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 12px 18px;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.28), 0 3px 6px rgba(0, 0, 0, 0.4);
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+button:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 button:disabled {
@@ -270,7 +300,18 @@ button:disabled {
 button.ghost {
   background: transparent;
   color: var(--text);
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-dark);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+  button:not(:disabled):active {
+    transform: none;
+  }
 }
 
 .log {
