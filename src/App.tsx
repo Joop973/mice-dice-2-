@@ -32,12 +32,15 @@ import { SabotageFx } from './ui/SabotageFx';
 import { Podium } from './ui/Podium';
 import { Rules } from './ui/Rules';
 import { StatsPanel } from './ui/StatsPanel';
+import { SettingsPanel } from './ui/SettingsPanel';
+import { useSettings } from './ui/useSettings';
 import { Tutorial, isOnboarded } from './ui/Tutorial';
 import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
 import { recordGame } from './ui/stats';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
 import { PhaseTrack } from './ui/PhaseTrack';
+import { PHASE_LABEL } from './ui/phaseLabels';
 import { ScoreTrack } from './ui/ScoreTrack';
 import { playerIndex } from './ui/colors';
 import { useSound } from './sound';
@@ -69,7 +72,9 @@ export function App() {
   const rngRef = useRef<RNG>(createRNG(newSeed()));
   const aiSwapRoundRef = useRef(0);
 
-  const [mode, setMode] = useState<'menu' | 'local' | 'online' | 'rules' | 'stats'>('menu');
+  const [mode, setMode] = useState<'menu' | 'local' | 'online' | 'rules' | 'stats' | 'settings'>(
+    'menu'
+  );
   const [showTutorial, setShowTutorial] = useState(() => !isOnboarded());
   const recordedRef = useRef(false);
   const [started, setStarted] = useState(false);
@@ -92,6 +97,12 @@ export function App() {
 
   const { play, muted, toggleMuted, musicAvailable, musicOn, toggleMusic } = useSound();
   const fx = useGameEvents(state, play, muted);
+
+  // „Bewegung reduzieren": Wurzel-Attribut, das styles.css zusätzlich auswertet.
+  const settings = useSettings();
+  useEffect(() => {
+    document.documentElement.dataset.reduceMotion = settings.reduceMotion ? 'on' : '';
+  }, [settings.reduceMotion]);
 
   // Gespeicherte lokale Partie für „Fortsetzen" (beim Menü-Eintritt aktualisiert).
   const [saved, setSaved] = useState(() => loadLocalGame());
@@ -199,6 +210,7 @@ export function App() {
           onOnline={() => setMode('online')}
           onRules={() => setMode('rules')}
           onStats={() => setMode('stats')}
+          onSettings={() => setMode('settings')}
           onTutorial={() => setShowTutorial(true)}
           onResume={saved ? resume : undefined}
           resumeRound={saved?.state.round}
@@ -214,6 +226,10 @@ export function App() {
 
   if (mode === 'stats') {
     return <StatsPanel onBack={() => setMode('menu')} />;
+  }
+
+  if (mode === 'settings') {
+    return <SettingsPanel onBack={() => setMode('menu')} />;
   }
 
   if (mode === 'online') {
@@ -283,6 +299,7 @@ function Menu({
   onOnline,
   onRules,
   onStats,
+  onSettings,
   onTutorial,
   onResume,
   resumeRound,
@@ -291,6 +308,7 @@ function Menu({
   onOnline: () => void;
   onRules: () => void;
   onStats: () => void;
+  onSettings: () => void;
   onTutorial: () => void;
   onResume?: () => void;
   resumeRound?: number;
@@ -324,6 +342,9 @@ function Menu({
         <div className="menu__row">
           <button className="ghost" onClick={onStats}>
             📊 Statistik
+          </button>
+          <button className="ghost" onClick={onSettings}>
+            ⚙️ Einstellungen
           </button>
           <button className="ghost" onClick={onTutorial}>
             ❔ Tutorial
@@ -604,6 +625,16 @@ function Game({
 
       <CrownToken move={fx.crownMove} />
       <SabotageFx moves={fx.sabotage} />
+
+      {/* Screenreader-Ansage für Phase + „am Zug" (visuell verborgen). */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {`Runde ${state.round}, Phase ${PHASE_LABEL[state.phase]}.`}
+        {activeDrafter
+          ? activeDrafter.isAI
+            ? ` ${activeDrafter.name} ist am Zug.`
+            : ` ${activeDrafter.name}, du bist am Zug.`
+          : ''}
+      </div>
 
       <p className="hint">{PHASE_HINT[state.phase]}</p>
 

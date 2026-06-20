@@ -6,8 +6,9 @@ import { DiceView } from './DiceView';
 import { AnimatedNumber } from './AnimatedNumber';
 import { MouseAvatar, type AvatarState } from './MouseAvatar';
 import { DiceCollection } from './DiceCollection';
-import { playerIndex } from './colors';
+import { playerIndex, PLAYER_GLYPHS } from './colors';
 import { CROWN_SRC } from './avatarArt';
+import { useSettings } from './useSettings';
 
 interface PlayerCardProps {
   player: Player;
@@ -37,6 +38,7 @@ export function PlayerCard({
   onToggleClear,
   revealed = true,
 }: PlayerCardProps) {
+  const { colorblind } = useSettings();
   const className = [
     'player',
     active ? 'player--active' : '',
@@ -69,6 +71,11 @@ export function PlayerCard({
             )}
           </span>
           <span className="player__name">{player.name}</span>
+          {colorblind && (
+            <span className="player__glyph" aria-hidden="true">
+              {PLAYER_GLYPHS[playerIndex(player.id) % PLAYER_GLYPHS.length]}
+            </span>
+          )}
           {active && <span className="turn-pill" aria-hidden="true">🐾 Am Zug</span>}
         </span>
         <span className="player__score">

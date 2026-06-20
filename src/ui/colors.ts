@@ -34,6 +34,23 @@ export function playerIndex(id: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/** Symbole je Würfelfarbe für den Farbenblind-Modus (zusätzlich zur Farbe). */
+export const DIE_GLYPHS: Record<DieColor, string> = {
+  yellow: '◆',
+  green: '●',
+  blue: '■',
+  purple: '▲',
+  red: '✕',
+  clear: '◌',
+  pink: '◇',
+  orange: '★',
+  sabotage: '☣',
+  brown: '⬟',
+};
+
+/** Symbole je Spieler-Sitz (0–5) für den Farbenblind-Modus. */
+export const PLAYER_GLYPHS: string[] = ['①', '②', '③', '④', '⑤', '⑥'];
+
 export const DIE_LABELS: Record<DieColor, string> = {
   yellow: 'Gelb',
   green: 'Grün',

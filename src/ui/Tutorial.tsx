@@ -2,6 +2,8 @@
 // erklärt. Wird per localStorage-Flag nur einmal automatisch gezeigt; im Menü
 // jederzeit erneut aufrufbar.
 
+import { useEffect, useRef } from 'react';
+
 const KEY = 'dicemice.onboarded';
 
 export function isOnboarded(): boolean {
@@ -54,10 +56,23 @@ const STEPS: { icon: string; title: string; text: string }[] = [
 ];
 
 export function Tutorial({ onClose }: { onClose: () => void }) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+
   function dismiss() {
     setOnboarded();
     onClose();
   }
+
+  // Auto-Fokus auf „Verstanden" + Esc schließt (kleiner Dialog-Komfort).
+  useEffect(() => {
+    btnRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') dismiss();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="tutorial" role="dialog" aria-modal="true" aria-label="Tutorial">
@@ -77,7 +92,9 @@ export function Tutorial({ onClose }: { onClose: () => void }) {
             </li>
           ))}
         </ul>
-        <button onClick={dismiss}>Verstanden 🧀</button>
+        <button ref={btnRef} onClick={dismiss}>
+          Verstanden 🧀
+        </button>
       </div>
     </div>
   );

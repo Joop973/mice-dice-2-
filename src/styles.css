@@ -911,6 +911,7 @@ button.ghost {
 }
 
 .collection__chip {
+  position: relative;
   width: 20px;
   height: 20px;
   border-radius: 5px;
@@ -1301,4 +1302,70 @@ button.ghost {
 }
 .tutorial__card button {
   width: 100%;
+}
+
+/* Einstellungen: Toggle-Reihen + Range */
+.field.toggle input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.field input[type='range'] {
+  flex: 1;
+  max-width: 60%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Sichtbarer Tastatur-Fokus (vorher nur :active) */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* „Bewegung reduzieren" (Setting): zusätzlich zum System dekorative Bewegung aus. */
+:root[data-reduce-motion='on'] *,
+:root[data-reduce-motion='on'] *::before,
+:root[data-reduce-motion='on'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Farbenblind-Glyphen auf Würfeln/Chips */
+.die__glyph {
+  position: absolute;
+  top: 1px;
+  left: 3px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1;
+  pointer-events: none;
+}
+.collection__chip .die__glyph {
+  top: 0;
+  left: 2px;
+  font-size: 0.6rem;
+}
+.player__glyph {
+  margin-left: 4px;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+/* Nur für Screenreader (visuell verborgen, aber zugänglich) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

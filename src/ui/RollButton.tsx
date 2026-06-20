@@ -34,6 +34,7 @@ export function RollButton({ onReveal }: { onReveal: () => void }) {
         className={`roll__btn${rolling ? ' roll__btn--shake' : ''}`}
         onClick={roll}
         disabled={rolling}
+        aria-label="Würfeln und Wurf aufdecken"
       >
         🎲 Würfeln
       </button>

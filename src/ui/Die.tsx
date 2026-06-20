@@ -2,8 +2,9 @@
 // (react-three-fiber) ersetzt. Bewusst dumme Präsentationskomponente.
 
 import type { RolledDie } from '../engine';
-import { DIE_COLORS, DIE_LABELS } from './colors';
+import { DIE_COLORS, DIE_GLYPHS, DIE_LABELS } from './colors';
 import { PIP_LAYOUT, hasPips, pipColor } from './dicePips';
+import { useSettings } from './useSettings';
 
 interface DieProps {
   die: RolledDie;
@@ -28,6 +29,7 @@ function Pips({ value, color }: { value: number; color: string }) {
 }
 
 export function Die({ die, selected, pity, onClick }: DieProps) {
+  const { colorblind } = useSettings();
   const label = `${DIE_LABELS[die.color]} W${die.sides}${
     die.variant === 'glitter' ? ' ✨' : ''
   }`;
@@ -43,6 +45,11 @@ export function Die({ die, selected, pity, onClick }: DieProps) {
 
   const content = (
     <>
+      {colorblind && (
+        <span className="die__glyph" aria-hidden="true">
+          {DIE_GLYPHS[die.color]}
+        </span>
+      )}
       {hasPips(die.value) ? (
         <Pips value={die.value} color={DIE_COLORS[die.color]} />
       ) : (
