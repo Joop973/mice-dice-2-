@@ -16,7 +16,8 @@ export type SoundEvent =
   | 'round' // neue Runde beginnt
   | 'win' // Partie beendet / Sieger-Sequenz
   | 'warn' // negative Wertung (Rot / Sabotage)
-  | 'land'; // gedrafteter Würfel landet im Beutel (nach Flug-Animation)
+  | 'land' // gedrafteter Würfel landet im Beutel (nach Flug-Animation)
+  | 'turn'; // dieser Mensch ist im Draft am Zug
 
 /** Ein einzelner Ton/Geräusch des Platzhalter-Synths. */
 export interface ToneSpec {
@@ -108,6 +109,13 @@ export const SOUNDS: Record<SoundEvent, SoundSpec> = {
     tones: [
       { freq: 520, dur: 0.04, gain: 0.12, noise: true, delay: 0 },
       { freq: 200, to: 130, dur: 0.07, type: 'triangle', gain: 0.14, delay: 0 },
+    ],
+  },
+  // „Du bist am Zug": freundliches kurzes Aufwärts-Glöckchen.
+  turn: {
+    tones: [
+      { freq: 660, dur: 0.08, type: 'sine', gain: 0.16 },
+      { freq: 880, dur: 0.12, type: 'sine', gain: 0.16 },
     ],
   },
 };

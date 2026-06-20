@@ -218,16 +218,17 @@ body {
 
 .die__tag {
   position: absolute;
-  bottom: -8px;
+  bottom: -9px;
   left: 50%;
   transform: translateX(-50%);
   background: #5fbf6a;
   color: #1c1410;
-  font-size: 0.55rem;
-  font-weight: 700;
-  padding: 1px 5px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 1px 6px;
   border-radius: 6px;
   white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .dice__empty,
@@ -242,7 +243,10 @@ body {
 }
 
 .player--active {
-  outline: 2px solid var(--accent);
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--accent), 0 0 18px rgba(244, 197, 66, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .standings {
@@ -269,8 +273,8 @@ body {
 }
 
 .counter button {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   font-size: 1.3rem;
   line-height: 1;
@@ -292,8 +296,9 @@ body {
   background: transparent;
   color: var(--text);
   border: 1px solid #4a3d33;
-  padding: 8px 12px;
-  font-size: 0.9rem;
+  padding: 11px 16px;
+  min-height: 44px;
+  font-size: 0.95rem;
 }
 
 .seg__btn--on {
@@ -965,16 +970,18 @@ button.ghost {
   padding: 1px 8px;
   border-radius: 999px;
   white-space: nowrap;
-  animation: turn-pulse 1.4s ease-in-out infinite;
+  animation: turn-pulse 1.1s ease-in-out infinite;
 }
 
 @keyframes turn-pulse {
   0%,
   100% {
     transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(244, 197, 66, 0.6);
   }
   50% {
-    transform: scale(1.09);
+    transform: scale(1.16);
+    box-shadow: 0 0 10px 2px rgba(244, 197, 66, 0.55);
   }
 }
 
@@ -1368,4 +1375,66 @@ button.ghost {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* KI „denkt…"-Indikator (animierte Punkte) */
+.thinking {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.thinking i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.4;
+  animation: thinking-bounce 1s infinite ease-in-out;
+}
+.thinking i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.thinking i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes thinking-bounce {
+  0%, 80%, 100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
+/* „Weiter"-Button: leuchtet auf, sobald er bereit ist */
+.advance--ready {
+  animation: advance-glow 1.4s ease-in-out infinite;
+}
+@keyframes advance-glow {
+  0%, 100% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -4px 0 rgba(0, 0, 0, 0.28), 0 3px 6px rgba(0, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -4px 0 rgba(0, 0, 0, 0.28), 0 0 14px 2px rgba(244, 197, 66, 0.55);
+  }
+}
+
+/* Sanfter Phasenübergang */
+.phase-fade {
+  animation: phase-in 260ms ease-out both;
+}
+@keyframes phase-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

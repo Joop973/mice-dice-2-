@@ -43,7 +43,9 @@ import { PhaseTrack } from './ui/PhaseTrack';
 import { PHASE_LABEL } from './ui/phaseLabels';
 import { ScoreTrack } from './ui/ScoreTrack';
 import { playerIndex } from './ui/colors';
-import { useSound } from './sound';
+import { useSound, vibrate } from './sound';
+import { getSettings } from './ui/settings';
+import { shouldAnimate } from './ui/motion';
 
 const PHASE_HINT: Record<Phase, string> = {
   roll: 'Alle Mäuse haben ihren Beutel geworfen.',
@@ -174,14 +176,18 @@ export function App() {
     if (state.phase === 'swap' && aiSwapRoundRef.current !== state.round) {
       aiSwapRoundRef.current = state.round;
       if (state.players.some((p) => p.isAI)) {
-        setState((s) => {
-          if (!s) return s;
-          let next = s;
-          for (const p of s.players) {
-            if (p.isAI) next = aiTakePhaseAction(next, p.id, aiDiffForSeat(p.id), rngRef.current);
-          }
-          return next;
-        });
+        // Kleine Verzögerung wie beim Draft – wirkt überlegter, nicht „magisch".
+        const t = setTimeout(() => {
+          setState((s) => {
+            if (!s) return s;
+            let next = s;
+            for (const p of s.players) {
+              if (p.isAI) next = aiTakePhaseAction(next, p.id, aiDiffForSeat(p.id), rngRef.current);
+            }
+            return next;
+          });
+        }, AI_STEP_DELAY_MS);
+        return () => clearTimeout(t);
       }
       return;
     }
@@ -274,6 +280,7 @@ export function App() {
           return next;
         })
       }
+      onClearSelection={() => setSelectedClear(new Set())}
       onRerollSelected={() => {
         if (selectedClear.size === 0) return;
         let next = state;
@@ -513,6 +520,7 @@ interface GameProps {
   fx: GameEventFx;
   selectedClear: Set<string>;
   onToggleClear: (id: string) => void;
+  onClearSelection: () => void;
   onRerollSelected: () => void;
   onAdvance: () => void;
   onPick: (playerId: string, offerId: string) => void;
@@ -532,6 +540,7 @@ function Game({
   fx,
   selectedClear,
   onToggleClear,
+  onClearSelection,
   onRerollSelected,
   onAdvance,
   onPick,
@@ -557,6 +566,31 @@ function Game({
   // mobil riskant. Das 2D-Rendering hat seit P1 echte Augen.
   const manyPlayers = state.players.length > 4;
   const effectiveUse3d = use3d && !manyPlayers;
+
+  // A1: Aktive Maus im Draft sanft in den Blick scrollen (v. a. mobil).
+  const activeId = activeDrafter?.id;
+  useEffect(() => {
+    if (!activeId || !shouldAnimate()) return;
+    const el = document.querySelector(`[data-fly-target="${activeId}"]`);
+    if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
+      (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [activeId]);
+
+  // A2: dezentes „du bist am Zug"-Signal, wenn ein Mensch im Draft aktiv wird.
+  const { play } = useSound();
+  const turnCueRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (activeDrafter && !activeDrafter.isAI) {
+      if (turnCueRef.current !== activeDrafter.id) {
+        turnCueRef.current = activeDrafter.id;
+        play('turn');
+        if (!muted && getSettings().haptics) vibrate('turn');
+      }
+    } else if (!activeDrafter) {
+      turnCueRef.current = null;
+    }
+  }, [activeId, muted, play]);
 
   if (state.finished) {
     return (
@@ -657,13 +691,21 @@ function Game({
       {awaitingRoll && <RollButton onReveal={() => setRolledRevealed(true)} />}
 
       {state.phase === 'swap' && (
-        <section className="panel">
+        <section className="panel phase-fade">
           {hasClearDice ? (
-            <button onClick={onRerollSelected} disabled={selectedClear.size === 0}>
-              {selectedClear.size > 0
-                ? `${selectedClear.size} Klar-Würfel neu würfeln`
-                : 'Klar-Würfel auswählen'}
-            </button>
+            <>
+              <button onClick={onRerollSelected} disabled={selectedClear.size === 0}>
+                {selectedClear.size > 0
+                  ? `${selectedClear.size} Klar-Würfel neu würfeln`
+                  : 'Klar-Würfel auswählen'}
+              </button>
+              {selectedClear.size > 0 && (
+                <button className="ghost" onClick={onClearSelection}>
+                  Auswahl aufheben
+                </button>
+              )}
+              <p className="muted">Kein Muss – tippe „Weiter", um deine Würfel zu behalten.</p>
+            </>
           ) : (
             <p className="muted">Keine Klar-Würfel im Spiel.</p>
           )}
@@ -689,11 +731,20 @@ function Game({
 
       <div className="actions">
         {!awaitingRoll && (
-          <button onClick={onAdvance} disabled={state.phase === 'draft' && !draftComplete}>
+          <button
+            className={`advance${
+              state.phase !== 'draft' || draftComplete ? ' advance--ready' : ''
+            }`}
+            onClick={onAdvance}
+            disabled={state.phase === 'draft' && !draftComplete}
+            aria-busy={state.phase === 'draft' && !draftComplete}
+          >
             {state.phase === 'draft'
-              ? state.round >= state.config.totalRounds
-                ? 'Partie beenden →'
-                : 'Nächste Runde →'
+              ? draftComplete
+                ? state.round >= state.config.totalRounds
+                  ? 'Partie beenden →'
+                  : 'Nächste Runde →'
+                : '⏳ Warten auf andere Mäuse…'
               : 'Weiter →'}
           </button>
         )}

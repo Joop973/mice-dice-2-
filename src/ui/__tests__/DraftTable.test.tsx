@@ -26,4 +26,20 @@ describe('DraftTable (Tischmitte)', () => {
     expect(screen.getByText(/KI 1 wählt/)).toBeTruthy();
     expect((screen.getByLabelText(/Grün W20/) as HTMLButtonElement).disabled).toBe(true);
   });
+
+  it('zeigt einen „denkt…"-Indikator beim KI-Zug, nicht aber bei eigenem Zug', () => {
+    const { container, rerender } = render(
+      <DraftTable offers={offers} canPick={false} isAITurn activeName="KI 1" onPick={() => {}} />
+    );
+    expect(container.querySelector('.thinking')).not.toBeNull();
+    rerender(<DraftTable offers={offers} canPick onPick={() => {}} activeName="Du" />);
+    expect(container.querySelector('.thinking')).toBeNull();
+  });
+
+  it('bietet einen Passen-Knopf nur am eigenen Zug', () => {
+    const onPass = vi.fn();
+    render(<DraftTable offers={offers} canPick onPick={() => {}} onPass={onPass} activeName="Du" />);
+    fireEvent.click(screen.getByText(/Passen/));
+    expect(onPass).toHaveBeenCalled();
+  });
 });

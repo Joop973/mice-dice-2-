@@ -51,9 +51,18 @@ export function DraftTable({
         : `${activeName ?? 'Nächste Maus'} ist am Zug`;
 
   return (
-    <section className="table" aria-label="Tischmitte – Würfelangebot">
+    <section className="table phase-fade" aria-label="Tischmitte – Würfelangebot">
       <div className="table__felt">
-        <p className="table__prompt">{prompt}</p>
+        <p className="table__prompt">
+          {prompt}
+          {isAITurn && !complete && (
+            <span className="thinking" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+          )}
+        </p>
         <div className="table__dice">
           {offers.length === 0 && <span className="table__empty">Tisch ist leer.</span>}
           {offers.map((o, i) => {
@@ -91,8 +100,8 @@ export function DraftTable({
           })}
         </div>
         {canPick && onPass && (
-          <button className="ghost table__pass" onClick={onPass}>
-            Passen
+          <button className="table__pass" onClick={onPass}>
+            ✋ Passen (Würfel liegen lassen)
           </button>
         )}
       </div>
