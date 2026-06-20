@@ -5,6 +5,7 @@
 import { type CSSProperties } from 'react';
 import type { DraftOffer } from '../engine';
 import { DIE_COLORS, DIE_LABELS } from './colors';
+import { flyToken, playerRect } from './fx/flyToken';
 
 interface DraftTableProps {
   offers: DraftOffer[];
@@ -15,10 +16,20 @@ interface DraftTableProps {
   /** Darf der lokale Bediener gerade einen Würfel nehmen? */
   canPick: boolean;
   onPick: (offerId: string) => void;
+  /** Engine-ID der Maus am Zug (Ziel der Flug-Animation). */
+  targetId?: string;
   /** Passen (nur wenn der Bediener am Zug ist). */
   onPass?: () => void;
   /** Alle haben in dieser Runde gewählt. */
   complete?: boolean;
+}
+
+function dieTokenHtml(color: string, sides: number): string {
+  return (
+    `<div style="width:100%;height:100%;border-radius:10px;background:${color};` +
+    `display:flex;align-items:center;justify-content:center;color:#1c1410;` +
+    `font-weight:800;box-shadow:inset 0 -4px 0 rgba(0,0,0,0.22)">W${sides}</div>`
+  );
 }
 
 export function DraftTable({
@@ -27,6 +38,7 @@ export function DraftTable({
   isAITurn,
   canPick,
   onPick,
+  targetId,
   onPass,
   complete,
 }: DraftTableProps) {
@@ -54,7 +66,18 @@ export function DraftTable({
                 className="draft-die"
                 style={{ background: DIE_COLORS[o.die.color], '--n': i } as CSSProperties}
                 disabled={!canPick}
-                onClick={() => onPick(o.id)}
+                onClick={(e) => {
+                  if (targetId) {
+                    flyToken({
+                      from: e.currentTarget.getBoundingClientRect(),
+                      to: playerRect(targetId),
+                      html: dieTokenHtml(DIE_COLORS[o.die.color], o.die.sides),
+                      size: 58,
+                      className: 'fly-token--die',
+                    });
+                  }
+                  onPick(o.id);
+                }}
                 title={label}
                 aria-label={label}
               >

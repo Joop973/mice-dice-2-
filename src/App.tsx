@@ -27,6 +27,8 @@ import { PlayerCard } from './ui/PlayerCard';
 import { RoundSummary } from './ui/RoundSummary';
 import { DraftTable } from './ui/DraftTable';
 import { RollButton } from './ui/RollButton';
+import { CrownToken } from './ui/CrownToken';
+import { SabotageFx } from './ui/SabotageFx';
 import { Rules } from './ui/Rules';
 import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
@@ -478,6 +480,9 @@ function Game({
         </div>
       )}
 
+      <CrownToken move={fx.crownMove} />
+      <SabotageFx moves={fx.sabotage} />
+
       <p className="hint">{PHASE_HINT[state.phase]}</p>
 
       <section className="players">
@@ -523,6 +528,7 @@ function Game({
           isAITurn={!!activeDrafter?.isAI}
           canPick={!!humanDrafting}
           onPick={(offerId) => activeDrafter && onPick(activeDrafter.id, offerId)}
+          targetId={activeDrafter?.id}
           onPass={humanDrafting ? () => onPass(activeDrafter!.id) : undefined}
           complete={draftComplete}
         />

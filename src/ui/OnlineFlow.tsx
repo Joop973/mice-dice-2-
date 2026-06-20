@@ -14,6 +14,8 @@ import { PlayerCard } from './PlayerCard';
 import { RoundSummary } from './RoundSummary';
 import { DraftTable } from './DraftTable';
 import { RollButton } from './RollButton';
+import { CrownToken } from './CrownToken';
+import { SabotageFx } from './SabotageFx';
 import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
@@ -334,6 +336,9 @@ function OnlineGame({
         </div>
       )}
 
+      <CrownToken move={fx.crownMove} />
+      <SabotageFx moves={fx.sabotage} />
+
       <section className="players">
         {state.players.map((p) => {
           const isYou = p.id === you;
@@ -379,6 +384,7 @@ function OnlineGame({
           activeName={activeDrafter ? (activeDrafter.id === you ? 'Du' : activeDrafter.name) : undefined}
           isAITurn={!!activeDrafter && activeDrafter.id !== you}
           canPick={youAreActiveDrafter}
+          targetId={activeDrafter?.id}
           onPick={(offerId) => client.sendAction({ type: 'draftPick', offerId })}
           onPass={youAreActiveDrafter ? () => client.sendAction({ type: 'draftPass' }) : undefined}
           complete={draftComplete}

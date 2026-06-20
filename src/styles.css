@@ -864,6 +864,46 @@ button.ghost {
   font-style: normal;
 }
 
+/* Fliegende Token (Krone, Draft-Würfel, Sabotage) */
+.fly-token {
+  font-size: 30px;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+}
+
+.fly-token--crown {
+  font-size: 34px;
+}
+
+/* Kronen-Badge auf dem Avatar des Halters */
+.player__avatar {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.crown-badge {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+}
+
+/* „Am Zug"-Marker an der aktiven Maus */
+.turn-pill {
+  margin-left: 8px;
+  background: var(--accent);
+  color: #1c1410;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 /* Bewegungsreduzierung respektieren: keine dekorativen Animationen. */
 @media (prefers-reduced-motion: reduce) {
   .die,

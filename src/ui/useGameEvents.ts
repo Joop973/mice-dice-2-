@@ -5,7 +5,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameState } from '../engine';
 import type { SoundEvent } from '../sound';
-import { detectEvents, snapshot, type Snapshot } from './gameEvents';
+import {
+  detectEvents,
+  snapshot,
+  type CrownMove,
+  type SabotageMove,
+  type Snapshot,
+} from './gameEvents';
 
 export interface GameEventFx {
   /** Spieler, die gerade die Krone gewonnen haben (Puls-Animation). */
@@ -14,9 +20,19 @@ export interface GameEventFx {
   warnNow: Set<string>;
   /** Aktuell einzublendendes Banner (Rundenwechsel / Sieg) oder null. */
   banner: string | null;
+  /** Kronen-Wanderung (kurzlebig) für die Token-Animation. */
+  crownMove: CrownMove | null;
+  /** Sabotage-Würfe (kurzlebig) für die Angriffs-Animation. */
+  sabotage: SabotageMove[];
 }
 
-const EMPTY: GameEventFx = { crownedNow: new Set(), warnNow: new Set(), banner: null };
+const EMPTY: GameEventFx = {
+  crownedNow: new Set(),
+  warnNow: new Set(),
+  banner: null,
+  crownMove: null,
+  sabotage: [],
+};
 
 export function useGameEvents(
   state: GameState | null,
@@ -35,12 +51,18 @@ export function useGameEvents(
     prevRef.current = cur;
     if (!prev) return; // Erster Zustand: keine Differenz, kein Effekt.
 
-    const { sounds, crownedNow, warnNow, banner } = detectEvents(prev, cur);
+    const { sounds, crownedNow, warnNow, banner, crownMove, sabotage } = detectEvents(prev, cur);
     for (const s of sounds) play(s);
 
-    if (crownedNow.size > 0 || warnNow.size > 0 || banner) {
-      setFx({ crownedNow, warnNow, banner });
-      const duration = banner ? 1600 : 900;
+    if (
+      crownedNow.size > 0 ||
+      warnNow.size > 0 ||
+      banner ||
+      crownMove ||
+      sabotage.length > 0
+    ) {
+      setFx({ crownedNow, warnNow, banner, crownMove, sabotage });
+      const duration = banner ? 1600 : 1000;
       const t = setTimeout(() => setFx(EMPTY), duration);
       return () => clearTimeout(t);
     }
