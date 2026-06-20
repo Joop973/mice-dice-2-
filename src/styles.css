@@ -1190,3 +1190,108 @@ button.ghost {
     animation: none;
   }
 }
+
+/* Menü-Zusatzreihe (Statistik / Tutorial) */
+.menu__row {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.menu__row button {
+  flex: 1;
+}
+
+/* Setup: Namensfelder */
+.names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.names__input {
+  flex: 1 1 120px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--wood-dark);
+  background: #1f1813;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+/* Statistik */
+.stats__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stats__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(#33271d, #2a211b);
+  border: 2px solid var(--wood-dark);
+}
+.stats__num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+.stats__cap {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9c8e7d;
+}
+
+/* Tutorial-Overlay */
+.tutorial {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.6);
+}
+.tutorial__card {
+  max-width: 460px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+  background: radial-gradient(ellipse at center top, var(--felt), var(--felt-edge));
+  border: 8px solid var(--wood-dark);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.tutorial__title {
+  margin: 0 0 14px;
+  text-align: center;
+}
+.tutorial__steps {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.tutorial__step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 10px;
+  padding: 10px 12px;
+  line-height: 1.4;
+}
+.tutorial__icon {
+  font-size: 1.5rem;
+  flex: 0 0 auto;
+}
+.tutorial__card button {
+  width: 100%;
+}

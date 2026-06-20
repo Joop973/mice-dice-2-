@@ -36,4 +36,28 @@ describe('Persistenz der lokalen Partie', () => {
     clearLocalGame();
     expect(loadLocalGame()).toBeNull();
   });
+
+  it('speichert und lädt die v2-Felder (Namen, Runden, KI-Schwierigkeit)', () => {
+    saveLocalGame({
+      state: freshState(),
+      humans: 2,
+      ais: 1,
+      difficulty: 'medium',
+      names: ['Anna', 'Ben'],
+      totalRounds: 5,
+      aiDifficulty: ['hard'],
+    });
+    const loaded = loadLocalGame();
+    expect(loaded!.names).toEqual(['Anna', 'Ben']);
+    expect(loaded!.totalRounds).toBe(5);
+    expect(loaded!.aiDifficulty).toEqual(['hard']);
+  });
+
+  it('verwirft einen alten v1-Spielstand', () => {
+    localStorage.setItem(
+      'dicemice.localgame',
+      JSON.stringify({ version: 1, state: freshState(), humans: 1, ais: 1, difficulty: 'easy' })
+    );
+    expect(loadLocalGame()).toBeNull();
+  });
 });

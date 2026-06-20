@@ -31,11 +31,15 @@ import { CrownToken } from './ui/CrownToken';
 import { SabotageFx } from './ui/SabotageFx';
 import { Podium } from './ui/Podium';
 import { Rules } from './ui/Rules';
+import { StatsPanel } from './ui/StatsPanel';
+import { Tutorial, isOnboarded } from './ui/Tutorial';
 import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
+import { recordGame } from './ui/stats';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
 import { PhaseTrack } from './ui/PhaseTrack';
 import { ScoreTrack } from './ui/ScoreTrack';
+import { playerIndex } from './ui/colors';
 import { useSound } from './sound';
 
 const PHASE_HINT: Record<Phase, string> = {
@@ -51,26 +55,41 @@ function newSeed(): number {
   return Date.now() >>> 0;
 }
 
-function buildPlayers(humans: number, ais: number): NewPlayer[] {
+function buildPlayers(humans: number, ais: number, names: string[]): NewPlayer[] {
   const players: NewPlayer[] = [];
-  for (let i = 0; i < humans; i++) players.push({ name: `Maus ${i + 1}` });
+  for (let i = 0; i < humans; i++) players.push({ name: names[i]?.trim() || `Maus ${i + 1}` });
   for (let i = 0; i < ais; i++) players.push({ name: `KI ${i + 1}`, isAI: true });
   return players;
 }
+
+// Wird in Phase „6 Spieler" auf 6 angehoben (zusammen mit Farben/WebGL/Layout).
+const MAX_PLAYERS = 4;
+const ROUND_CHOICES = [5, 10, 15];
 
 export function App() {
   const rngRef = useRef<RNG>(createRNG(newSeed()));
   const aiSwapRoundRef = useRef(0);
 
-  const [mode, setMode] = useState<'menu' | 'local' | 'online' | 'rules'>('menu');
+  const [mode, setMode] = useState<'menu' | 'local' | 'online' | 'rules' | 'stats'>('menu');
+  const [showTutorial, setShowTutorial] = useState(() => !isOnboarded());
+  const recordedRef = useRef(false);
   const [started, setStarted] = useState(false);
   const [humans, setHumans] = useState(1);
   const [ais, setAis] = useState(1);
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  // Schwierigkeit je KI-Sitz (Index = KI-Ordinalzahl 0..); reine UI/App-Sache.
+  const [aiDifficulty, setAiDifficulty] = useState<Difficulty[]>(() =>
+    Array(MAX_PLAYERS).fill('medium')
+  );
+  const [humanNames, setHumanNames] = useState<string[]>([]);
+  const [totalRounds, setTotalRounds] = useState(10);
 
   const [state, setState] = useState<GameState | null>(null);
   const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
   const [use3d, setUse3d] = useState(true);
+
+  // Schwierigkeit für einen KI-Sitz (KI-Ordinalzahl = Spielerindex − Menschen).
+  const aiDiffForSeat = (playerId: string): Difficulty =>
+    aiDifficulty[playerIndex(playerId) - humans] ?? 'medium';
 
   const { play, muted, toggleMuted, musicAvailable, musicOn, toggleMusic } = useSound();
   const fx = useGameEvents(state, play, muted);
@@ -84,19 +103,34 @@ export function App() {
   // Laufende lokale Partie sichern; beendete/aufgegebene Partien verwerfen.
   useEffect(() => {
     if (mode === 'local' && started && state && !state.finished) {
-      saveLocalGame({ state, humans, ais, difficulty });
+      saveLocalGame({
+        state,
+        humans,
+        ais,
+        difficulty: aiDifficulty[0] ?? 'medium',
+        names: humanNames,
+        totalRounds,
+        aiDifficulty,
+      });
     } else if (state?.finished) {
+      if (mode === 'local' && started && !recordedRef.current) {
+        recordedRef.current = true;
+        recordGame(state);
+      }
       clearLocalGame();
     }
-  }, [mode, started, state, humans, ais, difficulty]);
+  }, [mode, started, state, humans, ais, aiDifficulty, humanNames, totalRounds]);
 
   function resume() {
     if (!saved) return;
     rngRef.current = createRNG(newSeed());
     aiSwapRoundRef.current = saved.state.round;
+    recordedRef.current = false;
     setHumans(saved.humans);
     setAis(saved.ais);
-    setDifficulty(saved.difficulty);
+    setAiDifficulty(saved.aiDifficulty ?? Array(MAX_PLAYERS).fill(saved.difficulty));
+    setHumanNames(saved.names ?? []);
+    setTotalRounds(saved.totalRounds ?? 10);
     setState(saved.state);
     setSelectedClear(new Set());
     setStarted(true);
@@ -109,7 +143,11 @@ export function App() {
     const seed = newSeed();
     rngRef.current = createRNG(seed);
     aiSwapRoundRef.current = 0;
-    setState(startGame({ players: buildPlayers(humans, ais), seed }).state);
+    recordedRef.current = false;
+    setState(
+      startGame({ players: buildPlayers(humans, ais, humanNames), seed, config: { totalRounds } })
+        .state
+    );
     setSelectedClear(new Set());
     setStarted(true);
   }
@@ -130,7 +168,7 @@ export function App() {
           if (!s) return s;
           let next = s;
           for (const p of s.players) {
-            if (p.isAI) next = aiTakePhaseAction(next, p.id, difficulty, rngRef.current);
+            if (p.isAI) next = aiTakePhaseAction(next, p.id, aiDiffForSeat(p.id), rngRef.current);
           }
           return next;
         });
@@ -146,28 +184,37 @@ export function App() {
             if (!s || s.phase !== 'draft') return s;
             const d = s.players.find((p) => !s.draftedThisPhase.includes(p.id));
             if (!d || !d.isAI) return s;
-            return aiTakePhaseAction(s, d.id, difficulty, rngRef.current);
+            return aiTakePhaseAction(s, d.id, aiDiffForSeat(d.id), rngRef.current);
           });
         }, AI_STEP_DELAY_MS);
         return () => clearTimeout(t);
       }
     }
-  }, [state, difficulty]);
+  }, [state, aiDifficulty, humans]);
 
   if (mode === 'menu') {
     return (
-      <Menu
-        onLocal={() => setMode('local')}
-        onOnline={() => setMode('online')}
-        onRules={() => setMode('rules')}
-        onResume={saved ? resume : undefined}
-        resumeRound={saved?.state.round}
-      />
+      <>
+        <Menu
+          onLocal={() => setMode('local')}
+          onOnline={() => setMode('online')}
+          onRules={() => setMode('rules')}
+          onStats={() => setMode('stats')}
+          onTutorial={() => setShowTutorial(true)}
+          onResume={saved ? resume : undefined}
+          resumeRound={saved?.state.round}
+        />
+        {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+      </>
     );
   }
 
   if (mode === 'rules') {
     return <Rules onBack={() => setMode('menu')} />;
+  }
+
+  if (mode === 'stats') {
+    return <StatsPanel onBack={() => setMode('menu')} />;
   }
 
   if (mode === 'online') {
@@ -179,10 +226,14 @@ export function App() {
       <Setup
         humans={humans}
         ais={ais}
-        difficulty={difficulty}
+        aiDifficulty={aiDifficulty}
+        humanNames={humanNames}
+        totalRounds={totalRounds}
         setHumans={setHumans}
         setAis={setAis}
-        setDifficulty={setDifficulty}
+        setAiDifficulty={setAiDifficulty}
+        setHumanNames={setHumanNames}
+        setTotalRounds={setTotalRounds}
         onStart={start}
         onBack={() => setMode('menu')}
       />
@@ -192,7 +243,6 @@ export function App() {
   return (
     <Game
       state={state}
-      difficulty={difficulty}
       use3d={use3d}
       onToggle3d={() => setUse3d((v) => !v)}
       muted={muted}
@@ -233,12 +283,16 @@ function Menu({
   onLocal,
   onOnline,
   onRules,
+  onStats,
+  onTutorial,
   onResume,
   resumeRound,
 }: {
   onLocal: () => void;
   onOnline: () => void;
   onRules: () => void;
+  onStats: () => void;
+  onTutorial: () => void;
   onResume?: () => void;
   resumeRound?: number;
 }) {
@@ -268,6 +322,14 @@ function Menu({
         <button className="ghost" onClick={onRules}>
           📖 Spielregeln
         </button>
+        <div className="menu__row">
+          <button className="ghost" onClick={onStats}>
+            📊 Statistik
+          </button>
+          <button className="ghost" onClick={onTutorial}>
+            ❔ Tutorial
+          </button>
+        </div>
       </section>
     </div>
   );
@@ -276,10 +338,14 @@ function Menu({
 interface SetupProps {
   humans: number;
   ais: number;
-  difficulty: Difficulty;
+  aiDifficulty: Difficulty[];
+  humanNames: string[];
+  totalRounds: number;
   setHumans: (n: number) => void;
   setAis: (n: number) => void;
-  setDifficulty: (d: Difficulty) => void;
+  setAiDifficulty: (d: Difficulty[]) => void;
+  setHumanNames: (n: string[]) => void;
+  setTotalRounds: (n: number) => void;
   onStart: () => void;
   onBack: () => void;
 }
@@ -287,15 +353,30 @@ interface SetupProps {
 function Setup({
   humans,
   ais,
-  difficulty,
+  aiDifficulty,
+  humanNames,
+  totalRounds,
   setHumans,
   setAis,
-  setDifficulty,
+  setAiDifficulty,
+  setHumanNames,
+  setTotalRounds,
   onStart,
   onBack,
 }: SetupProps) {
   const total = humans + ais;
-  const valid = total >= 2 && total <= 4 && humans >= 1;
+  const valid = total >= 2 && total <= MAX_PLAYERS && humans >= 1;
+
+  const setName = (i: number, v: string) => {
+    const next = humanNames.slice();
+    next[i] = v;
+    setHumanNames(next);
+  };
+  const setAiDiff = (i: number, d: Difficulty) => {
+    const next = aiDifficulty.slice();
+    next[i] = d;
+    setAiDifficulty(next);
+  };
 
   return (
     <div className="app">
@@ -305,25 +386,58 @@ function Setup({
       </header>
 
       <section className="panel">
-        <Counter label="Menschen (Pass-and-Play)" value={humans} min={1} max={4} onChange={setHumans} />
-        <Counter label="KI-Gegner" value={ais} min={0} max={3} onChange={setAis} />
+        <Counter label="Menschen (Pass-and-Play)" value={humans} min={1} max={MAX_PLAYERS} onChange={setHumans} />
+        <Counter label="KI-Gegner" value={ais} min={0} max={MAX_PLAYERS - 1} onChange={setAis} />
 
         <div className="field">
-          <span className="field__label">KI-Schwierigkeit</span>
+          <span className="field__label">Namen</span>
+          <div className="names">
+            {Array.from({ length: humans }, (_, i) => (
+              <input
+                key={i}
+                className="names__input"
+                value={humanNames[i] ?? ''}
+                placeholder={`Maus ${i + 1}`}
+                maxLength={16}
+                onChange={(e) => setName(i, e.target.value)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="field">
+          <span className="field__label">Runden</span>
           <div className="seg">
-            {DIFFICULTIES.map((d) => (
+            {ROUND_CHOICES.map((r) => (
               <button
-                key={d}
-                className={`seg__btn${d === difficulty ? ' seg__btn--on' : ''}`}
-                onClick={() => setDifficulty(d)}
+                key={r}
+                className={`seg__btn${r === totalRounds ? ' seg__btn--on' : ''}`}
+                onClick={() => setTotalRounds(r)}
               >
-                {DIFFICULTY_LABELS[d]}
+                {r}
               </button>
             ))}
           </div>
         </div>
 
-        {!valid && <p className="muted">2–4 Mäuse insgesamt, mindestens 1 Mensch.</p>}
+        {Array.from({ length: ais }, (_, i) => (
+          <div className="field" key={i}>
+            <span className="field__label">{`KI ${i + 1} – Schwierigkeit`}</span>
+            <div className="seg">
+              {DIFFICULTIES.map((d) => (
+                <button
+                  key={d}
+                  className={`seg__btn${d === (aiDifficulty[i] ?? 'medium') ? ' seg__btn--on' : ''}`}
+                  onClick={() => setAiDiff(i, d)}
+                >
+                  {DIFFICULTY_LABELS[d]}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {!valid && <p className="muted">2–{MAX_PLAYERS} Mäuse insgesamt, mindestens 1 Mensch.</p>}
         <button onClick={onStart} disabled={!valid}>
           Partie starten →
         </button>
@@ -369,7 +483,6 @@ function Counter({
 
 interface GameProps {
   state: GameState;
-  difficulty: Difficulty;
   use3d: boolean;
   onToggle3d: () => void;
   muted: boolean;
