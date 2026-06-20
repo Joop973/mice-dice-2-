@@ -3,7 +3,7 @@
 // (strikte Trennung). KI-Spieler agieren automatisch über das gekapselte
 // ai-Modul. Würfel sind CSS-Platzhalter (Phase 4 -> 3D).
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import {
   advancePhase,
   createRNG,
@@ -29,6 +29,7 @@ import { DraftTable } from './ui/DraftTable';
 import { RollButton } from './ui/RollButton';
 import { CrownToken } from './ui/CrownToken';
 import { SabotageFx } from './ui/SabotageFx';
+import { Podium } from './ui/Podium';
 import { Rules } from './ui/Rules';
 import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
@@ -71,7 +72,7 @@ export function App() {
   const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
   const [use3d, setUse3d] = useState(true);
 
-  const { play, muted, toggleMuted } = useSound();
+  const { play, muted, toggleMuted, musicAvailable, musicOn, toggleMusic } = useSound();
   const fx = useGameEvents(state, play);
 
   // Gespeicherte lokale Partie für „Fortsetzen" (beim Menü-Eintritt aktualisiert).
@@ -196,6 +197,9 @@ export function App() {
       onToggle3d={() => setUse3d((v) => !v)}
       muted={muted}
       onToggleMute={toggleMuted}
+      musicAvailable={musicAvailable}
+      musicOn={musicOn}
+      onToggleMusic={toggleMusic}
       fx={fx}
       selectedClear={selectedClear}
       onToggleClear={(id) =>
@@ -370,6 +374,9 @@ interface GameProps {
   onToggle3d: () => void;
   muted: boolean;
   onToggleMute: () => void;
+  musicAvailable: boolean;
+  musicOn: boolean;
+  onToggleMusic: () => void;
   fx: GameEventFx;
   selectedClear: Set<string>;
   onToggleClear: (id: string) => void;
@@ -386,6 +393,9 @@ function Game({
   onToggle3d,
   muted,
   onToggleMute,
+  musicAvailable,
+  musicOn,
+  onToggleMusic,
   fx,
   selectedClear,
   onToggleClear,
@@ -395,11 +405,6 @@ function Game({
   onPass,
   onNewGame,
 }: GameProps) {
-  const leader = useMemo(
-    () => state.players.reduce((best, p) => (p.totalScore > best.totalScore ? p : best)),
-    [state.players]
-  );
-
   const activeDrafter: Player | undefined =
     state.phase === 'draft'
       ? state.players.find((p) => !state.draftedThisPhase.includes(p.id))
@@ -427,20 +432,7 @@ function Game({
           <h1>🧀 Dice Mice</h1>
         </header>
         <section className="panel panel--win">
-          <h2>Partie beendet 🎉</h2>
-          <p>
-            Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
-          </p>
-          <ol className="standings">
-            {[...state.players]
-              .sort((a, b) => b.totalScore - a.totalScore)
-              .map((p) => (
-                <li key={p.id}>
-                  {p.name}: {p.totalScore}
-                </li>
-              ))}
-          </ol>
-          <button onClick={onNewGame}>Neue Partie</button>
+          <Podium players={state.players} actionLabel="Neue Partie" onAction={onNewGame} />
         </section>
       </div>
     );
@@ -465,6 +457,17 @@ function Game({
           >
             {muted ? '🔇' : '🔊'}
           </button>
+          {musicAvailable && (
+            <button
+              className="toggle3d"
+              onClick={onToggleMusic}
+              aria-label={musicOn ? 'Musik aus' : 'Musik an'}
+              aria-pressed={musicOn}
+              style={{ opacity: musicOn ? 1 : 0.5 }}
+            >
+              🎵
+            </button>
+          )}
         </div>
       </header>
 

@@ -16,11 +16,16 @@ export interface UseSound {
   play: (event: SoundEvent) => void;
   muted: boolean;
   toggleMuted: () => void;
+  /** Ist überhaupt ein Musik-Track hinterlegt? (sonst Schalter ausblenden) */
+  musicAvailable: boolean;
+  musicOn: boolean;
+  toggleMusic: () => void;
 }
 
 export function useSound(): UseSound {
   const mgr = getManager();
   const [muted, setMuted] = useState(mgr.isMuted());
+  const [musicOn, setMusicOn] = useState(mgr.isMusicOn());
 
   // AudioContext bei der ersten Nutzergeste freischalten (Autoplay-Richtlinie).
   useEffect(() => {
@@ -35,6 +40,14 @@ export function useSound(): UseSound {
 
   const play = useCallback((event: SoundEvent) => mgr.play(event), [mgr]);
   const toggleMuted = useCallback(() => setMuted(mgr.toggleMuted()), [mgr]);
+  const toggleMusic = useCallback(() => setMusicOn(mgr.toggleMusic()), [mgr]);
 
-  return { play, muted, toggleMuted };
+  return {
+    play,
+    muted,
+    toggleMuted,
+    musicAvailable: mgr.musicAvailable(),
+    musicOn,
+    toggleMusic,
+  };
 }

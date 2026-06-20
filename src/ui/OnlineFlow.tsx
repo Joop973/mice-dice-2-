@@ -18,6 +18,7 @@ import { CrownToken } from './CrownToken';
 import { SabotageFx } from './SabotageFx';
 import { PhaseTrack } from './PhaseTrack';
 import { ScoreTrack } from './ScoreTrack';
+import { Podium } from './Podium';
 import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
@@ -239,11 +240,6 @@ function OnlineGame({
 
   const isHost = client.seats.find((s) => s.isHost)?.id === you;
 
-  const leader = useMemo(
-    () => state.players.reduce((best, p) => (p.totalScore > best.totalScore ? p : best)),
-    [state.players]
-  );
-
   const activeDrafter: Player | undefined =
     state.phase === 'draft'
       ? state.players.find((p) => !state.draftedThisPhase.includes(p.id))
@@ -273,27 +269,14 @@ function OnlineGame({
           <h1>🧀 Dice Mice</h1>
         </header>
         <section className="panel panel--win">
-          <h2>Partie beendet 🎉</h2>
-          <p>
-            Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
-          </p>
-          <ol className="standings">
-            {[...state.players]
-              .sort((a, b) => b.totalScore - a.totalScore)
-              .map((p) => (
-                <li key={p.id}>
-                  {p.name}: {p.totalScore}
-                </li>
-              ))}
-          </ol>
-          <button
-            onClick={() => {
+          <Podium
+            players={state.players}
+            actionLabel="Zurück zum Menü"
+            onAction={() => {
               client.leave();
               onBack();
             }}
-          >
-            Zurück zum Menü
-          </button>
+          />
         </section>
       </div>
     );

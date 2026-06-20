@@ -6,24 +6,27 @@
 // einer Nutzergeste erzeugt/„entsperrt" (Browser-Autoplay-Richtlinie).
 
 import { SOUNDS, type SoundEvent, type ToneSpec } from './events';
+import { hasMusic, MUSIC } from './music';
 
 const STORAGE_KEY = 'dicemice.muted';
+const MUSIC_KEY = 'dicemice.music';
 
 type AudioCtor = typeof AudioContext;
 
-function readMuted(): boolean {
+function readFlag(key: string, fallback: boolean): boolean {
   try {
-    return localStorage.getItem(STORAGE_KEY) === '1';
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : v === '1';
   } catch {
-    return false;
+    return fallback;
   }
 }
 
-function persistMuted(muted: boolean): void {
+function persistFlag(key: string, on: boolean): void {
   try {
-    localStorage.setItem(STORAGE_KEY, muted ? '1' : '0');
+    localStorage.setItem(key, on ? '1' : '0');
   } catch {
-    // Privatmodus o. Ä. – Stummschaltung bleibt dann nur für die Sitzung.
+    // Privatmodus o. Ä. – Wert bleibt dann nur für die Sitzung.
   }
 }
 
@@ -32,9 +35,12 @@ export class SoundManager {
   private muted: boolean;
   /** Cache für echte Audio-Assets (pro src eine wiederverwendbare Quelle). */
   private assets = new Map<string, HTMLAudioElement>();
+  private musicEl: HTMLAudioElement | null = null;
+  private musicOn: boolean;
 
   constructor() {
-    this.muted = readMuted();
+    this.muted = readFlag(STORAGE_KEY, false);
+    this.musicOn = readFlag(MUSIC_KEY, false);
   }
 
   isMuted(): boolean {
@@ -43,12 +49,49 @@ export class SoundManager {
 
   setMuted(muted: boolean): void {
     this.muted = muted;
-    persistMuted(muted);
+    persistFlag(STORAGE_KEY, muted);
+    this.syncMusic();
   }
 
   toggleMuted(): boolean {
     this.setMuted(!this.muted);
     return this.muted;
+  }
+
+  // --- Hintergrundmusik (slot-basiert; aktiv nur wenn ein Track hinterlegt ist) ---
+  musicAvailable(): boolean {
+    return hasMusic();
+  }
+
+  isMusicOn(): boolean {
+    return this.musicOn;
+  }
+
+  setMusic(on: boolean): void {
+    this.musicOn = on;
+    persistFlag(MUSIC_KEY, on);
+    this.syncMusic();
+  }
+
+  toggleMusic(): boolean {
+    this.setMusic(!this.musicOn);
+    return this.musicOn;
+  }
+
+  private syncMusic(): void {
+    if (!this.musicAvailable()) return;
+    if (this.musicOn && !this.muted) {
+      if (!this.musicEl) {
+        this.musicEl = new Audio(MUSIC.src);
+        this.musicEl.loop = true;
+        this.musicEl.volume = 0.35;
+      }
+      void this.musicEl.play().catch(() => {
+        // Wiedergabe blockiert (z. B. fehlende Geste) – startet bei nächster Geste.
+      });
+    } else if (this.musicEl) {
+      this.musicEl.pause();
+    }
   }
 
   /**
@@ -57,6 +100,7 @@ export class SoundManager {
    */
   unlock(): void {
     this.ensureCtx();
+    this.syncMusic();
   }
 
   private ensureCtx(): AudioContext | null {
