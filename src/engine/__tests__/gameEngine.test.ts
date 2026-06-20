@@ -92,10 +92,11 @@ describe('Draft-Angebotsgröße', () => {
     return s.draftOffers.length;
   }
 
-  it('bietet Spieleranzahl + 1 Würfel an', () => {
+  it('bietet Spieleranzahl + 1 Würfel an (auch bei 6 Mäusen)', () => {
     expect(offersFor(2)).toBe(3);
     expect(offersFor(3)).toBe(4);
     expect(offersFor(4)).toBe(5);
+    expect(offersFor(6)).toBe(7);
   });
 
   it('respektiert einen festen Override', () => {

@@ -43,12 +43,10 @@ describe('createRoom / joinRoom', () => {
 
   it('lehnt Beitritt zu vollem Raum ab', () => {
     let room = createRoom('AB12', 'A');
-    room = joinRoom(room, 'B').room;
-    room = joinRoom(room, 'C').room;
-    room = joinRoom(room, 'D').room;
-    const res = joinRoom(room, 'E');
+    for (const n of ['B', 'C', 'D', 'E', 'F']) room = joinRoom(room, n).room; // 6 Sitze voll
+    const res = joinRoom(room, 'G');
     expect(res.error).toBeDefined();
-    expect(res.room.seats).toHaveLength(4);
+    expect(res.room.seats).toHaveLength(6);
   });
 });
 

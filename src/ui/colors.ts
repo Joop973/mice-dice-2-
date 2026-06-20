@@ -17,8 +17,16 @@ export const DIE_COLORS: Record<DieColor, string> = {
   brown: '#8a6240',
 };
 
-/** Farben der Spieler-Mäuse (Sitz 0–3); zum Einfärben von Avataren/Figuren. */
-export const PLAYER_COLORS: string[] = ['#e0564f', '#4f8ef0', '#5fbf6a', '#f0913f'];
+/** Farben der Spieler-Mäuse (Sitz 0–5); zum Einfärben von Avataren/Figuren.
+ *  Auf CVD-Unterscheidbarkeit geachtet (kein zweites Rot/Grün): Teal + Magenta. */
+export const PLAYER_COLORS: string[] = [
+  '#e0564f', // Rot
+  '#4f8ef0', // Blau
+  '#5fbf6a', // Grün
+  '#f0913f', // Orange
+  '#2bb3c0', // Teal
+  '#b15fd6', // Magenta
+];
 
 /** Spieler-Index aus der Engine-ID ('p0'..'p3'). */
 export function playerIndex(id: string): number {

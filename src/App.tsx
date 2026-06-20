@@ -62,8 +62,7 @@ function buildPlayers(humans: number, ais: number, names: string[]): NewPlayer[]
   return players;
 }
 
-// Wird in Phase „6 Spieler" auf 6 angehoben (zusammen mit Farben/WebGL/Layout).
-const MAX_PLAYERS = 4;
+const MAX_PLAYERS = 6;
 const ROUND_CHOICES = [5, 10, 15];
 
 export function App() {
@@ -533,6 +532,11 @@ function Game({
   const diceRevealed = state.phase !== 'roll' || rolledRevealed;
   const awaitingRoll = state.phase === 'roll' && !rolledRevealed;
 
+  // Ab >4 Spielern auf 2D zurückfallen: 6 gleichzeitige WebGL-Kontexte sind
+  // mobil riskant. Das 2D-Rendering hat seit P1 echte Augen.
+  const manyPlayers = state.players.length > 4;
+  const effectiveUse3d = use3d && !manyPlayers;
+
   if (state.finished) {
     return (
       <div className="app">
@@ -559,8 +563,13 @@ function Game({
           <span>
             Runde {state.round} / {state.config.totalRounds}
           </span>
-          <button className="toggle3d" onClick={onToggle3d}>
-            {use3d ? '3D' : '2D'}
+          <button
+            className="toggle3d"
+            onClick={onToggle3d}
+            disabled={manyPlayers}
+            title={manyPlayers ? '2D bei mehr als 4 Mäusen' : undefined}
+          >
+            {effectiveUse3d ? '3D' : '2D'}
           </button>
           <button
             className="toggle3d"
@@ -598,12 +607,12 @@ function Game({
 
       <p className="hint">{PHASE_HINT[state.phase]}</p>
 
-      <section className="players">
+      <section className={`players${manyPlayers ? ' players--many' : ''}`}>
         {state.players.map((p) => (
           <PlayerCard
             key={p.id}
             player={p}
-            use3d={use3d}
+            use3d={effectiveUse3d}
             active={activeDrafter?.id === p.id}
             crowned={fx.crownedNow.has(p.id)}
             warn={fx.warnNow.has(p.id)}

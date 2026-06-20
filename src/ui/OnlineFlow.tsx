@@ -53,6 +53,7 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
   const [serverUrl, setServerUrl] = useState(ENV_SERVER_URL);
   const [ais, setAis] = useState(1);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [totalRounds, setTotalRounds] = useState(10);
   const [code, setCode] = useState('');
 
   const isLocal = serverUrl.trim() === '';
@@ -101,7 +102,7 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
 
         {tab === 'create' ? (
           <>
-            <Counter label="KI-Gegner" value={ais} min={0} max={3} onChange={setAis} />
+            <Counter label="KI-Gegner" value={ais} min={0} max={5} onChange={setAis} />
             <div className="field">
               <span className="field__label">KI-Schwierigkeit</span>
               <div className="seg">
@@ -116,6 +117,20 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
                 ))}
               </div>
             </div>
+            <div className="field">
+              <span className="field__label">Runden</span>
+              <div className="seg">
+                {[5, 10, 15].map((r) => (
+                  <button
+                    key={r}
+                    className={`seg__btn${r === totalRounds ? ' seg__btn--on' : ''}`}
+                    onClick={() => setTotalRounds(r)}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
             <button
               disabled={!nameOk}
               onClick={() =>
@@ -123,6 +138,7 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
                   name: name.trim(),
                   ais,
                   difficulty,
+                  config: { totalRounds },
                 })
               }
             >

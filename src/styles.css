@@ -70,6 +70,13 @@ body {
   gap: 12px;
 }
 
+/* Ab 5–6 Mäusen zwei Spalten auf breiteren Schirmen (sonst eine Spalte). */
+@media (min-width: 520px) {
+  .players--many {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .player {
   /* Holz-Spielermatte auf dem Filz */
   background: linear-gradient(#33271d, #2a211b);

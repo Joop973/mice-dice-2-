@@ -20,7 +20,7 @@ import {
 import { aiTakePhaseAction, type Difficulty } from '../ai';
 import type { GameAction, RoomCode, SeatId, SeatInfo } from './protocol';
 
-export const MAX_SEATS = 4;
+export const MAX_SEATS = 6;
 
 export interface Seat {
   /** Engine-Spieler-ID. Wird bei Spielstart anhand der Sitzreihenfolge vergeben. */
