@@ -17,6 +17,15 @@ export const DIE_COLORS: Record<DieColor, string> = {
   brown: '#8a6240',
 };
 
+/** Farben der Spieler-Mäuse (Sitz 0–3); zum Einfärben von Avataren/Figuren. */
+export const PLAYER_COLORS: string[] = ['#e0564f', '#4f8ef0', '#5fbf6a', '#f0913f'];
+
+/** Spieler-Index aus der Engine-ID ('p0'..'p3'). */
+export function playerIndex(id: string): number {
+  const n = Number(id.replace(/^p/, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
 export const DIE_LABELS: Record<DieColor, string> = {
   yellow: 'Gelb',
   green: 'Grün',

@@ -4,6 +4,9 @@
 import type { Player } from '../engine';
 import { DiceView } from './DiceView';
 import { AnimatedNumber } from './AnimatedNumber';
+import { MouseAvatar, type AvatarState } from './MouseAvatar';
+import { DiceCollection } from './DiceCollection';
+import { playerIndex } from './colors';
 
 interface PlayerCardProps {
   player: Player;
@@ -42,13 +45,22 @@ export function PlayerCard({
     .filter(Boolean)
     .join(' ');
 
+  const avatarState: AvatarState = player.hasCrown
+    ? 'crowned'
+    : warn
+      ? 'sabotaged'
+      : 'idle';
+
   return (
-    <article className={className}>
+    <article className={className} data-fly-target={player.id}>
       <header className="player__head">
-        <span className="player__name">
-          {player.hasCrown ? '👑 ' : ''}
-          {player.name}
-          {player.isAI ? ' 🤖' : ''}
+        <span className="player__id">
+          <MouseAvatar
+            colorIndex={playerIndex(player.id)}
+            state={avatarState}
+            isAI={player.isAI}
+          />
+          <span className="player__name">{player.name}</span>
         </span>
         <span className="player__score">
           <AnimatedNumber value={player.totalScore} />
@@ -67,6 +79,7 @@ export function PlayerCard({
         selectedDieIds={selectedDieIds}
         onToggleClear={onToggleClear}
       />
+      <DiceCollection bag={player.bag} />
     </article>
   );
 }
