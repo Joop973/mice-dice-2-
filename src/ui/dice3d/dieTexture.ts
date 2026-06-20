@@ -6,27 +6,9 @@
 
 import * as THREE from 'three';
 import type { DieVariant } from '../../engine';
+import { PIP_LAYOUT, luminance } from '../dicePips';
 
 const cache = new Map<string, THREE.CanvasTexture>();
-
-/** Relative Luminanz einer Hex-Farbe (#rrggbb) für die Kontrastwahl. */
-function luminance(hex: string): number {
-  const c = hex.replace('#', '');
-  const r = parseInt(c.slice(0, 2), 16) / 255;
-  const g = parseInt(c.slice(2, 4), 16) / 255;
-  const b = parseInt(c.slice(4, 6), 16) / 255;
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-/** Pip-Positionen (3×3-Raster) je Augenzahl 1–6. */
-const PIP_LAYOUT: Record<number, [number, number][]> = {
-  1: [[1, 1]],
-  2: [[0, 0], [2, 2]],
-  3: [[0, 0], [1, 1], [2, 2]],
-  4: [[0, 0], [2, 0], [0, 2], [2, 2]],
-  5: [[0, 0], [2, 0], [1, 1], [0, 2], [2, 2]],
-  6: [[0, 0], [2, 0], [0, 1], [2, 1], [0, 2], [2, 2]],
-};
 
 function drawPips(ctx: CanvasRenderingContext2D, value: number, size: number, fg: string) {
   const margin = size * 0.26;
