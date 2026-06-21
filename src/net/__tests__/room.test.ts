@@ -5,6 +5,7 @@ import {
   createRoom,
   joinRoom,
   leaveRoom,
+  reconnectSeat,
   seatInfos,
   startRoom,
   type Room,
@@ -70,6 +71,22 @@ describe('leaveRoom', () => {
   });
 });
 
+describe('reconnectSeat', () => {
+  it('markiert einen getrennten Sitz wieder als verbunden', () => {
+    let room = createRoom('AB12', 'Anna', { ais: 1 });
+    room = startRoom(room, rng()).room;
+    room = leaveRoom(room, 'p0');
+    expect(room.seats.find((s) => s.id === 'p0')?.connected).toBe(false);
+    room = reconnectSeat(room, 'p0');
+    expect(room.seats.find((s) => s.id === 'p0')?.connected).toBe(true);
+  });
+
+  it('lässt unbekannte Sitze unverändert', () => {
+    const room = createRoom('AB12', 'Anna');
+    expect(reconnectSeat(room, 'p9')).toBe(room);
+  });
+});
+
 describe('startRoom', () => {
   it('startet erst ab 2 Sitzen und würfelt Runde 1', () => {
     const solo = createRoom('AB12', 'Anna');
@@ -119,9 +136,7 @@ describe('applyAction – Autorität', () => {
     room = advanceTo(room, r, 'draft');
     expect(room.state?.phase).toBe('draft');
     // Aktiver Drafter muss der menschliche Host sein (KI hat schon gezogen).
-    const active = room.state!.players.find(
-      (p) => !room.state!.draftedThisPhase.includes(p.id)
-    );
+    const active = room.state!.players.find((p) => !room.state!.draftedThisPhase.includes(p.id));
     expect(active?.id).toBe('p0');
   });
 

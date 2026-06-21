@@ -39,7 +39,7 @@ export class LocalTransport implements Transport {
         });
         this.code = entry.room.code;
         this.you = entry.room.hostSeat;
-        this.emit({ kind: 'welcome', code: entry.room.code, you: this.you });
+        this.emit({ kind: 'welcome', code: entry.room.code, you: this.you, token: 'local' });
         this.emitLobby(entry);
         break;
       }
@@ -53,10 +53,13 @@ export class LocalTransport implements Transport {
         }
         this.code = msg.code;
         this.you = entry.room.hostSeat;
-        this.emit({ kind: 'welcome', code: msg.code, you: this.you });
+        this.emit({ kind: 'welcome', code: msg.code, you: this.you, token: 'local' });
         this.emitLobby(entry);
         break;
       }
+      // Loopback verliert nie die Verbindung – Wiederverbinden ist hier ein No-Op.
+      case 'rejoin':
+        break;
       case 'start': {
         const entry = this.requireEntry();
         if (!entry) return;

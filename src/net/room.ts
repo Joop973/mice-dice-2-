@@ -78,16 +78,10 @@ export function createRoom(
 }
 
 /** Fügt einen menschlichen Sitz hinzu (nur vor Spielstart). Gibt die neue ID. */
-export function joinRoom(
-  room: Room,
-  name: string
-): { room: Room; seat?: SeatId; error?: string } {
+export function joinRoom(room: Room, name: string): { room: Room; seat?: SeatId; error?: string } {
   if (room.started) return { room, error: 'Partie läuft bereits.' };
   if (room.seats.length >= MAX_SEATS) return { room, error: 'Raum ist voll.' };
-  const seats = renumber([
-    ...room.seats,
-    { id: 'tmp', name, isAI: false, connected: true },
-  ]);
+  const seats = renumber([...room.seats, { id: 'tmp', name, isAI: false, connected: true }]);
   const seat = seats[seats.length - 1].id;
   return { room: { ...room, seats }, seat };
 }
@@ -110,6 +104,19 @@ export function leaveRoom(room: Room, seatId: SeatId): Room {
   const seats = renumber(remaining);
   const hostSeat = hostIndex >= 0 ? seats[hostIndex].id : seats[0].id;
   return { ...room, seats, hostSeat };
+}
+
+/**
+ * Markiert einen Sitz wieder als verbunden (Spiegel zu `leaveRoom`). Wird beim
+ * Wiederverbinden auf einen im laufenden Spiel erhaltenen Sitz genutzt. Rein und
+ * idempotent; unbekannte Sitze lassen den Raum unverändert.
+ */
+export function reconnectSeat(room: Room, seatId: SeatId): Room {
+  if (!room.seats.some((s) => s.id === seatId)) return room;
+  return {
+    ...room,
+    seats: room.seats.map((s) => (s.id === seatId ? { ...s, connected: true } : s)),
+  };
 }
 
 export function startRoom(room: Room, rng: RNG): ActionResult {
@@ -165,12 +172,7 @@ function runAiDrafts(room: Room, state: GameState, rng: RNG): GameState {
  * Validiert und wendet eine Client-Aktion an. Mirror der Einzelgerät-Logik aus
  * App.tsx, nur serverseitig autoritativ und mit Zug-/Eigentumsprüfung.
  */
-export function applyAction(
-  room: Room,
-  actor: SeatId,
-  action: GameAction,
-  rng: RNG
-): ActionResult {
+export function applyAction(room: Room, actor: SeatId, action: GameAction, rng: RNG): ActionResult {
   if (!room.started || !room.state) return { room, error: 'Partie nicht gestartet.' };
   const state = room.state;
 
@@ -191,9 +193,7 @@ export function applyAction(
       if (state.phase !== 'swap') return { room, error: 'Tausch nur in der Tausch-Phase.' };
       const player = state.players.find((p) => p.id === actor);
       if (!player) return { room, error: 'Unbekannter Sitz.' };
-      const ownClear = new Set(
-        player.rolled.filter((d) => d.color === 'clear').map((d) => d.id)
-      );
+      const ownClear = new Set(player.rolled.filter((d) => d.color === 'clear').map((d) => d.id));
       if (!action.dieIds.every((id) => ownClear.has(id))) {
         return { room, error: 'Nur eigene Klar-Würfel können getauscht werden.' };
       }

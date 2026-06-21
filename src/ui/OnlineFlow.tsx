@@ -163,9 +163,7 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
             )}
             <button
               disabled={!nameOk || code.trim().length === 0 || isLocal}
-              onClick={() =>
-                client.joinRoom(transportFactory(serverUrl), code.trim(), name.trim())
-              }
+              onClick={() => client.joinRoom(transportFactory(serverUrl), code.trim(), name.trim())}
             >
               Beitreten →
             </button>
@@ -301,7 +299,8 @@ function OnlineGame({
   const toggleClear = (id: string) =>
     setSelectedClear((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
 
@@ -338,6 +337,7 @@ function OnlineGame({
       <section className="players">
         {state.players.map((p) => {
           const isYou = p.id === you;
+          const seat = client.seats.find((s) => s.id === p.id);
           return (
             <PlayerCard
               key={p.id}
@@ -346,6 +346,7 @@ function OnlineGame({
               active={activeDrafter?.id === p.id}
               crowned={fx.crownedNow.has(p.id)}
               warn={fx.warnNow.has(p.id)}
+              disconnected={seat ? !seat.connected : false}
               selectedDieIds={state.phase === 'swap' && isYou ? selectedClear : undefined}
               onToggleClear={state.phase === 'swap' && isYou ? toggleClear : undefined}
               revealed={diceRevealed}
@@ -377,7 +378,9 @@ function OnlineGame({
       {state.phase === 'draft' && (
         <DraftTable
           offers={state.draftOffers}
-          activeName={activeDrafter ? (activeDrafter.id === you ? 'Du' : activeDrafter.name) : undefined}
+          activeName={
+            activeDrafter ? (activeDrafter.id === you ? 'Du' : activeDrafter.name) : undefined
+          }
           isAITurn={!!activeDrafter && activeDrafter.id !== you}
           canPick={youAreActiveDrafter}
           targetId={activeDrafter?.id}

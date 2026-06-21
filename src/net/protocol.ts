@@ -45,13 +45,25 @@ export type ClientMessage =
       config?: Partial<GameConfig>;
     }
   | { kind: 'join'; code: RoomCode; name: string }
+  // Wiederverbinden auf einen bereits belegten Sitz (nach Verbindungsabbruch im
+  // laufenden Spiel). Das Token weist die Berechtigung nach – nur wer den Sitz
+  // ursprünglich erhalten hat, kennt es.
+  | { kind: 'rejoin'; code: RoomCode; seat: SeatId; token: string }
   | { kind: 'start' }
   | { kind: 'action'; action: GameAction }
   | { kind: 'leave' };
 
-/** Server → Client. */
+/**
+ * Server → Client.
+ *
+ * Hinweis: `reconnecting`/`reconnected` werden NICHT vom Server gesendet, sondern
+ * vom WebSocket-Transport lokal erzeugt, um der UI Verbindungswechsel zu melden,
+ * ohne die Transport-Schnittstelle zu erweitern (der Loopback-Transport sendet sie nie).
+ */
 export type ServerMessage =
-  | { kind: 'welcome'; code: RoomCode; you: SeatId }
+  | { kind: 'welcome'; code: RoomCode; you: SeatId; token: string }
   | { kind: 'lobby'; code: RoomCode; seats: SeatInfo[]; started: boolean }
   | { kind: 'state'; state: GameState }
-  | { kind: 'error'; message: string };
+  | { kind: 'error'; message: string }
+  | { kind: 'reconnecting' }
+  | { kind: 'reconnected' };
