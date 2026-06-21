@@ -13,7 +13,7 @@ Das Spiel soll sich wie ein **hochwertiges, haptisches Brettspiel** anfühlen: s
 ## Stil-Anker (festgelegt)
 **Pixel-Art.** Thema: **Mäuse + Käse + Würfel** in einer **gemütlichen, hölzernen Küche** (warmes Holz, Vorratskammer-Stimmung, Käse, kleine Küchen-Props). Warm und einladend — **kein** Casino/Glücksspiel-Look.
 **Ausnahme Würfel:** Die Würfel bleiben **3D-animiert** (bestehendes System), werden aber **flach/cel-schattiert** und **farblich an die Pixel-Palette angeglichen** (Pip-Texturen im Pixel-Stil, Nearest-Filter statt Glanz). Sie müssen wie Teil der Pixel-Welt wirken, nicht wie ein Fremdkörper.
-Vollständige Spec: `docs/UI_SYSTEM.md`.
+Vollständige Spec:`docs/UI_SYSTEM.md`.
 
 ## Eiserne Regeln
 
