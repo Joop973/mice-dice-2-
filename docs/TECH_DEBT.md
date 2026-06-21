@@ -97,3 +97,24 @@ Diese Punkte aus `LEITFADEN.md §5` treffen am realen Code **nicht** zu:
 - Drei versionierte Stores: nur einer (`persistence.ts`).
 - Mehrere „am Zug"-Signale: nur ein CSS-Outline-Signal, keine Redundanz.
 - Tote Pfade nach Ersetzungen: keine (die beschriebenen Refactors fanden nie statt).
+
+## Status nach Phase 7/8 (Umsetzung)
+
+**Erledigt:**
+- **B** Theme-Variablensystem in `styles.css`; alle ~40 Hex-Literale auf Variablen.
+- **C** 3D-Hex-Dubletten entfernt → `src/ui/theme.ts` (+ geteiltes `luminance`).
+- **D** `PHASE_LABEL`/`PHASE_HINT` Single-Source `src/ui/phaseLabels.ts`.
+- **E** reduced-motion zentral `src/motion.ts`; 3D-Würfel-Gate ergänzt.
+- **F** alle UI-Emojis durch `src/ui/PixelIcon.tsx` ersetzt (keine Emojis mehr).
+- Duplikate #1 (PHASE_LABEL), #2 (`Counter`), #6 (reduced-motion), #7 (`luminance`) behoben.
+- Design-Audit D2 (Tap ≥44px), D3 (`:focus-visible`), D4 (3D reduced-motion),
+  D5 (Emojis), D6 (Lokal==Online: Hinweis + Mute) behoben.
+- Würfel pixel-angeglichen (antialias off, Nearest, mattes Material, `pixelated`).
+
+**Offen (bewusst, Folge-Arbeit):**
+- **D1** Button-System auf 2 Token-Stile + Holz/Bevel-Anmutung (größeres Redesign).
+- **A/H** Doku-Zielbild (`LEITFADEN`/`claude.md`) vs. Code bleibt als Zielbild stehen;
+  `lint`/`format:check`/E2E-Tooling weiterhin nicht eingerichtet.
+- **G** Spielerfarben/`PLAYER_COLORS` + 6 Pixel-Maus-Avatare + volle Pixel-Pips
+  (Feature-/Asset-Arbeit, siehe `ASSET_AUDIT.md`).
+- Duplikate #3 (Win-Screen) und #4 (Reroll-Handler) noch nicht zusammengeführt.
