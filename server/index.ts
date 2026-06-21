@@ -12,14 +12,7 @@
 // tsconfig.app.json). Sie wird über `tsx` direkt unter Node ausgeführt.
 
 import { WebSocketServer, type WebSocket } from 'ws';
-import {
-  applyAction,
-  joinRoom,
-  leaveRoom,
-  seatInfos,
-  startRoom,
-  Lobby,
-} from '../src/net';
+import { applyAction, joinRoom, leaveRoom, seatInfos, startRoom, Lobby } from '../src/net';
 import type { ClientMessage, RoomCode, SeatId, ServerMessage } from '../src/net';
 
 const PORT = Number(process.env.PORT ?? 8787);

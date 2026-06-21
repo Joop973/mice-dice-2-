@@ -148,9 +148,7 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
             )}
             <button
               disabled={!nameOk || code.trim().length === 0 || isLocal}
-              onClick={() =>
-                client.joinRoom(transportFactory(serverUrl), code.trim(), name.trim())
-              }
+              onClick={() => client.joinRoom(transportFactory(serverUrl), code.trim(), name.trim())}
             >
               Beitreten →
             </button>
@@ -357,7 +355,8 @@ function OnlineGame({
             Angebot
             {activeDrafter && (
               <>
-                {' '}· {activeDrafter.name}
+                {' '}
+                · {activeDrafter.name}
                 {activeDrafter.id === you ? ' (du) wählst' : ' wählt …'}
               </>
             )}
@@ -420,4 +419,3 @@ function OnlineGame({
     </div>
   );
 }
-

@@ -66,6 +66,8 @@
 Vor/nach jeder Änderung (real verfügbar):
 
 - [ ] `npm test` (vitest) grün
+- [ ] `npm run lint` (ESLint flat) sauber
+- [ ] `npm run format:check` (Prettier) sauber
 - [ ] `npm run typecheck` sauber
 - [ ] `npm run typecheck:server` sauber
 - [ ] reduced-motion + jsdom = no-op verifiziert
@@ -76,8 +78,10 @@ Vor/nach jeder Änderung (real verfügbar):
 - [ ] betroffene Doku aktualisiert
 - [ ] ein Thema pro Commit, klare Message (was/warum)
 
-> `lint`/`format:check`/E2E aus der Leitfaden-DoD existieren noch nicht
-> (`TECH_DEBT.md §H`). Erst ergänzen oder DoD bewusst anpassen, dann darauf verweisen.
+> **Tooling vorhanden:** `eslint.config.js` (flat, recommended + react-hooks,
+> Prettier-kompatibel) und Prettier (`.prettierrc.json`). **`src/engine/` und `docs/`
+> sind in `.prettierignore`** (Engine ist tabu; Doku-Zeilenumbrüche bleiben bewusst
+> manuell). E2E (Playwright) ist weiterhin nicht eingerichtet.
 
 ## 8. Assets & Lizenzen
 

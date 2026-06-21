@@ -16,12 +16,7 @@ import {
   type Player,
   type RNG,
 } from './engine';
-import {
-  aiTakePhaseAction,
-  DIFFICULTIES,
-  DIFFICULTY_LABELS,
-  type Difficulty,
-} from './ai';
+import { aiTakePhaseAction, DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from './ai';
 import { PlayerCard } from './ui/PlayerCard';
 import { RoundSummary } from './ui/RoundSummary';
 import { Rules } from './ui/Rules';
@@ -106,9 +101,10 @@ export function App() {
   }
 
   // Auswahl zurücksetzen, sobald sich Phase/Runde ändern.
+  const resetClear = selectedClear.reset;
   useEffect(() => {
-    selectedClear.reset();
-  }, [state?.phase, state?.round]);
+    resetClear();
+  }, [state?.phase, state?.round, resetClear]);
 
   // KI-Treiber: agiert automatisch in der Swap- und Draft-Phase.
   useEffect(() => {
@@ -297,7 +293,13 @@ function Setup({
       </header>
 
       <section className="panel">
-        <Counter label="Menschen (Pass-and-Play)" value={humans} min={1} max={4} onChange={setHumans} />
+        <Counter
+          label="Menschen (Pass-and-Play)"
+          value={humans}
+          min={1}
+          max={4}
+          onChange={setHumans}
+        />
         <Counter label="KI-Gegner" value={ais} min={0} max={3} onChange={setAis} />
 
         <div className="field">

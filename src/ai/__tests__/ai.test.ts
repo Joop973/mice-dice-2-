@@ -21,7 +21,13 @@ describe('expectedValue', () => {
   });
   it('mittelt explizite Faces (inkl. negativer Rot-Werte)', () => {
     expect(
-      expectedValue({ id: 'x', color: 'red', sides: 6, variant: 'normal', faces: [-2, -1, 1, 2, 3, 4] })
+      expectedValue({
+        id: 'x',
+        color: 'red',
+        sides: 6,
+        variant: 'normal',
+        faces: [-2, -1, 1, 2, 3, 4],
+      })
     ).toBeCloseTo(7 / 6);
   });
 });
@@ -91,7 +97,11 @@ describe('aiChooseSwap', () => {
 
 describe('strategicDraftValue (harte KI)', () => {
   const brown: DieDef = {
-    id: 'b', color: 'brown', sides: 6, variant: 'normal', faces: [2, 2, 2, 3, 3, 3],
+    id: 'b',
+    color: 'brown',
+    sides: 6,
+    variant: 'normal',
+    faces: [2, 2, 2, 3, 3, 3],
   };
   const sabotage: DieDef = { id: 's', color: 'sabotage', sides: 8, variant: 'normal' };
 

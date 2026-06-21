@@ -44,5 +44,7 @@ export const PLAYER_COLORS: readonly string[] = [
 
 /** Farbe eines Spielers anhand seines Index (stabil, wrappt bei >6). */
 export function playerColor(index: number): string {
-  return PLAYER_COLORS[((index % PLAYER_COLORS.length) + PLAYER_COLORS.length) % PLAYER_COLORS.length];
+  return PLAYER_COLORS[
+    ((index % PLAYER_COLORS.length) + PLAYER_COLORS.length) % PLAYER_COLORS.length
+  ];
 }

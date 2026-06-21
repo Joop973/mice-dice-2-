@@ -1,0 +1,7 @@
+dist
+node_modules
+public/icons
+package-lock.json
+docs
+*.md
+src/engine

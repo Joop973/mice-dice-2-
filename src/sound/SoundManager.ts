@@ -62,7 +62,8 @@ export class SoundManager {
   private ensureCtx(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     const Ctor: AudioCtor | undefined =
-      window.AudioContext ?? (window as unknown as { webkitAudioContext?: AudioCtor }).webkitAudioContext;
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: AudioCtor }).webkitAudioContext;
     if (!Ctor) return null;
     if (!this.ctx) {
       try {

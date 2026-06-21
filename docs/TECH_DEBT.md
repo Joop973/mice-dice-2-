@@ -81,12 +81,11 @@ darüber führen. CSS-Media-Query bleibt (CSS-seitig korrekt).
 
 ## H. Fehlendes Qualitäts-Tooling (DoD nicht erfüllbar)
 
-- Keine `lint`/`format:check`-Scripts, kein ESLint/Prettier, kein E2E.
-- Die DoD in `LEITFADEN.md §7` fordert genau diese Schritte.
-
-→ **Lösung:** Entweder Tooling ergänzen (ESLint flat + Prettier + ggf. Playwright)
-**oder** die DoD auf das real vorhandene (`test`, `typecheck`, `typecheck:server`)
-reduzieren. Bewusste Entscheidung nötig.
+- ~~Keine `lint`/`format:check`-Scripts, kein ESLint/Prettier~~ → **erledigt:**
+  ESLint flat (`eslint.config.js`) + Prettier (`.prettierrc.json`) eingerichtet,
+  Scripts `lint`/`lint:fix`/`format`/`format:check`. `src/engine` und `docs` in
+  `.prettierignore` (Engine tabu, Doku-Umbrüche manuell).
+- **Offen:** E2E (Playwright) ist weiterhin nicht eingerichtet.
 
 ## Nicht-Befunde (Verdacht widerlegt)
 

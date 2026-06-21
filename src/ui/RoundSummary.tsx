@@ -18,13 +18,7 @@ const ORDER: (keyof ScoreContributions)[] = [
   'brown',
 ];
 
-export function RoundSummary({
-  scores,
-  players,
-}: {
-  scores: ScoreBreakdown[];
-  players: Player[];
-}) {
+export function RoundSummary({ scores, players }: { scores: ScoreBreakdown[]; players: Player[] }) {
   const nameById = new Map(players.map((p) => [p.id, p.name]));
 
   return (

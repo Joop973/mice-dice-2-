@@ -121,9 +121,7 @@ describe('applyAction – Autorität', () => {
     room = advanceTo(room, r, 'draft');
     expect(room.state?.phase).toBe('draft');
     // Aktiver Drafter muss der menschliche Host sein (KI hat schon gezogen).
-    const active = room.state!.players.find(
-      (p) => !room.state!.draftedThisPhase.includes(p.id)
-    );
+    const active = room.state!.players.find((p) => !room.state!.draftedThisPhase.includes(p.id));
     expect(active?.id).toBe('p0');
   });
 
