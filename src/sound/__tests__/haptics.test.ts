@@ -2,9 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HAPTIC_PATTERNS, vibrate } from '../haptics';
 import type { SoundEvent } from '../events';
 
-const ALL_EVENTS: SoundEvent[] = [
-  'roll', 'pick', 'pass', 'crown', 'tick', 'round', 'win', 'warn',
-];
+const ALL_EVENTS: SoundEvent[] = ['roll', 'pick', 'pass', 'crown', 'tick', 'round', 'win', 'warn'];
 
 describe('haptics', () => {
   afterEach(() => {

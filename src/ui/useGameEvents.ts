@@ -75,13 +75,7 @@ export function useGameEvents(
       }
     }
 
-    if (
-      crownedNow.size > 0 ||
-      warnNow.size > 0 ||
-      banner ||
-      crownMove ||
-      sabotage.length > 0
-    ) {
+    if (crownedNow.size > 0 || warnNow.size > 0 || banner || crownMove || sabotage.length > 0) {
       setFx({ crownedNow, warnNow, banner, crownMove, sabotage });
       const duration = banner ? 1600 : 1000;
       timers.push(setTimeout(() => setFx(EMPTY), duration));

@@ -102,10 +102,7 @@ describe('Kronen-Rundenbonus', () => {
 
 describe('distinctColorCount', () => {
   it('zählt Blau und Blau-Glitzer als EINE Farbe', () => {
-    const r = [
-      rd('blue', 4, { variant: 'normal' }),
-      rd('blue', 2, { variant: 'glitter' }),
-    ];
+    const r = [rd('blue', 4, { variant: 'normal' }), rd('blue', 2, { variant: 'glitter' })];
     expect(distinctColorCount(r)).toBe(1);
   });
 

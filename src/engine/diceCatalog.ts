@@ -84,10 +84,7 @@ export const DICE_CATALOG: DieBlueprint[] = [
 ];
 
 /** Löst den Face-Satz einer Blueprint gegen die Config auf (falls nötig). */
-export function resolveFaces(
-  blueprint: DieBlueprint,
-  config: GameConfig
-): number[] | undefined {
+export function resolveFaces(blueprint: DieBlueprint, config: GameConfig): number[] | undefined {
   switch (blueprint.facesFromConfig) {
     case 'red':
       return blueprint.sides === 6 ? config.redFaces[6] : config.redFaces[8];

@@ -34,7 +34,12 @@ export class Lobby {
   /** Legt einen Raum an und gibt Code + Eintrag zurück. */
   create(
     hostName: string,
-    opts: { ais?: number; difficulty?: Difficulty; config?: Partial<GameConfig>; seed?: number } = {}
+    opts: {
+      ais?: number;
+      difficulty?: Difficulty;
+      config?: Partial<GameConfig>;
+      seed?: number;
+    } = {}
   ): RoomEntry {
     const seed = opts.seed ?? (Date.now() >>> 0) ^ Math.floor(Math.random() * 0xffffffff);
     const rng = createRNG(seed >>> 0);

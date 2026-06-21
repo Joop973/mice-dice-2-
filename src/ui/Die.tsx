@@ -30,9 +30,7 @@ function Pips({ value, color }: { value: number; color: string }) {
 
 export function Die({ die, selected, pity, onClick }: DieProps) {
   const { colorblind } = useSettings();
-  const label = `${DIE_LABELS[die.color]} W${die.sides}${
-    die.variant === 'glitter' ? ' ✨' : ''
-  }`;
+  const label = `${DIE_LABELS[die.color]} W${die.sides}${die.variant === 'glitter' ? ' ✨' : ''}`;
   const className = [
     'die',
     selected ? 'die--selected' : '',

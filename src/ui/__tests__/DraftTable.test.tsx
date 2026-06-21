@@ -22,7 +22,9 @@ describe('DraftTable (Tischmitte)', () => {
   });
 
   it('sperrt die Würfel, wenn man nicht am Zug ist', () => {
-    render(<DraftTable offers={offers} canPick={false} isAITurn activeName="KI 1" onPick={() => {}} />);
+    render(
+      <DraftTable offers={offers} canPick={false} isAITurn activeName="KI 1" onPick={() => {}} />
+    );
     expect(screen.getByText(/KI 1 wählt/)).toBeTruthy();
     expect((screen.getByLabelText(/Grün W20/) as HTMLButtonElement).disabled).toBe(true);
   });
@@ -38,7 +40,9 @@ describe('DraftTable (Tischmitte)', () => {
 
   it('bietet einen Passen-Knopf nur am eigenen Zug', () => {
     const onPass = vi.fn();
-    render(<DraftTable offers={offers} canPick onPick={() => {}} onPass={onPass} activeName="Du" />);
+    render(
+      <DraftTable offers={offers} canPick onPick={() => {}} onPass={onPass} activeName="Du" />
+    );
     fireEvent.click(screen.getByText(/Passen/));
     expect(onPass).toHaveBeenCalled();
   });

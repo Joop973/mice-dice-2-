@@ -18,7 +18,16 @@ import {
 import { aiTakePhaseAction, type Difficulty } from '../src/ai';
 
 const COLORS: DieColor[] = [
-  'yellow', 'green', 'blue', 'purple', 'red', 'clear', 'pink', 'orange', 'sabotage', 'brown',
+  'yellow',
+  'green',
+  'blue',
+  'purple',
+  'red',
+  'clear',
+  'pink',
+  'orange',
+  'sabotage',
+  'brown',
 ];
 
 interface RoundRecord {
@@ -74,10 +83,7 @@ function playGame(
       const before = state;
       state = advancePhase(state, rng); // swap -> draft: wertet
       // Mitleidswürfel dieser Runde zählen (rolled enthält isPity-Marker).
-      pityCount += before.players.reduce(
-        (n, p) => n + p.rolled.filter((d) => d.isPity).length,
-        0
-      );
+      pityCount += before.players.reduce((n, p) => n + p.rolled.filter((d) => d.isPity).length, 0);
       const scores = state.lastScores!;
       const rec: RoundRecord[] = scores.map((s, i) => ({
         playerId: s.playerId,
@@ -246,21 +252,35 @@ function run() {
   console.log(`\n=== Dice Mice Balance-Simulation ===`);
   console.log(`Partien: ${games} · KI: ${difficulty} · 4 Spieler · Seed-Basis: ${baseSeed}\n`);
 
-  console.log(`Endpunkte (alle Spieler): mean ${fmt(mean(allFinals))}  sd ${fmt(stdev(allFinals))}` +
-    `  p5 ${fmt(pct(allFinals, 5))}  median ${fmt(pct(allFinals, 50))}  p95 ${fmt(pct(allFinals, 95))}`);
-  console.log(`Sieger-Endpunkte:          mean ${fmt(mean(winnerScores))}  sd ${fmt(stdev(winnerScores))}` +
-    `  min ${fmt(minOf(winnerScores))}  max ${fmt(maxOf(winnerScores))}`);
-  console.log(`Runden-Endpunkte:          mean ${fmt(mean(allRoundFinals))}  sd ${fmt(stdev(allRoundFinals))}` +
-    `  min ${fmt(minOf(allRoundFinals))}  max ${fmt(maxOf(allRoundFinals))}`);
-  console.log(`Negative Runden:           ${(100 * negativeRounds / allRoundFinals.length).toFixed(1)}%`);
-  console.log(`Krone-Wechsel/Partie:      ${(totalCrownChanges / games).toFixed(2)} (von 9 möglichen)`);
+  console.log(
+    `Endpunkte (alle Spieler): mean ${fmt(mean(allFinals))}  sd ${fmt(stdev(allFinals))}` +
+      `  p5 ${fmt(pct(allFinals, 5))}  median ${fmt(pct(allFinals, 50))}  p95 ${fmt(pct(allFinals, 95))}`
+  );
+  console.log(
+    `Sieger-Endpunkte:          mean ${fmt(mean(winnerScores))}  sd ${fmt(stdev(winnerScores))}` +
+      `  min ${fmt(minOf(winnerScores))}  max ${fmt(maxOf(winnerScores))}`
+  );
+  console.log(
+    `Runden-Endpunkte:          mean ${fmt(mean(allRoundFinals))}  sd ${fmt(stdev(allRoundFinals))}` +
+      `  min ${fmt(minOf(allRoundFinals))}  max ${fmt(maxOf(allRoundFinals))}`
+  );
+  console.log(
+    `Negative Runden:           ${((100 * negativeRounds) / allRoundFinals.length).toFixed(1)}%`
+  );
+  console.log(
+    `Krone-Wechsel/Partie:      ${(totalCrownChanges / games).toFixed(2)} (von 9 möglichen)`
+  );
   console.log(`Mitleidswürfel/Partie:     ${(totalPity / games).toFixed(2)}`);
-  console.log(`Sabotage: Partien mit      ${(100 * gamesWithSabotage / games).toFixed(0)}%` +
-    ` · getroffene Runden ${(100 * sabotageHitRounds / totalRounds).toFixed(1)}%` +
-    ` · Ø Abzug/Treffer ${(sabotageTotal / Math.max(1, sabotageHitRounds)).toFixed(1)}`);
-  console.log(`Krone: Ø Netto/Kronen-Runde ${(crownHolderNet / Math.max(1, crownHolderRounds)).toFixed(1)}` +
-    ` (Bonus − Sabotage)  ·  Sieger Ø Kronen-Runden ${(winnerCrownRounds / games).toFixed(2)}` +
-    `  ·  Kronen-Leader gewinnt ${(100 * crownLeaderWins / games).toFixed(0)}%`);
+  console.log(
+    `Sabotage: Partien mit      ${((100 * gamesWithSabotage) / games).toFixed(0)}%` +
+      ` · getroffene Runden ${((100 * sabotageHitRounds) / totalRounds).toFixed(1)}%` +
+      ` · Ø Abzug/Treffer ${(sabotageTotal / Math.max(1, sabotageHitRounds)).toFixed(1)}`
+  );
+  console.log(
+    `Krone: Ø Netto/Kronen-Runde ${(crownHolderNet / Math.max(1, crownHolderRounds)).toFixed(1)}` +
+      ` (Bonus − Sabotage)  ·  Sieger Ø Kronen-Runden ${(winnerCrownRounds / games).toFixed(2)}` +
+      `  ·  Kronen-Leader gewinnt ${((100 * crownLeaderWins) / games).toFixed(0)}%`
+  );
 
   console.log(`\nFarb-Beitrag (über alle Runden):`);
   console.log(`  Farbe      Ø/Würfel   Gesamt%   maxRunde   #Würfel`);

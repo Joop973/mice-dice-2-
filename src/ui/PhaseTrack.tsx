@@ -13,9 +13,7 @@ export function PhaseTrack({ phase }: { phase: Phase }) {
           <li
             key={p}
             className={
-              'phasetrack__step' +
-              (i === idx ? ' is-current' : '') +
-              (i < idx ? ' is-done' : '')
+              'phasetrack__step' + (i === idx ? ' is-current' : '') + (i < idx ? ' is-done' : '')
             }
             aria-current={i === idx ? 'step' : undefined}
           >

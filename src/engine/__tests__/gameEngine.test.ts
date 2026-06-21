@@ -170,10 +170,7 @@ describe('Phasenfolge', () => {
 
   it('beendet die Partie nach der konfigurierten Rundenzahl', () => {
     const rng = createRNG(5);
-    let s = performRoll(
-      createGame({ players: [{ name: 'A' }], config: { totalRounds: 2 } }),
-      rng
-    );
+    let s = performRoll(createGame({ players: [{ name: 'A' }], config: { totalRounds: 2 } }), rng);
     // 2 Runden × 4 Phasenübergänge -> finished.
     for (let i = 0; i < 8 && !s.finished; i++) s = advancePhase(s, rng);
     expect(s.finished).toBe(true);

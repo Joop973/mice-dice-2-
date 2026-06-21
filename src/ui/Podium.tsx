@@ -27,7 +27,11 @@ export function Podium({
           const rank = ranked.indexOf(p) + 1;
           return (
             <div key={p.id} className={`podium__col podium__col--${rank}`}>
-              {rank === 1 && <span className="podium__crown" aria-hidden="true">🧀👑</span>}
+              {rank === 1 && (
+                <span className="podium__crown" aria-hidden="true">
+                  🧀👑
+                </span>
+              )}
               <MouseAvatar
                 colorIndex={playerIndex(p.id)}
                 size={rank === 1 ? 56 : 44}

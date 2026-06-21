@@ -21,9 +21,7 @@ export function PwaToast() {
   return (
     <div className="pwa-toast" role="status" aria-live="polite">
       <span>{needRefresh ? '🧀 Neue Version verfügbar.' : '🧀 Offline spielbereit.'}</span>
-      {needRefresh && (
-        <button onClick={() => updateServiceWorker(true)}>Neu laden</button>
-      )}
+      {needRefresh && <button onClick={() => updateServiceWorker(true)}>Neu laden</button>}
       <button className="ghost pwa-toast__close" onClick={close} aria-label="Schließen">
         ✕
       </button>

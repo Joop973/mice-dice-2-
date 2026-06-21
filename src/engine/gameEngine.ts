@@ -14,12 +14,7 @@
 // Draft-Angebot beeinflusst erst die nächste Runde). Siehe scoring.ts für die
 // Timing-Entscheidung zu Orange/Sabotage.
 
-import {
-  DEFAULT_CONFIG,
-  DICE_CATALOG,
-  resolveFaces,
-  type DieBlueprint,
-} from './diceCatalog';
+import { DEFAULT_CONFIG, DICE_CATALOG, resolveFaces, type DieBlueprint } from './diceCatalog';
 import { createRNG, pick, randInt, type RNG } from './rng';
 import { scoreRound } from './scoring';
 import type {
@@ -44,11 +39,7 @@ export interface CreateGameOptions {
 }
 
 /** Erzeugt eine konkrete Würfel-Instanz mit eindeutiger ID aus einer Blueprint. */
-function instantiate(
-  blueprint: DieBlueprint,
-  config: GameConfig,
-  id: string
-): DieDef {
+function instantiate(blueprint: DieBlueprint, config: GameConfig, id: string): DieDef {
   return {
     id,
     color: blueprint.color,
@@ -63,9 +54,7 @@ const STARTER: DieBlueprint = { color: 'yellow', sides: 6, variant: 'normal' };
 
 /** Wirft genau einen Würfel mit dem injizierten RNG. */
 export function rollDie(def: DieDef, rng: RNG): RolledDie {
-  const value = def.faces
-    ? pick(rng, def.faces)
-    : randInt(rng, 1, def.sides);
+  const value = def.faces ? pick(rng, def.faces) : randInt(rng, 1, def.sides);
   return { ...def, value };
 }
 
@@ -192,7 +181,10 @@ export function swapClearDice(
 }
 
 /** Erzeugt das Draft-Angebot für die aktuelle Runde. */
-function generateDraftOffers(state: GameState, rng: RNG): {
+function generateDraftOffers(
+  state: GameState,
+  rng: RNG
+): {
   offers: DraftOffer[];
   nextId: number;
 } {
@@ -209,11 +201,7 @@ function generateDraftOffers(state: GameState, rng: RNG): {
 }
 
 /** Draft-Phase: ein Spieler nimmt einen Würfel aus dem Angebot in seinen Beutel. */
-export function draftPick(
-  state: GameState,
-  playerId: string,
-  offerId: string
-): GameState {
+export function draftPick(state: GameState, playerId: string, offerId: string): GameState {
   if (state.phase !== 'draft') return state;
   if (state.draftedThisPhase.includes(playerId)) return state;
   const offer = state.draftOffers.find((o) => o.id === offerId);
@@ -253,9 +241,7 @@ function awardCrownEndgameBonus(next: GameState): void {
   for (const p of next.players) {
     if (p.crownRounds === most) {
       p.totalScore += bonus;
-      next.log.push(
-        `${p.name} erhält ${bonus} Kronen-Bonus (${most} Runden als Kronenhalter).`
-      );
+      next.log.push(`${p.name} erhält ${bonus} Kronen-Bonus (${most} Runden als Kronenhalter).`);
     }
   }
 }

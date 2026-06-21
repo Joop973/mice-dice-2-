@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  advancePhase,
-  createRNG,
-  startGame,
-  type GameState,
-  type RNG,
-} from '../../engine';
+import { advancePhase, createRNG, startGame, type GameState, type RNG } from '../../engine';
 import { detectEvents, snapshot } from '../gameEvents';
 
 // Treibt ein deterministisches Spiel und prüft, dass die Ereignis-Erkennung
@@ -40,9 +34,7 @@ describe('detectEvents', () => {
 
     const res = detectEvents(snapshot(swap), snapshot(draft));
     // Es muss mindestens ein wertungsbezogenes Ereignis geben.
-    const scoring = res.sounds.filter((s) =>
-      ['tick', 'crown', 'warn'].includes(s)
-    );
+    const scoring = res.sounds.filter((s) => ['tick', 'crown', 'warn'].includes(s));
     expect(scoring.length).toBeGreaterThan(0);
   });
 
@@ -136,13 +128,43 @@ describe('detectEvents', () => {
 
   it('deriveSabotage (via snapshot): Werfer -> Hauptopfer', () => {
     const zero = () => ({
-      yellow: 0, green: 0, blue: 0, purple: 0, pink: 0, red: 0, clear: 0, orange: 0, brown: 0,
+      yellow: 0,
+      green: 0,
+      blue: 0,
+      purple: 0,
+      pink: 0,
+      red: 0,
+      clear: 0,
+      orange: 0,
+      brown: 0,
     });
     const state = {
       ...setup(2).state,
       lastScores: [
-        { playerId: 'p0', yellow: 0, base: 5, contributions: zero(), distinctColors: 1, sabotageThrown: 7, sabotageReceived: 0, crownBonus: 0, final: 5, hasCrown: false },
-        { playerId: 'p1', yellow: 10, base: 10, contributions: zero(), distinctColors: 1, sabotageThrown: 0, sabotageReceived: 7, crownBonus: 14, final: 24, hasCrown: true },
+        {
+          playerId: 'p0',
+          yellow: 0,
+          base: 5,
+          contributions: zero(),
+          distinctColors: 1,
+          sabotageThrown: 7,
+          sabotageReceived: 0,
+          crownBonus: 0,
+          final: 5,
+          hasCrown: false,
+        },
+        {
+          playerId: 'p1',
+          yellow: 10,
+          base: 10,
+          contributions: zero(),
+          distinctColors: 1,
+          sabotageThrown: 0,
+          sabotageReceived: 7,
+          crownBonus: 14,
+          final: 24,
+          hasCrown: true,
+        },
       ],
     };
     expect(snapshot(state).sabotage).toEqual([{ from: 'p0', to: 'p1', amount: 7 }]);

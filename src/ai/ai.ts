@@ -93,11 +93,7 @@ export function draftHeuristic(
 }
 
 /** Wählt für einen KI-Spieler die zu tauschenden Klar-Würfel aus. */
-export function aiChooseSwap(
-  state: GameState,
-  playerId: string,
-  difficulty: Difficulty
-): string[] {
+export function aiChooseSwap(state: GameState, playerId: string, difficulty: Difficulty): string[] {
   const player = state.players.find((p) => p.id === playerId);
   if (!player) return [];
   // Tauschen lohnt nur, wenn Klar überhaupt wertet.
@@ -105,9 +101,7 @@ export function aiChooseSwap(
   if (difficulty === 'easy') return [];
 
   const threshold = difficulty === 'hard' ? 3 : 2;
-  return player.rolled
-    .filter((d) => d.color === 'clear' && d.value <= threshold)
-    .map((d) => d.id);
+  return player.rolled.filter((d) => d.color === 'clear' && d.value <= threshold).map((d) => d.id);
 }
 
 /** Spielkontext aus Sicht eines Spielers, für die strategische (harte) KI. */
@@ -145,11 +139,7 @@ function draftContext(state: GameState, player: Player): DraftContext {
  *  - Spielstand (Sabotage/Risiko sind im Rückstand mehr wert),
  *  - verbleibende Runden (Build-Arounds wie Braun brauchen Zeit).
  */
-export function strategicDraftValue(
-  state: GameState,
-  player: Player,
-  die: DieDef
-): number {
+export function strategicDraftValue(state: GameState, player: Player, die: DieDef): number {
   const ev = expectedValue(die);
   const ctx = draftContext(state, player);
 
@@ -187,9 +177,7 @@ export function strategicDraftValue(
   }
 }
 
-export type DraftDecision =
-  | { kind: 'pick'; offerId: string }
-  | { kind: 'pass' };
+export type DraftDecision = { kind: 'pick'; offerId: string } | { kind: 'pass' };
 
 /** Wählt für einen KI-Spieler einen Würfel aus dem Angebot (oder passt). */
 export function aiChooseDraft(

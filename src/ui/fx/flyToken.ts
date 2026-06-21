@@ -35,7 +35,14 @@ export interface FlyOptions {
   className?: string;
 }
 
-export function flyToken({ from, to, html, size = 40, durationMs = 650, className = '' }: FlyOptions): void {
+export function flyToken({
+  from,
+  to,
+  html,
+  size = 40,
+  durationMs = 650,
+  className = '',
+}: FlyOptions): void {
   if (typeof document === 'undefined' || reducedMotion()) return;
   if (!from || !to) return;
   // jsdom / kein Layout -> alle Rects 0: nichts animieren.

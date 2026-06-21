@@ -7,7 +7,16 @@ import { DIE_COLORS, DIE_GLYPHS, DIE_LABELS } from './colors';
 import { useSettings } from './useSettings';
 
 const ORDER: DieColor[] = [
-  'yellow', 'green', 'blue', 'purple', 'pink', 'red', 'orange', 'sabotage', 'brown', 'clear',
+  'yellow',
+  'green',
+  'blue',
+  'purple',
+  'pink',
+  'red',
+  'orange',
+  'sabotage',
+  'brown',
+  'clear',
 ];
 
 export function DiceCollection({ bag }: { bag: DieDef[] }) {
