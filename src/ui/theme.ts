@@ -19,4 +19,3 @@ export function luminance(hex: string): number {
   const b = parseInt(c.slice(4, 6), 16) / 255;
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
-</content>

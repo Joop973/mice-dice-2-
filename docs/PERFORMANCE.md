@@ -40,4 +40,3 @@
 
 **Fazit:** Performance ist solide; keine kritischen Engpässe. Die einzige sinnvolle
 Maßnahme (P3) fällt ohnehin mit der Pixel-Würfel-Umstellung in Phase 7 an.
-</content>

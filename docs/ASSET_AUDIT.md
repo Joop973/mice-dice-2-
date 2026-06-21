@@ -81,4 +81,3 @@ Zielslots: `🧀`→Logo/Käse · `👑`→`CROWN_SRC` · `🤖`→KI-Badge · `
 4. App-Icon-SVGs auf Pixel-Art + Palette umziehen, `gen:icons` neu laufen lassen.
 5. Optional echte SFX in `public/sfx/` + `SOUNDS.<event>.src` setzen (Slots bereit).
 6. Jedes **externe** Asset sofort in `docs/ASSET_LICENSES.md` eintragen.
-</content>

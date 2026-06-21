@@ -95,4 +95,3 @@ ausschließlich in der Präsentationsschicht und decken sich mit dem Design-Audi
 2. UI-Duplikate zusammenführen (#1–#4) → stärkt „Lokal == Online".
 3. reduced-motion zentralisieren (#6) + 3D-Gate (D4).
 4. Emojis → Assets (PlayerCard/Rules/RoundSummary/App/OnlineFlow/Die/gameEvents).
-</content>

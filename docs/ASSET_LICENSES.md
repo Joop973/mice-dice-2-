@@ -25,4 +25,3 @@ besteht derzeit **kein** Drittlizenz-Bedarf. Beim ersten externen Asset hier ein
 | Datei | Quelle (URL) | Autor | Lizenz | Lizenz-Ära/Datum | Download-Datum | Screenshot |
 |---|---|---|---|---|---|---|
 | _(noch keine)_ | | | | | | |
-</content>

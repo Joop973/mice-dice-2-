@@ -121,4 +121,3 @@ Icon-Familie; Menü mischt `🎲 🌐 📖 ▶️`.
 6. **D4** 3D-Würfel an reduced-motion koppeln. (mittel)
 7. Fehlende Screens (Settings/Stats/Tutorial) sind Feature-Arbeit, **kein**
    Homogenisierungs-Thema — nur erwähnt, nicht in Phase 7 eingeplant.
-</content>

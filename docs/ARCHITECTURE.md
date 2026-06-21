@@ -124,5 +124,4 @@ App.tsx (lokal)            OnlineFlow.tsx (online)
 
 > **Nicht vorhanden:** `test:e2e`, `lint`, `format:check`. Die Definition of Done im
 > Leitfaden setzt dieses Tooling voraus — es fehlt aktuell (siehe TECH_DEBT).
-</content>
 </invoke>

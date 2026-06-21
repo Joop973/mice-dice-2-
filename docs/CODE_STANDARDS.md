@@ -86,4 +86,3 @@ Vor/nach jeder Änderung (real verfügbar):
 - Slot-Konvention beibehalten: `SOUNDS.<event>.src`, später `CROWN_SRC`,
   `AVATAR_SRC[colorIndex]` + `public/avatars/`. Nur die Kunst tauschen, nicht den
   Mechanismus. Stil-Anker **Pixel-Art** (`UI_SYSTEM.md`).
-</content>

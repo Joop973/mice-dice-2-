@@ -97,4 +97,3 @@ Diese Punkte aus `LEITFADEN.md §5` treffen am realen Code **nicht** zu:
 - Drei versionierte Stores: nur einer (`persistence.ts`).
 - Mehrere „am Zug"-Signale: nur ein CSS-Outline-Signal, keine Redundanz.
 - Tote Pfade nach Ersetzungen: keine (die beschriebenen Refactors fanden nie statt).
-</content>
