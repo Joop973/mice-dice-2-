@@ -9,23 +9,17 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { LocalTransport, WebSocketTransport, type Transport } from '../net';
 import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from '../ai';
-import type { GameState, Phase, Player } from '../engine';
+import type { GameState, Player } from '../engine';
 import { PlayerCard } from './PlayerCard';
 import { RoundSummary } from './RoundSummary';
 import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
 import { DIE_COLORS, DIE_LABELS } from './colors';
+import { PHASE_LABEL } from './phaseLabels';
 
 const ENV_SERVER_URL: string =
   (import.meta.env as Record<string, string | undefined>).VITE_SERVER_URL ?? '';
-
-const PHASE_LABEL: Record<Phase, string> = {
-  roll: '1 · Würfeln',
-  pity: '2 · Mitleidswürfel',
-  swap: '3 · Klar tauschen',
-  draft: '4 · Drafting',
-};
 
 function transportFactory(serverUrl: string): () => Transport {
   const url = serverUrl.trim();

@@ -13,7 +13,6 @@ import {
   swapClearDice,
   type GameState,
   type NewPlayer,
-  type Phase,
   type Player,
   type RNG,
 } from './engine';
@@ -31,20 +30,7 @@ import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
 import { useSound } from './sound';
 import { DIE_COLORS, DIE_LABELS } from './ui/colors';
-
-const PHASE_LABEL: Record<Phase, string> = {
-  roll: '1 · Würfeln',
-  pity: '2 · Mitleidswürfel',
-  swap: '3 · Klar tauschen',
-  draft: '4 · Drafting',
-};
-
-const PHASE_HINT: Record<Phase, string> = {
-  roll: 'Alle Mäuse haben ihren Beutel geworfen.',
-  pity: 'Schwächere Mäuse erhalten einen Mitleidswürfel (hervorgehoben).',
-  swap: 'Tippe deine Klar-Würfel an und würfle sie neu. Andere Farben bleiben.',
-  draft: 'Reihum einen Würfel aus dem Angebot wählen – oder passen.',
-};
+import { PHASE_LABEL, PHASE_HINT } from './ui/phaseLabels';
 
 const AI_STEP_DELAY_MS = 400;
 
