@@ -3,7 +3,7 @@
 // (strikte Trennung). KI-Spieler agieren automatisch über das gekapselte
 // ai-Modul. Würfel sind CSS-Platzhalter (Phase 4 -> 3D).
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   advancePhase,
   createRNG,
@@ -33,6 +33,8 @@ import { DIE_COLORS, DIE_LABELS } from './ui/colors';
 import { PHASE_LABEL, PHASE_HINT } from './ui/phaseLabels';
 import { Counter } from './ui/Counter';
 import { PixelIcon } from './ui/PixelIcon';
+import { WinScreen } from './ui/WinScreen';
+import { useClearSelection } from './ui/useClearSelection';
 
 const AI_STEP_DELAY_MS = 400;
 
@@ -58,7 +60,7 @@ export function App() {
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
 
   const [state, setState] = useState<GameState | null>(null);
-  const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
+  const selectedClear = useClearSelection();
   const [use3d, setUse3d] = useState(true);
 
   const { play, muted, toggleMuted } = useSound();
@@ -87,7 +89,7 @@ export function App() {
     setAis(saved.ais);
     setDifficulty(saved.difficulty);
     setState(saved.state);
-    setSelectedClear(new Set());
+    selectedClear.reset();
     setStarted(true);
     setMode('local');
   }
@@ -99,13 +101,13 @@ export function App() {
     rngRef.current = createRNG(seed);
     aiSwapRoundRef.current = 0;
     setState(startGame({ players: buildPlayers(humans, ais), seed }).state);
-    setSelectedClear(new Set());
+    selectedClear.reset();
     setStarted(true);
   }
 
   // Auswahl zurücksetzen, sobald sich Phase/Runde ändern.
   useEffect(() => {
-    setSelectedClear(new Set());
+    selectedClear.reset();
   }, [state?.phase, state?.round]);
 
   // KI-Treiber: agiert automatisch in der Swap- und Draft-Phase.
@@ -187,25 +189,19 @@ export function App() {
       muted={muted}
       onToggleMute={toggleMuted}
       fx={fx}
-      selectedClear={selectedClear}
-      onToggleClear={(id) =>
-        setSelectedClear((prev) => {
-          const next = new Set(prev);
-          next.has(id) ? next.delete(id) : next.add(id);
-          return next;
-        })
-      }
+      selectedClear={selectedClear.selected}
+      onToggleClear={selectedClear.toggle}
       onRerollSelected={() => {
-        if (selectedClear.size === 0) return;
+        if (selectedClear.selected.size === 0) return;
         let next = state;
         for (const p of state.players) {
           const ids = p.rolled
-            .filter((d) => d.color === 'clear' && selectedClear.has(d.id))
+            .filter((d) => d.color === 'clear' && selectedClear.selected.has(d.id))
             .map((d) => d.id);
           if (ids.length > 0) next = swapClearDice(next, p.id, ids, rngRef.current);
         }
         setState(next);
-        setSelectedClear(new Set());
+        selectedClear.reset();
       }}
       onAdvance={() => setState(advancePhase(state, rngRef.current))}
       onPick={(playerId, offerId) => setState(draftPick(state, playerId, offerId))}
@@ -366,11 +362,6 @@ function Game({
   onPass,
   onNewGame,
 }: GameProps) {
-  const leader = useMemo(
-    () => state.players.reduce((best, p) => (p.totalScore > best.totalScore ? p : best)),
-    [state.players]
-  );
-
   const activeDrafter: Player | undefined =
     state.phase === 'draft'
       ? state.players.find((p) => !state.draftedThisPhase.includes(p.id))
@@ -380,38 +371,7 @@ function Game({
   const hasClearDice = state.players.some((p) => p.rolled.some((d) => d.color === 'clear'));
 
   if (state.finished) {
-    return (
-      <div className="app">
-        <div className="confetti" aria-hidden="true">
-          {Array.from({ length: 14 }, (_, i) => (
-            <span key={i} style={{ '--i': i } as CSSProperties} />
-          ))}
-        </div>
-        <header className="app__header">
-          <h1>
-          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
-        </h1>
-        </header>
-        <section className="panel panel--win">
-          <h2>
-            Partie beendet <PixelIcon name="trophy" size={22} title="" />
-          </h2>
-          <p>
-            Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
-          </p>
-          <ol className="standings">
-            {[...state.players]
-              .sort((a, b) => b.totalScore - a.totalScore)
-              .map((p) => (
-                <li key={p.id}>
-                  {p.name}: {p.totalScore}
-                </li>
-              ))}
-          </ol>
-          <button onClick={onNewGame}>Neue Partie</button>
-        </section>
-      </div>
-    );
+    return <WinScreen players={state.players} actionLabel="Neue Partie" onAction={onNewGame} />;
   }
 
   return (

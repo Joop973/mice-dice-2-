@@ -6,7 +6,7 @@
 // Der Server ist autoritativ: diese Komponente rendert nur den empfangenen
 // GameState und schickt Aktionen; die Zug-/Rechteprüfung passiert serverseitig.
 
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState } from 'react';
 import { LocalTransport, WebSocketTransport, type Transport } from '../net';
 import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from '../ai';
 import type { GameState, Player } from '../engine';
@@ -19,6 +19,8 @@ import { DIE_COLORS, DIE_LABELS } from './colors';
 import { PHASE_LABEL, PHASE_HINT } from './phaseLabels';
 import { Counter } from './Counter';
 import { PixelIcon } from './PixelIcon';
+import { WinScreen } from './WinScreen';
+import { useClearSelection } from './useClearSelection';
 
 const ENV_SERVER_URL: string =
   (import.meta.env as Record<string, string | undefined>).VITE_SERVER_URL ?? '';
@@ -247,14 +249,9 @@ function OnlineGame({
   const state = client.state as GameState;
   const you = client.you;
   const { muted, toggleMuted } = useSound();
-  const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
+  const selectedClear = useClearSelection();
 
   const isHost = client.seats.find((s) => s.isHost)?.id === you;
-
-  const leader = useMemo(
-    () => state.players.reduce((best, p) => (p.totalScore > best.totalScore ? p : best)),
-    [state.players]
-  );
 
   const activeDrafter: Player | undefined =
     state.phase === 'draft'
@@ -269,57 +266,21 @@ function OnlineGame({
 
   if (state.finished) {
     return (
-      <div className="app">
-        <div className="confetti" aria-hidden="true">
-          {Array.from({ length: 14 }, (_, i) => (
-            <span key={i} style={{ '--i': i } as CSSProperties} />
-          ))}
-        </div>
-        <header className="app__header">
-          <h1>
-          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
-        </h1>
-        </header>
-        <section className="panel panel--win">
-          <h2>
-            Partie beendet <PixelIcon name="trophy" size={22} title="" />
-          </h2>
-          <p>
-            Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
-          </p>
-          <ol className="standings">
-            {[...state.players]
-              .sort((a, b) => b.totalScore - a.totalScore)
-              .map((p) => (
-                <li key={p.id}>
-                  {p.name}: {p.totalScore}
-                </li>
-              ))}
-          </ol>
-          <button
-            onClick={() => {
-              client.leave();
-              onBack();
-            }}
-          >
-            Zurück zum Menü
-          </button>
-        </section>
-      </div>
+      <WinScreen
+        players={state.players}
+        actionLabel="Zurück zum Menü"
+        onAction={() => {
+          client.leave();
+          onBack();
+        }}
+      />
     );
   }
 
-  const toggleClear = (id: string) =>
-    setSelectedClear((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-
   const rerollSelected = () => {
-    if (selectedClear.size === 0) return;
-    client.sendAction({ type: 'swap', dieIds: [...selectedClear] });
-    setSelectedClear(new Set());
+    if (selectedClear.selected.size === 0) return;
+    client.sendAction({ type: 'swap', dieIds: [...selectedClear.selected] });
+    selectedClear.reset();
   };
 
   return (
@@ -365,8 +326,8 @@ function OnlineGame({
               active={activeDrafter?.id === p.id}
               crowned={fx.crownedNow.has(p.id)}
               warn={fx.warnNow.has(p.id)}
-              selectedDieIds={state.phase === 'swap' && isYou ? selectedClear : undefined}
-              onToggleClear={state.phase === 'swap' && isYou ? toggleClear : undefined}
+              selectedDieIds={state.phase === 'swap' && isYou ? selectedClear.selected : undefined}
+              onToggleClear={state.phase === 'swap' && isYou ? selectedClear.toggle : undefined}
             />
           );
         })}
@@ -375,9 +336,9 @@ function OnlineGame({
       {state.phase === 'swap' && (
         <section className="panel">
           {yourClearDice ? (
-            <button onClick={rerollSelected} disabled={selectedClear.size === 0}>
-              {selectedClear.size > 0
-                ? `${selectedClear.size} eigene Klar-Würfel neu würfeln`
+            <button onClick={rerollSelected} disabled={selectedClear.selected.size === 0}>
+              {selectedClear.selected.size > 0
+                ? `${selectedClear.selected.size} eigene Klar-Würfel neu würfeln`
                 : 'Eigene Klar-Würfel auswählen'}
             </button>
           ) : (
