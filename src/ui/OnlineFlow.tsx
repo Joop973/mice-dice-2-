@@ -16,7 +16,7 @@ import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
 import { DIE_COLORS, DIE_LABELS } from './colors';
-import { PHASE_LABEL } from './phaseLabels';
+import { PHASE_LABEL, PHASE_HINT } from './phaseLabels';
 import { Counter } from './Counter';
 import { PixelIcon } from './PixelIcon';
 
@@ -246,6 +246,7 @@ function OnlineGame({
 }) {
   const state = client.state as GameState;
   const you = client.you;
+  const { muted, toggleMuted } = useSound();
   const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
 
   const isHost = client.seats.find((s) => s.isHost)?.id === you;
@@ -333,6 +334,14 @@ function OnlineGame({
           </span>
           <span className="badge">{PHASE_LABEL[state.phase]}</span>
           <span className="code">#{client.code}</span>
+          <button
+            className="toggle3d"
+            onClick={toggleMuted}
+            aria-label={muted ? 'Ton einschalten' : 'Ton ausschalten'}
+            aria-pressed={muted}
+          >
+            <PixelIcon name={muted ? 'soundOff' : 'soundOn'} title={muted ? 'Ton aus' : 'Ton an'} />
+          </button>
         </div>
       </header>
 
@@ -341,6 +350,8 @@ function OnlineGame({
           <span>{fx.banner}</span>
         </div>
       )}
+
+      <p className="hint">{PHASE_HINT[state.phase]}</p>
 
       <section className="players">
         {state.players.map((p) => {
