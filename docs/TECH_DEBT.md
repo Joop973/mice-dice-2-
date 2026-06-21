@@ -112,7 +112,9 @@ Diese Punkte aus `LEITFADEN.md §5` treffen am realen Code **nicht** zu:
 - Würfel pixel-angeglichen (antialias off, Nearest, mattes Material, `pixelated`).
 
 **Offen (bewusst, Folge-Arbeit):**
-- **D1** Button-System auf 2 Token-Stile + Holz/Bevel-Anmutung (größeres Redesign).
+- ~~**D1** Button-System auf 2 Token-Stile + Holz/Bevel-Anmutung~~ → **erledigt**:
+  gefüllter Holz-/Token-Knopf (Bevel + Press) vs. `.ghost` (Outline); übrige Knöpfe als
+  Sub-Rollen dieser zwei Familien. Maus-Avatare (`MouseAvatar` + `PLAYER_COLORS`) ergänzt.
 - **A/H** Doku-Zielbild (`LEITFADEN`/`claude.md`) vs. Code bleibt als Zielbild stehen;
   `lint`/`format:check`/E2E-Tooling weiterhin nicht eingerichtet.
 - **G** Spielerfarben/`PLAYER_COLORS` + 6 Pixel-Maus-Avatare + volle Pixel-Pips
