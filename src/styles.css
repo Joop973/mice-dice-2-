@@ -141,6 +141,8 @@ body {
   width: 100%;
   height: 100%;
   touch-action: none;
+  /* Pixel-Look: scharfe Kanten beim Hochskalieren (kein Weichzeichnen). */
+  image-rendering: pixelated;
 }
 
 .toggle3d {

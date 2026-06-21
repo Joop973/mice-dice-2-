@@ -95,8 +95,8 @@ export function Die3D({ die, position, selected, pity, onClick }: Die3DProps) {
           map={texture}
           emissive={emissive}
           emissiveIntensity={emissiveIntensity}
-          roughness={0.45}
-          metalness={0.1}
+          roughness={1}
+          metalness={0}
         />
       </mesh>
     </group>

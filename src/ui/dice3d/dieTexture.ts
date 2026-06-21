@@ -33,7 +33,10 @@ export function dieTexture(value: number, bg: string): THREE.CanvasTexture {
   ctx.fillText(String(value), size / 2, size / 2 + 4);
 
   const tex = new THREE.CanvasTexture(canvas);
-  tex.anisotropy = 4;
+  // Pixel-Look: harte Kanten statt Weichzeichnen (Nearest, keine Mipmaps).
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
   cache.set(key, tex);
   return tex;
 }
