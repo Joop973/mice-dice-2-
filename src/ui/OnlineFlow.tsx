@@ -17,6 +17,7 @@ import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
 import { DIE_COLORS, DIE_LABELS } from './colors';
 import { PHASE_LABEL } from './phaseLabels';
+import { Counter } from './Counter';
 
 const ENV_SERVER_URL: string =
   (import.meta.env as Record<string, string | undefined>).VITE_SERVER_URL ?? '';
@@ -422,33 +423,3 @@ function OnlineGame({
   );
 }
 
-// --- Hilfskomponente (lokal, klein) ---------------------------------------
-
-function Counter({
-  label,
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  onChange: (n: number) => void;
-}) {
-  return (
-    <div className="field">
-      <span className="field__label">{label}</span>
-      <div className="counter">
-        <button onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>
-          −
-        </button>
-        <span className="counter__value">{value}</span>
-        <button onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>
-          +
-        </button>
-      </div>
-    </div>
-  );
-}

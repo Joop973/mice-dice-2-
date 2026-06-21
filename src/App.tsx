@@ -31,6 +31,7 @@ import { OnlineFlow } from './ui/OnlineFlow';
 import { useSound } from './sound';
 import { DIE_COLORS, DIE_LABELS } from './ui/colors';
 import { PHASE_LABEL, PHASE_HINT } from './ui/phaseLabels';
+import { Counter } from './ui/Counter';
 
 const AI_STEP_DELAY_MS = 400;
 
@@ -316,35 +317,6 @@ function Setup({
       <div className="actions">
         <button className="ghost" onClick={onBack}>
           ← Zurück
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Counter({
-  label,
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  onChange: (n: number) => void;
-}) {
-  return (
-    <div className="field">
-      <span className="field__label">{label}</span>
-      <div className="counter">
-        <button onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>
-          −
-        </button>
-        <span className="counter__value">{value}</span>
-        <button onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>
-          +
         </button>
       </div>
     </div>
