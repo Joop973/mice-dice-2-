@@ -98,9 +98,10 @@ Lücken-Füller im selben Warmton-Raum, noch **nicht** im Code.
   Theme-Tönen. `blue`/`purple`/`pink` sind kühl-gesättigt und brechen den warmen
   Küchen-Anker am stärksten → **Haupt-Tuning-Kandidaten** [TUNE].
 
-**Spielerfarben (6, CVD):** im Code **noch nicht vorhanden** — `colors.ts` hat kein
-`PLAYER_COLORS`, Spieler haben keine Farbe (Spiel ist 2–4 Spieler). Erst mit
-Charakter-Art einzuführen (siehe `TECH_DEBT.md §G`, `ASSETS_TODO.md §2`).
+**Spielerfarben (6, CVD) — UMGESETZT:** `colors.ts` → `PLAYER_COLORS` / `playerColor(i)`,
+auf die Palette abgestimmt und CVD-tauglich unterscheidbar:
+`#f4c542` (Gelb) · `#5aa9e6` (Blau) · `#5fbf6a` (Grün) · `#e0568a` (Magenta) ·
+`#f0913f` (Orange) · `#4bb3a6` (Türkis). Genutzt von `MouseAvatar` (Ohren + Schal).
 
 **To-do (Phase 7a):** Diese Tokens als CSS-Variablen in `:root` anlegen, die ~40
 Literale darauf umstellen und ein JS-Pendant für die 3D-Hex-Dubletten schaffen.

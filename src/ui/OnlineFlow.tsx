@@ -354,12 +354,13 @@ function OnlineGame({
       <p className="hint">{PHASE_HINT[state.phase]}</p>
 
       <section className="players">
-        {state.players.map((p) => {
+        {state.players.map((p, i) => {
           const isYou = p.id === you;
           return (
             <PlayerCard
               key={p.id}
               player={p}
+              colorIndex={i}
               use3d
               active={activeDrafter?.id === p.id}
               crowned={fx.crownedNow.has(p.id)}

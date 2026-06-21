@@ -448,10 +448,11 @@ function Game({
       <p className="hint">{PHASE_HINT[state.phase]}</p>
 
       <section className="players">
-        {state.players.map((p) => (
+        {state.players.map((p, i) => (
           <PlayerCard
             key={p.id}
             player={p}
+            colorIndex={i}
             use3d={use3d}
             active={activeDrafter?.id === p.id}
             crowned={fx.crownedNow.has(p.id)}

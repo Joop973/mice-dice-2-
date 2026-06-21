@@ -5,9 +5,12 @@ import type { Player } from '../engine';
 import { DiceView } from './DiceView';
 import { AnimatedNumber } from './AnimatedNumber';
 import { PixelIcon } from './PixelIcon';
+import { MouseAvatar } from './MouseAvatar';
 
 interface PlayerCardProps {
   player: Player;
+  /** Sitz-/Spieler-Index für die Avatar-Farbe (aus colors.ts). */
+  colorIndex: number;
   /** 3D-Würfel statt CSS-Platzhalter rendern. */
   use3d: boolean;
   /** Hebt den Spieler hervor (z. B. „ist gerade am Zug" beim Draften). */
@@ -24,6 +27,7 @@ interface PlayerCardProps {
 
 export function PlayerCard({
   player,
+  colorIndex,
   use3d,
   active,
   crowned,
@@ -44,6 +48,7 @@ export function PlayerCard({
     <article className={className}>
       <header className="player__head">
         <span className="player__name">
+          <MouseAvatar colorIndex={colorIndex} title={`Maus von ${player.name}`} />{' '}
           {player.hasCrown && (
             <>
               <PixelIcon name="crown" title="Käse-Krone" />{' '}

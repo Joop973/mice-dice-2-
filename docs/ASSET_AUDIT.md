@@ -34,11 +34,15 @@
   eintragen genügt (kein Code-Umbau).
 - **Kein `public/sfx/`-Verzeichnis** vorhanden.
 
-### Charaktere / Krone / UI-Icons — fehlen komplett
+### Charaktere / Krone / UI-Icons — Stand nach Phase 7
 
-- **Kein `public/avatars/`**, keine `mouse-0..5.*`. Spieler = Name + Emoji.
-- **Kein Krone-Asset / kein `CROWN_SRC`-Slot.** Krone = `👑`-Emoji.
-- **Keine UI-Icons** (Mute/KI/Menü) — alles Emoji.
+- **Maus-Avatare: UMGESETZT** als Pixel-Art-SVG `src/ui/MouseAvatar.tsx` (16×16,
+  `crispEdges`), Spielerfarbe aus `colors.ts` (`playerColor`). In `PlayerCard`
+  eingebunden. Kein `public/avatars/`-Verzeichnis nötig (Inline-SVG statt PNG).
+- **Krone + UI-Icons: UMGESETZT** über `src/ui/PixelIcon.tsx` (Krone/KI/Mute/Menü/
+  Stern/Glitzer/Pokal). Keine Emojis mehr.
+- Optionaler Komfort später: Avatar-Varianten je Maus (Pose/Zustand) — aktuell ein
+  gemeinsames Raster mit Farbwechsel.
 
 ## 2. Slot-Konventionen
 
