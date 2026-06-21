@@ -12,13 +12,14 @@ import {
   type ServerMessage,
   type Transport,
 } from '../net';
-import type { GameState } from '../engine';
+import type { GameConfig, GameState } from '../engine';
 import type { Difficulty } from '../ai';
 
 export interface CreateOpts {
   name: string;
   ais?: number;
   difficulty?: Difficulty;
+  config?: Partial<GameConfig>;
 }
 
 export interface GameClient {
@@ -47,13 +48,17 @@ export function useGameClient(): GameClient {
   const [started, setStarted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const transportRef = useRef<Transport | null>(null);
+  /** Zugangsdaten des aktuellen Sitzes – für automatisches Wiederverbinden. */
+  const sessionRef = useRef<{ code: RoomCode; seat: SeatId; token: string } | null>(null);
 
   const handle = useCallback((msg: ServerMessage) => {
     switch (msg.kind) {
       case 'welcome':
         setYou(msg.you);
         setCode(msg.code);
+        setConnected(true);
         setError(null);
+        sessionRef.current = { code: msg.code, seat: msg.you, token: msg.token };
         break;
       case 'lobby':
         setSeats(msg.seats);
@@ -67,6 +72,24 @@ export function useGameClient(): GameClient {
       case 'error':
         setError(msg.message);
         break;
+      case 'reconnecting':
+        setConnected(false);
+        setError('Verbindung verloren – versuche neu zu verbinden …');
+        break;
+      case 'reconnected': {
+        // Auf den zuvor belegten Sitz zurückkehren (nur im laufenden Spiel sinnvoll).
+        const s = sessionRef.current;
+        if (s)
+          transportRef.current?.send({
+            kind: 'rejoin',
+            code: s.code,
+            seat: s.seat,
+            token: s.token,
+          });
+        setConnected(true);
+        setError(null);
+        break;
+      }
     }
   }, []);
 
@@ -88,7 +111,13 @@ export function useGameClient(): GameClient {
   const createRoom = useCallback(
     (factory: () => Transport, opts: CreateOpts) => {
       connect(factory);
-      send({ kind: 'create', name: opts.name, ais: opts.ais, difficulty: opts.difficulty });
+      send({
+        kind: 'create',
+        name: opts.name,
+        ais: opts.ais,
+        difficulty: opts.difficulty,
+        config: opts.config,
+      });
     },
     [connect, send]
   );
@@ -108,6 +137,7 @@ export function useGameClient(): GameClient {
     send({ kind: 'leave' });
     transportRef.current?.close();
     transportRef.current = null;
+    sessionRef.current = null;
     setConnected(false);
     setYou(null);
     setCode(null);

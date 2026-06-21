@@ -4,6 +4,11 @@
 import type { Player } from '../engine';
 import { DiceView } from './DiceView';
 import { AnimatedNumber } from './AnimatedNumber';
+import { MouseAvatar, type AvatarState } from './MouseAvatar';
+import { DiceCollection } from './DiceCollection';
+import { playerIndex, PLAYER_GLYPHS } from './colors';
+import { CROWN_SRC } from './avatarArt';
+import { useSettings } from './useSettings';
 
 interface PlayerCardProps {
   player: Player;
@@ -19,6 +24,12 @@ interface PlayerCardProps {
   selectedDieIds?: Set<string>;
   /** Callback, wenn ein Klar-Würfel an-/abgewählt wird (nur Swap-Phase). */
   onToggleClear?: (dieId: string) => void;
+  /** Würfel anzeigen? false = „noch nicht gewürfelt" (vor dem Würfeln-Knopf). */
+  revealed?: boolean;
+  /** Mensch im Online-Spiel getrennt (KI/Auto-Play übernimmt) → Hinweis-Badge. */
+  disconnected?: boolean;
+  /** KI-Stärke als Kurztext ("leicht"/"mittel"/"schwer") – nur für KI-Sitze. */
+  aiBadge?: string;
 }
 
 export function PlayerCard({
@@ -29,7 +40,11 @@ export function PlayerCard({
   warn,
   selectedDieIds,
   onToggleClear,
+  revealed = true,
+  disconnected = false,
+  aiBadge,
 }: PlayerCardProps) {
+  const { colorblind } = useSettings();
   const className = [
     'player',
     active ? 'player--active' : '',
@@ -39,13 +54,45 @@ export function PlayerCard({
     .filter(Boolean)
     .join(' ');
 
+  const avatarState: AvatarState = player.hasCrown ? 'crowned' : warn ? 'sabotaged' : 'idle';
+
   return (
-    <article className={className}>
+    <article className={className} data-fly-target={player.id}>
       <header className="player__head">
-        <span className="player__name">
-          {player.hasCrown ? '👑 ' : ''}
-          {player.name}
-          {player.isAI ? ' 🤖' : ''}
+        <span className="player__id">
+          <span className="player__avatar">
+            <MouseAvatar
+              colorIndex={playerIndex(player.id)}
+              state={avatarState}
+              isAI={player.isAI}
+            />
+            {player.hasCrown && (
+              <span className="crown-badge" aria-label="trägt die Käse-Krone">
+                {CROWN_SRC ? <img src={CROWN_SRC} alt="" width={20} height={20} /> : '👑'}
+              </span>
+            )}
+          </span>
+          <span className="player__name">{player.name}</span>
+          {colorblind && (
+            <span className="player__glyph" aria-hidden="true">
+              {PLAYER_GLYPHS[playerIndex(player.id) % PLAYER_GLYPHS.length]}
+            </span>
+          )}
+          {aiBadge && player.isAI && (
+            <span className="ai-badge" title={`KI-Stärke: ${aiBadge}`}>
+              {aiBadge}
+            </span>
+          )}
+          {disconnected && (
+            <span className="disc-badge" title="Verbindung getrennt – KI übernimmt">
+              getrennt
+            </span>
+          )}
+          {active && (
+            <span className="turn-pill" aria-hidden="true">
+              🐾 Am Zug
+            </span>
+          )}
         </span>
         <span className="player__score">
           <AnimatedNumber value={player.totalScore} />
@@ -59,11 +106,12 @@ export function PlayerCard({
         </span>
       </header>
       <DiceView
-        dice={player.rolled}
+        dice={revealed ? player.rolled : []}
         use3d={use3d}
         selectedDieIds={selectedDieIds}
         onToggleClear={onToggleClear}
       />
+      <DiceCollection bag={player.bag} />
     </article>
   );
 }

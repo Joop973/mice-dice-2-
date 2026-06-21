@@ -22,13 +22,15 @@ describe('OnlineFlow (Loopback)', () => {
     const startBtn = screen.getByText('Partie starten →') as HTMLButtonElement;
     expect(startBtn.disabled).toBe(false);
 
-    // 3) Start -> Spielbrett, Phase „Würfeln", Host sieht „Weiter".
+    // 3) Start -> Spielbrett, Phase „Würfeln". Zuerst muss gewürfelt (aufgedeckt)
+    //    werden; erst danach erscheint „Weiter".
     fireEvent.click(startBtn);
     expect(screen.getByText('1 · Würfeln')).toBeTruthy();
-    const weiter = screen.getByText('Weiter →');
+    expect(screen.queryByText('Weiter →')).toBeNull();
+    fireEvent.click(screen.getByText('🎲 Würfeln'));
 
     // 4) Host schaltet weiter -> Phase wechselt zu „Mitleidswürfel".
-    fireEvent.click(weiter);
+    fireEvent.click(screen.getByText('Weiter →'));
     expect(screen.getByText('2 · Mitleidswürfel')).toBeTruthy();
   });
 

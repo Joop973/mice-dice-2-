@@ -153,8 +153,12 @@ export interface GameConfig {
    * ein reiner Utility-/Tausch-Würfel. Konfigurierbar für Playtesting.
    */
   clearScores: boolean;
-  /** Anzahl der Würfel im Draft-Angebot pro Runde. */
-  draftOfferSize: number;
+  /**
+   * Feste Anzahl Würfel im Draft-Angebot. Wenn NICHT gesetzt, gilt die
+   * Brettspiel-Regel: Spieleranzahl + 1 (es bleibt immer ein Würfel übrig, der
+   * letzte Spieler hat also noch eine echte Wahl).
+   */
+  draftOfferSize?: number;
   /** Verteilregel für Mitleidswürfel (siehe PityMode). */
   pityMode: PityMode;
   /**

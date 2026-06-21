@@ -93,11 +93,7 @@ export function draftHeuristic(
 }
 
 /** Wählt für einen KI-Spieler die zu tauschenden Klar-Würfel aus. */
-export function aiChooseSwap(
-  state: GameState,
-  playerId: string,
-  difficulty: Difficulty
-): string[] {
+export function aiChooseSwap(state: GameState, playerId: string, difficulty: Difficulty): string[] {
   const player = state.players.find((p) => p.id === playerId);
   if (!player) return [];
   // Tauschen lohnt nur, wenn Klar überhaupt wertet.
@@ -105,9 +101,7 @@ export function aiChooseSwap(
   if (difficulty === 'easy') return [];
 
   const threshold = difficulty === 'hard' ? 3 : 2;
-  return player.rolled
-    .filter((d) => d.color === 'clear' && d.value <= threshold)
-    .map((d) => d.id);
+  return player.rolled.filter((d) => d.color === 'clear' && d.value <= threshold).map((d) => d.id);
 }
 
 /** Spielkontext aus Sicht eines Spielers, für die strategische (harte) KI. */
@@ -118,15 +112,20 @@ interface DraftContext {
   amLeader: boolean;
   /** Punkte-Rückstand auf den besten Gegner (>= 0). */
   behind: number;
+  /** Hält ein Gegner, der mindestens gleichauf/vor mir liegt, die Käse-Krone? */
+  crownLeaderAhead: boolean;
 }
 
 function draftContext(state: GameState, player: Player): DraftContext {
   const others = state.players.filter((p) => p.id !== player.id);
   const leaderScore = others.length ? Math.max(...others.map((p) => p.totalScore)) : 0;
+  const crownHolder = state.players.find((p) => p.hasCrown);
   return {
     roundsLeft: Math.max(0, state.config.totalRounds - state.round),
     amLeader: player.totalScore >= leaderScore,
     behind: Math.max(0, leaderScore - player.totalScore),
+    crownLeaderAhead:
+      !!crownHolder && crownHolder.id !== player.id && crownHolder.totalScore >= player.totalScore,
   };
 }
 
@@ -140,11 +139,7 @@ function draftContext(state: GameState, player: Player): DraftContext {
  *  - Spielstand (Sabotage/Risiko sind im Rückstand mehr wert),
  *  - verbleibende Runden (Build-Arounds wie Braun brauchen Zeit).
  */
-export function strategicDraftValue(
-  state: GameState,
-  player: Player,
-  die: DieDef
-): number {
+export function strategicDraftValue(state: GameState, player: Player, die: DieDef): number {
   const ev = expectedValue(die);
   const ctx = draftContext(state, player);
 
@@ -165,8 +160,11 @@ export function strategicDraftValue(
     case 'sabotage': {
       // Zieht dem Kronenhalter Punkte ab: wertvoll, wenn jemand vor mir liegt;
       // defensiv schwächer, wenn ich selbst führe. Skaliert mit dem Rückstand.
+      // Extra-Anreiz, wenn ein führender Gegner gerade die Krone trägt – dann
+      // trifft die Sabotage genau den richtigen Spieler.
       const aggression = ctx.amLeader ? 0.5 : 0.9 + Math.min(0.8, ctx.behind / 40);
-      return ev * aggression;
+      const crownBonus = ctx.crownLeaderAhead ? 0.35 : 0;
+      return ev * (aggression + crownBonus);
     }
     case 'red':
       // High-Variance: im Rückstand attraktiver (Swings nötig), in Führung weniger.
@@ -179,9 +177,7 @@ export function strategicDraftValue(
   }
 }
 
-export type DraftDecision =
-  | { kind: 'pick'; offerId: string }
-  | { kind: 'pass' };
+export type DraftDecision = { kind: 'pick'; offerId: string } | { kind: 'pass' };
 
 /** Wählt für einen KI-Spieler einen Würfel aus dem Angebot (oder passt). */
 export function aiChooseDraft(

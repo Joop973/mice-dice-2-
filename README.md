@@ -34,8 +34,15 @@ später Capacitor für iOS.
 >   Sabotage, Krone) in der Draft-Phase, lokal **und** online.
 > - **In-App-Regeln** – Erklär-Screen (Ziel, Ablauf, Würfel-Katalog mit Wertung).
 > - **Persistenz** – laufende lokale Partie übersteht einen Reload („Fortsetzen").
+> - **Balance** – datengetrieben getunt (Rot belebt, Mitleidsregel, Krone aufgewertet)
+>   via Simulations-Harness (`npm run sim`); KI mit kontextbewusster Strategie.
+> - **Brettspiel-Feeling** – Filz-/Holztisch, Maus-Avatare + sichtbare Würfelsammlung,
+>   3D-Würfel mit Augen/Glitzer + „Würfeln"-Knopf, fliegende Draft-Würfel,
+>   wandernde Käse-Krone, Sabotage-Angriff, Score-Track, Phasen-Leiste,
+>   Podest-Siegerehrung. Illustrierter Stil mit Platzhalter-SVGs (Slots für echte
+>   Kunst/Audio in `docs/ASSETS_TODO.md`).
 >
-> Insgesamt **70 Tests** (Engine, Wertung, KI, Netzwerk, UI-Integration via jsdom).
+> Insgesamt **89 Tests** (Engine, Wertung, KI, Netzwerk, UI-Integration via jsdom).
 
 ## Entwicklung
 

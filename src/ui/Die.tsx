@@ -2,7 +2,9 @@
 // (react-three-fiber) ersetzt. Bewusst dumme Präsentationskomponente.
 
 import type { RolledDie } from '../engine';
-import { DIE_COLORS, DIE_LABELS } from './colors';
+import { DIE_COLORS, DIE_GLYPHS, DIE_LABELS } from './colors';
+import { PIP_LAYOUT, hasPips, pipColor } from './dicePips';
+import { useSettings } from './useSettings';
 
 interface DieProps {
   die: RolledDie;
@@ -14,14 +16,26 @@ interface DieProps {
   onClick?: () => void;
 }
 
+/** Echte Augen (Pips) als kleines SVG, passend zur 3D-Würfelseite. */
+function Pips({ value, color }: { value: number; color: string }) {
+  const fg = pipColor(color);
+  return (
+    <svg className="die__pips" viewBox="0 0 48 48" aria-hidden="true">
+      {PIP_LAYOUT[value].map(([gx, gy], i) => (
+        <circle key={i} cx={12 + gx * 12} cy={12 + gy * 12} r={4.5} fill={fg} />
+      ))}
+    </svg>
+  );
+}
+
 export function Die({ die, selected, pity, onClick }: DieProps) {
-  const label = `${DIE_LABELS[die.color]} W${die.sides}${
-    die.variant === 'glitter' ? ' ✨' : ''
-  }`;
+  const { colorblind } = useSettings();
+  const label = `${DIE_LABELS[die.color]} W${die.sides}${die.variant === 'glitter' ? ' ✨' : ''}`;
   const className = [
     'die',
     selected ? 'die--selected' : '',
     pity ? 'die--pity' : '',
+    die.variant === 'glitter' ? 'die--glitter' : '',
     onClick ? 'die--clickable' : '',
   ]
     .filter(Boolean)
@@ -29,7 +43,16 @@ export function Die({ die, selected, pity, onClick }: DieProps) {
 
   const content = (
     <>
-      <span className="die__value">{die.value}</span>
+      {colorblind && (
+        <span className="die__glyph" aria-hidden="true">
+          {DIE_GLYPHS[die.color]}
+        </span>
+      )}
+      {hasPips(die.value) ? (
+        <Pips value={die.value} color={DIE_COLORS[die.color]} />
+      ) : (
+        <span className="die__value">{die.value}</span>
+      )}
       {pity && <span className="die__tag">Mitleid</span>}
     </>
   );

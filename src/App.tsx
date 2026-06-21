@@ -3,7 +3,7 @@
 // (strikte Trennung). KI-Spieler agieren automatisch über das gekapselte
 // ai-Modul. Würfel sind CSS-Platzhalter (Phase 4 -> 3D).
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import {
   advancePhase,
   createRNG,
@@ -17,27 +17,30 @@ import {
   type Player,
   type RNG,
 } from './engine';
-import {
-  aiTakePhaseAction,
-  DIFFICULTIES,
-  DIFFICULTY_LABELS,
-  type Difficulty,
-} from './ai';
+import { aiTakePhaseAction, DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from './ai';
 import { PlayerCard } from './ui/PlayerCard';
 import { RoundSummary } from './ui/RoundSummary';
+import { DraftTable } from './ui/DraftTable';
+import { RollButton } from './ui/RollButton';
+import { CrownToken } from './ui/CrownToken';
+import { SabotageFx } from './ui/SabotageFx';
+import { Podium } from './ui/Podium';
 import { Rules } from './ui/Rules';
+import { StatsPanel } from './ui/StatsPanel';
+import { SettingsPanel } from './ui/SettingsPanel';
+import { useSettings } from './ui/useSettings';
+import { Tutorial, isOnboarded } from './ui/Tutorial';
 import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
+import { recordGame } from './ui/stats';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
-import { useSound } from './sound';
-import { DIE_COLORS, DIE_LABELS } from './ui/colors';
-
-const PHASE_LABEL: Record<Phase, string> = {
-  roll: '1 · Würfeln',
-  pity: '2 · Mitleidswürfel',
-  swap: '3 · Klar tauschen',
-  draft: '4 · Drafting',
-};
+import { PhaseTrack } from './ui/PhaseTrack';
+import { PHASE_LABEL } from './ui/phaseLabels';
+import { ScoreTrack } from './ui/ScoreTrack';
+import { playerIndex } from './ui/colors';
+import { useSound, vibrate } from './sound';
+import { getSettings } from './ui/settings';
+import { shouldAnimate } from './ui/motion';
 
 const PHASE_HINT: Record<Phase, string> = {
   roll: 'Alle Mäuse haben ihren Beutel geworfen.',
@@ -52,29 +55,51 @@ function newSeed(): number {
   return Date.now() >>> 0;
 }
 
-function buildPlayers(humans: number, ais: number): NewPlayer[] {
+function buildPlayers(humans: number, ais: number, names: string[]): NewPlayer[] {
   const players: NewPlayer[] = [];
-  for (let i = 0; i < humans; i++) players.push({ name: `Maus ${i + 1}` });
+  for (let i = 0; i < humans; i++) players.push({ name: names[i]?.trim() || `Maus ${i + 1}` });
   for (let i = 0; i < ais; i++) players.push({ name: `KI ${i + 1}`, isAI: true });
   return players;
 }
+
+const MAX_PLAYERS = 6;
+const ROUND_CHOICES = [5, 10, 15];
 
 export function App() {
   const rngRef = useRef<RNG>(createRNG(newSeed()));
   const aiSwapRoundRef = useRef(0);
 
-  const [mode, setMode] = useState<'menu' | 'local' | 'online' | 'rules'>('menu');
+  const [mode, setMode] = useState<'menu' | 'local' | 'online' | 'rules' | 'stats' | 'settings'>(
+    'menu'
+  );
+  const [showTutorial, setShowTutorial] = useState(() => !isOnboarded());
+  const recordedRef = useRef(false);
   const [started, setStarted] = useState(false);
   const [humans, setHumans] = useState(1);
   const [ais, setAis] = useState(1);
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  // Schwierigkeit je KI-Sitz (Index = KI-Ordinalzahl 0..); reine UI/App-Sache.
+  const [aiDifficulty, setAiDifficulty] = useState<Difficulty[]>(() =>
+    Array(MAX_PLAYERS).fill('medium')
+  );
+  const [humanNames, setHumanNames] = useState<string[]>([]);
+  const [totalRounds, setTotalRounds] = useState(10);
 
   const [state, setState] = useState<GameState | null>(null);
   const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
   const [use3d, setUse3d] = useState(true);
 
-  const { play, muted, toggleMuted } = useSound();
-  const fx = useGameEvents(state, play);
+  // Schwierigkeit für einen KI-Sitz (KI-Ordinalzahl = Spielerindex − Menschen).
+  const aiDiffForSeat = (playerId: string): Difficulty =>
+    aiDifficulty[playerIndex(playerId) - humans] ?? 'medium';
+
+  const { play, muted, toggleMuted, musicAvailable, musicOn, toggleMusic } = useSound();
+  const fx = useGameEvents(state, play, muted);
+
+  // „Bewegung reduzieren": Wurzel-Attribut, das styles.css zusätzlich auswertet.
+  const settings = useSettings();
+  useEffect(() => {
+    document.documentElement.dataset.reduceMotion = settings.reduceMotion ? 'on' : '';
+  }, [settings.reduceMotion]);
 
   // Gespeicherte lokale Partie für „Fortsetzen" (beim Menü-Eintritt aktualisiert).
   const [saved, setSaved] = useState(() => loadLocalGame());
@@ -85,19 +110,34 @@ export function App() {
   // Laufende lokale Partie sichern; beendete/aufgegebene Partien verwerfen.
   useEffect(() => {
     if (mode === 'local' && started && state && !state.finished) {
-      saveLocalGame({ state, humans, ais, difficulty });
+      saveLocalGame({
+        state,
+        humans,
+        ais,
+        difficulty: aiDifficulty[0] ?? 'medium',
+        names: humanNames,
+        totalRounds,
+        aiDifficulty,
+      });
     } else if (state?.finished) {
+      if (mode === 'local' && started && !recordedRef.current) {
+        recordedRef.current = true;
+        recordGame(state);
+      }
       clearLocalGame();
     }
-  }, [mode, started, state, humans, ais, difficulty]);
+  }, [mode, started, state, humans, ais, aiDifficulty, humanNames, totalRounds]);
 
   function resume() {
     if (!saved) return;
     rngRef.current = createRNG(newSeed());
     aiSwapRoundRef.current = saved.state.round;
+    recordedRef.current = false;
     setHumans(saved.humans);
     setAis(saved.ais);
-    setDifficulty(saved.difficulty);
+    setAiDifficulty(saved.aiDifficulty ?? Array(MAX_PLAYERS).fill(saved.difficulty));
+    setHumanNames(saved.names ?? []);
+    setTotalRounds(saved.totalRounds ?? 10);
     setState(saved.state);
     setSelectedClear(new Set());
     setStarted(true);
@@ -110,7 +150,11 @@ export function App() {
     const seed = newSeed();
     rngRef.current = createRNG(seed);
     aiSwapRoundRef.current = 0;
-    setState(startGame({ players: buildPlayers(humans, ais), seed }).state);
+    recordedRef.current = false;
+    setState(
+      startGame({ players: buildPlayers(humans, ais, humanNames), seed, config: { totalRounds } })
+        .state
+    );
     setSelectedClear(new Set());
     setStarted(true);
   }
@@ -127,14 +171,18 @@ export function App() {
     if (state.phase === 'swap' && aiSwapRoundRef.current !== state.round) {
       aiSwapRoundRef.current = state.round;
       if (state.players.some((p) => p.isAI)) {
-        setState((s) => {
-          if (!s) return s;
-          let next = s;
-          for (const p of s.players) {
-            if (p.isAI) next = aiTakePhaseAction(next, p.id, difficulty, rngRef.current);
-          }
-          return next;
-        });
+        // Kleine Verzögerung wie beim Draft – wirkt überlegter, nicht „magisch".
+        const t = setTimeout(() => {
+          setState((s) => {
+            if (!s) return s;
+            let next = s;
+            for (const p of s.players) {
+              if (p.isAI) next = aiTakePhaseAction(next, p.id, aiDiffForSeat(p.id), rngRef.current);
+            }
+            return next;
+          });
+        }, AI_STEP_DELAY_MS);
+        return () => clearTimeout(t);
       }
       return;
     }
@@ -147,28 +195,42 @@ export function App() {
             if (!s || s.phase !== 'draft') return s;
             const d = s.players.find((p) => !s.draftedThisPhase.includes(p.id));
             if (!d || !d.isAI) return s;
-            return aiTakePhaseAction(s, d.id, difficulty, rngRef.current);
+            return aiTakePhaseAction(s, d.id, aiDiffForSeat(d.id), rngRef.current);
           });
         }, AI_STEP_DELAY_MS);
         return () => clearTimeout(t);
       }
     }
-  }, [state, difficulty]);
+  }, [state, aiDifficulty, humans]);
 
   if (mode === 'menu') {
     return (
-      <Menu
-        onLocal={() => setMode('local')}
-        onOnline={() => setMode('online')}
-        onRules={() => setMode('rules')}
-        onResume={saved ? resume : undefined}
-        resumeRound={saved?.state.round}
-      />
+      <>
+        <Menu
+          onLocal={() => setMode('local')}
+          onOnline={() => setMode('online')}
+          onRules={() => setMode('rules')}
+          onStats={() => setMode('stats')}
+          onSettings={() => setMode('settings')}
+          onTutorial={() => setShowTutorial(true)}
+          onResume={saved ? resume : undefined}
+          resumeRound={saved?.state.round}
+        />
+        {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+      </>
     );
   }
 
   if (mode === 'rules') {
     return <Rules onBack={() => setMode('menu')} />;
+  }
+
+  if (mode === 'stats') {
+    return <StatsPanel onBack={() => setMode('menu')} />;
+  }
+
+  if (mode === 'settings') {
+    return <SettingsPanel onBack={() => setMode('menu')} />;
   }
 
   if (mode === 'online') {
@@ -180,10 +242,14 @@ export function App() {
       <Setup
         humans={humans}
         ais={ais}
-        difficulty={difficulty}
+        aiDifficulty={aiDifficulty}
+        humanNames={humanNames}
+        totalRounds={totalRounds}
         setHumans={setHumans}
         setAis={setAis}
-        setDifficulty={setDifficulty}
+        setAiDifficulty={setAiDifficulty}
+        setHumanNames={setHumanNames}
+        setTotalRounds={setTotalRounds}
         onStart={start}
         onBack={() => setMode('menu')}
       />
@@ -191,39 +257,48 @@ export function App() {
   }
 
   return (
-    <Game
-      state={state}
-      difficulty={difficulty}
-      use3d={use3d}
-      onToggle3d={() => setUse3d((v) => !v)}
-      muted={muted}
-      onToggleMute={toggleMuted}
-      fx={fx}
-      selectedClear={selectedClear}
-      onToggleClear={(id) =>
-        setSelectedClear((prev) => {
-          const next = new Set(prev);
-          next.has(id) ? next.delete(id) : next.add(id);
-          return next;
-        })
-      }
-      onRerollSelected={() => {
-        if (selectedClear.size === 0) return;
-        let next = state;
-        for (const p of state.players) {
-          const ids = p.rolled
-            .filter((d) => d.color === 'clear' && selectedClear.has(d.id))
-            .map((d) => d.id);
-          if (ids.length > 0) next = swapClearDice(next, p.id, ids, rngRef.current);
+    <>
+      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+      <Game
+        state={state}
+        use3d={use3d}
+        onToggle3d={() => setUse3d((v) => !v)}
+        muted={muted}
+        onToggleMute={toggleMuted}
+        musicAvailable={musicAvailable}
+        musicOn={musicOn}
+        onToggleMusic={toggleMusic}
+        fx={fx}
+        selectedClear={selectedClear}
+        onToggleClear={(id) =>
+          setSelectedClear((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+          })
         }
-        setState(next);
-        setSelectedClear(new Set());
-      }}
-      onAdvance={() => setState(advancePhase(state, rngRef.current))}
-      onPick={(playerId, offerId) => setState(draftPick(state, playerId, offerId))}
-      onPass={(playerId) => setState(draftPass(state, playerId))}
-      onNewGame={() => setStarted(false)}
-    />
+        onClearSelection={() => setSelectedClear(new Set())}
+        onRerollSelected={() => {
+          if (selectedClear.size === 0) return;
+          let next = state;
+          for (const p of state.players) {
+            const ids = p.rolled
+              .filter((d) => d.color === 'clear' && selectedClear.has(d.id))
+              .map((d) => d.id);
+            if (ids.length > 0) next = swapClearDice(next, p.id, ids, rngRef.current);
+          }
+          setState(next);
+          setSelectedClear(new Set());
+        }}
+        onAdvance={() => setState(advancePhase(state, rngRef.current))}
+        onPick={(playerId, offerId) => setState(draftPick(state, playerId, offerId))}
+        onPass={(playerId) => setState(draftPass(state, playerId))}
+        onNewGame={() => setStarted(false)}
+        aiDiffForSeat={aiDiffForSeat}
+        onHelp={() => setShowTutorial(true)}
+      />
+    </>
   );
 }
 
@@ -231,12 +306,18 @@ function Menu({
   onLocal,
   onOnline,
   onRules,
+  onStats,
+  onSettings,
+  onTutorial,
   onResume,
   resumeRound,
 }: {
   onLocal: () => void;
   onOnline: () => void;
   onRules: () => void;
+  onStats: () => void;
+  onSettings: () => void;
+  onTutorial: () => void;
   onResume?: () => void;
   resumeRound?: number;
 }) {
@@ -266,6 +347,17 @@ function Menu({
         <button className="ghost" onClick={onRules}>
           📖 Spielregeln
         </button>
+        <div className="menu__row">
+          <button className="ghost" onClick={onStats}>
+            📊 Statistik
+          </button>
+          <button className="ghost" onClick={onSettings}>
+            ⚙️ Einstellungen
+          </button>
+          <button className="ghost" onClick={onTutorial}>
+            ❔ Tutorial
+          </button>
+        </div>
       </section>
     </div>
   );
@@ -274,10 +366,14 @@ function Menu({
 interface SetupProps {
   humans: number;
   ais: number;
-  difficulty: Difficulty;
+  aiDifficulty: Difficulty[];
+  humanNames: string[];
+  totalRounds: number;
   setHumans: (n: number) => void;
   setAis: (n: number) => void;
-  setDifficulty: (d: Difficulty) => void;
+  setAiDifficulty: (d: Difficulty[]) => void;
+  setHumanNames: (n: string[]) => void;
+  setTotalRounds: (n: number) => void;
   onStart: () => void;
   onBack: () => void;
 }
@@ -285,15 +381,30 @@ interface SetupProps {
 function Setup({
   humans,
   ais,
-  difficulty,
+  aiDifficulty,
+  humanNames,
+  totalRounds,
   setHumans,
   setAis,
-  setDifficulty,
+  setAiDifficulty,
+  setHumanNames,
+  setTotalRounds,
   onStart,
   onBack,
 }: SetupProps) {
   const total = humans + ais;
-  const valid = total >= 2 && total <= 4 && humans >= 1;
+  const valid = total >= 2 && total <= MAX_PLAYERS && humans >= 1;
+
+  const setName = (i: number, v: string) => {
+    const next = humanNames.slice();
+    next[i] = v;
+    setHumanNames(next);
+  };
+  const setAiDiff = (i: number, d: Difficulty) => {
+    const next = aiDifficulty.slice();
+    next[i] = d;
+    setAiDifficulty(next);
+  };
 
   return (
     <div className="app">
@@ -303,25 +414,64 @@ function Setup({
       </header>
 
       <section className="panel">
-        <Counter label="Menschen (Pass-and-Play)" value={humans} min={1} max={4} onChange={setHumans} />
-        <Counter label="KI-Gegner" value={ais} min={0} max={3} onChange={setAis} />
+        <Counter
+          label="Menschen (Pass-and-Play)"
+          value={humans}
+          min={1}
+          max={MAX_PLAYERS}
+          onChange={setHumans}
+        />
+        <Counter label="KI-Gegner" value={ais} min={0} max={MAX_PLAYERS - 1} onChange={setAis} />
 
         <div className="field">
-          <span className="field__label">KI-Schwierigkeit</span>
+          <span className="field__label">Namen</span>
+          <div className="names">
+            {Array.from({ length: humans }, (_, i) => (
+              <input
+                key={i}
+                className="names__input"
+                value={humanNames[i] ?? ''}
+                placeholder={`Maus ${i + 1}`}
+                maxLength={16}
+                onChange={(e) => setName(i, e.target.value)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="field">
+          <span className="field__label">Runden</span>
           <div className="seg">
-            {DIFFICULTIES.map((d) => (
+            {ROUND_CHOICES.map((r) => (
               <button
-                key={d}
-                className={`seg__btn${d === difficulty ? ' seg__btn--on' : ''}`}
-                onClick={() => setDifficulty(d)}
+                key={r}
+                className={`seg__btn${r === totalRounds ? ' seg__btn--on' : ''}`}
+                onClick={() => setTotalRounds(r)}
               >
-                {DIFFICULTY_LABELS[d]}
+                {r}
               </button>
             ))}
           </div>
         </div>
 
-        {!valid && <p className="muted">2–4 Mäuse insgesamt, mindestens 1 Mensch.</p>}
+        {Array.from({ length: ais }, (_, i) => (
+          <div className="field" key={i}>
+            <span className="field__label">{`KI ${i + 1} – Schwierigkeit`}</span>
+            <div className="seg">
+              {DIFFICULTIES.map((d) => (
+                <button
+                  key={d}
+                  className={`seg__btn${d === (aiDifficulty[i] ?? 'medium') ? ' seg__btn--on' : ''}`}
+                  onClick={() => setAiDiff(i, d)}
+                >
+                  {DIFFICULTY_LABELS[d]}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {!valid && <p className="muted">2–{MAX_PLAYERS} Mäuse insgesamt, mindestens 1 Mensch.</p>}
         <button onClick={onStart} disabled={!valid}>
           Partie starten →
         </button>
@@ -367,19 +517,26 @@ function Counter({
 
 interface GameProps {
   state: GameState;
-  difficulty: Difficulty;
   use3d: boolean;
   onToggle3d: () => void;
   muted: boolean;
   onToggleMute: () => void;
+  musicAvailable: boolean;
+  musicOn: boolean;
+  onToggleMusic: () => void;
   fx: GameEventFx;
   selectedClear: Set<string>;
   onToggleClear: (id: string) => void;
+  onClearSelection: () => void;
   onRerollSelected: () => void;
   onAdvance: () => void;
   onPick: (playerId: string, offerId: string) => void;
   onPass: (playerId: string) => void;
   onNewGame: () => void;
+  /** KI-Stärke je Sitz – für das Badge auf der Spielerkarte. */
+  aiDiffForSeat: (playerId: string) => Difficulty;
+  /** Öffnet die Hilfe/Tutorial während des Spiels. */
+  onHelp: () => void;
 }
 
 function Game({
@@ -388,20 +545,21 @@ function Game({
   onToggle3d,
   muted,
   onToggleMute,
+  musicAvailable,
+  musicOn,
+  onToggleMusic,
   fx,
   selectedClear,
   onToggleClear,
+  onClearSelection,
   onRerollSelected,
   onAdvance,
   onPick,
   onPass,
   onNewGame,
+  aiDiffForSeat,
+  onHelp,
 }: GameProps) {
-  const leader = useMemo(
-    () => state.players.reduce((best, p) => (p.totalScore > best.totalScore ? p : best)),
-    [state.players]
-  );
-
   const activeDrafter: Player | undefined =
     state.phase === 'draft'
       ? state.players.find((p) => !state.draftedThisPhase.includes(p.id))
@@ -409,6 +567,43 @@ function Game({
   const draftComplete = state.phase === 'draft' && !activeDrafter;
   const humanDrafting = activeDrafter && !activeDrafter.isAI;
   const hasClearDice = state.players.some((p) => p.rolled.some((d) => d.color === 'clear'));
+
+  // „Würfeln"-Reveal: zu Rundenbeginn sind die (längst geworfenen) Würfel
+  // verdeckt, bis der Knopf gedrückt wird. Pro Runde zurücksetzen.
+  const [rolledRevealed, setRolledRevealed] = useState(false);
+  useEffect(() => setRolledRevealed(false), [state.round]);
+  const diceRevealed = state.phase !== 'roll' || rolledRevealed;
+  const awaitingRoll = state.phase === 'roll' && !rolledRevealed;
+
+  // Ab >4 Spielern auf 2D zurückfallen: 6 gleichzeitige WebGL-Kontexte sind
+  // mobil riskant. Das 2D-Rendering hat seit P1 echte Augen.
+  const manyPlayers = state.players.length > 4;
+  const effectiveUse3d = use3d && !manyPlayers;
+
+  // A1: Aktive Maus im Draft sanft in den Blick scrollen (v. a. mobil).
+  const activeId = activeDrafter?.id;
+  useEffect(() => {
+    if (!activeId || !shouldAnimate()) return;
+    const el = document.querySelector(`[data-fly-target="${activeId}"]`);
+    if (el && typeof (el as HTMLElement).scrollIntoView === 'function') {
+      (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [activeId]);
+
+  // A2: dezentes „du bist am Zug"-Signal, wenn ein Mensch im Draft aktiv wird.
+  const { play } = useSound();
+  const turnCueRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (activeDrafter && !activeDrafter.isAI) {
+      if (turnCueRef.current !== activeDrafter.id) {
+        turnCueRef.current = activeDrafter.id;
+        play('turn');
+        if (!muted && getSettings().haptics) vibrate('turn');
+      }
+    } else if (!activeDrafter) {
+      turnCueRef.current = null;
+    }
+  }, [activeId, muted, play]);
 
   if (state.finished) {
     return (
@@ -422,20 +617,7 @@ function Game({
           <h1>🧀 Dice Mice</h1>
         </header>
         <section className="panel panel--win">
-          <h2>Partie beendet 🎉</h2>
-          <p>
-            Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
-          </p>
-          <ol className="standings">
-            {[...state.players]
-              .sort((a, b) => b.totalScore - a.totalScore)
-              .map((p) => (
-                <li key={p.id}>
-                  {p.name}: {p.totalScore}
-                </li>
-              ))}
-          </ol>
-          <button onClick={onNewGame}>Neue Partie</button>
+          <Podium players={state.players} actionLabel="Neue Partie" onAction={onNewGame} />
         </section>
       </div>
     );
@@ -449,9 +631,13 @@ function Game({
           <span>
             Runde {state.round} / {state.config.totalRounds}
           </span>
-          <span className="badge">{PHASE_LABEL[state.phase]}</span>
-          <button className="toggle3d" onClick={onToggle3d}>
-            {use3d ? '3D' : '2D'}
+          <button
+            className="toggle3d"
+            onClick={onToggle3d}
+            disabled={manyPlayers}
+            title={manyPlayers ? '2D bei mehr als 4 Mäusen' : undefined}
+          >
+            {effectiveUse3d ? '3D' : '2D'}
           </button>
           <button
             className="toggle3d"
@@ -461,8 +647,25 @@ function Game({
           >
             {muted ? '🔇' : '🔊'}
           </button>
+          <button className="toggle3d" onClick={onHelp} aria-label="Hilfe / Tutorial">
+            ❔
+          </button>
+          {musicAvailable && (
+            <button
+              className="toggle3d"
+              onClick={onToggleMusic}
+              aria-label={musicOn ? 'Musik aus' : 'Musik an'}
+              aria-pressed={musicOn}
+              style={{ opacity: musicOn ? 1 : 0.5 }}
+            >
+              🎵
+            </button>
+          )}
         </div>
       </header>
+
+      <PhaseTrack phase={state.phase} />
+      <ScoreTrack players={state.players} />
 
       {fx.banner && (
         <div className="banner" role="status" aria-live="polite">
@@ -470,31 +673,56 @@ function Game({
         </div>
       )}
 
+      <CrownToken move={fx.crownMove} />
+      <SabotageFx moves={fx.sabotage} />
+
+      {/* Screenreader-Ansage für Phase + „am Zug" (visuell verborgen). */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {`Runde ${state.round}, Phase ${PHASE_LABEL[state.phase]}.`}
+        {activeDrafter
+          ? activeDrafter.isAI
+            ? ` ${activeDrafter.name} ist am Zug.`
+            : ` ${activeDrafter.name}, du bist am Zug.`
+          : ''}
+      </div>
+
       <p className="hint">{PHASE_HINT[state.phase]}</p>
 
-      <section className="players">
+      <section className={`players${manyPlayers ? ' players--many' : ''}`}>
         {state.players.map((p) => (
           <PlayerCard
             key={p.id}
             player={p}
-            use3d={use3d}
+            use3d={effectiveUse3d}
             active={activeDrafter?.id === p.id}
             crowned={fx.crownedNow.has(p.id)}
             warn={fx.warnNow.has(p.id)}
             selectedDieIds={state.phase === 'swap' ? selectedClear : undefined}
             onToggleClear={state.phase === 'swap' && !p.isAI ? onToggleClear : undefined}
+            revealed={diceRevealed}
+            aiBadge={p.isAI ? DIFFICULTY_LABELS[aiDiffForSeat(p.id)] : undefined}
           />
         ))}
       </section>
 
+      {awaitingRoll && <RollButton onReveal={() => setRolledRevealed(true)} />}
+
       {state.phase === 'swap' && (
-        <section className="panel">
+        <section className="panel phase-fade">
           {hasClearDice ? (
-            <button onClick={onRerollSelected} disabled={selectedClear.size === 0}>
-              {selectedClear.size > 0
-                ? `${selectedClear.size} Klar-Würfel neu würfeln`
-                : 'Klar-Würfel auswählen'}
-            </button>
+            <>
+              <button onClick={onRerollSelected} disabled={selectedClear.size === 0}>
+                {selectedClear.size > 0
+                  ? `${selectedClear.size} Klar-Würfel neu würfeln`
+                  : 'Klar-Würfel auswählen'}
+              </button>
+              {selectedClear.size > 0 && (
+                <button className="ghost" onClick={onClearSelection}>
+                  Auswahl aufheben
+                </button>
+              )}
+              <p className="muted">Kein Muss – tippe „Weiter", um deine Würfel zu behalten.</p>
+            </>
           ) : (
             <p className="muted">Keine Klar-Würfel im Spiel.</p>
           )}
@@ -506,48 +734,37 @@ function Game({
       )}
 
       {state.phase === 'draft' && (
-        <section className="panel">
-          <h2>
-            Angebot
-            {activeDrafter && (
-              <>
-                {' '}
-                · {activeDrafter.name}
-                {activeDrafter.isAI ? ' (KI) wählt …' : ' ist am Zug'}
-              </>
-            )}
-          </h2>
-          <div className="offers">
-            {state.draftOffers.map((o) => (
-              <button
-                key={o.id}
-                className="offer"
-                style={{ borderColor: DIE_COLORS[o.die.color] }}
-                disabled={!humanDrafting}
-                onClick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
-              >
-                {DIE_LABELS[o.die.color]} W{o.die.sides}
-                {o.die.variant === 'glitter' ? ' ✨' : ''}
-              </button>
-            ))}
-          </div>
-          {humanDrafting && (
-            <button className="ghost" onClick={() => onPass(activeDrafter!.id)}>
-              {activeDrafter!.name} passt
-            </button>
-          )}
-          {draftComplete && <p className="muted">Alle haben gewählt.</p>}
-        </section>
+        <DraftTable
+          offers={state.draftOffers}
+          activeName={activeDrafter?.name}
+          isAITurn={!!activeDrafter?.isAI}
+          canPick={!!humanDrafting}
+          onPick={(offerId) => activeDrafter && onPick(activeDrafter.id, offerId)}
+          targetId={activeDrafter?.id}
+          onPass={humanDrafting ? () => onPass(activeDrafter!.id) : undefined}
+          complete={draftComplete}
+        />
       )}
 
       <div className="actions">
-        <button onClick={onAdvance} disabled={state.phase === 'draft' && !draftComplete}>
-          {state.phase === 'draft'
-            ? state.round >= state.config.totalRounds
-              ? 'Partie beenden →'
-              : 'Nächste Runde →'
-            : 'Weiter →'}
-        </button>
+        {!awaitingRoll && (
+          <button
+            className={`advance${
+              state.phase !== 'draft' || draftComplete ? ' advance--ready' : ''
+            }`}
+            onClick={onAdvance}
+            disabled={state.phase === 'draft' && !draftComplete}
+            aria-busy={state.phase === 'draft' && !draftComplete}
+          >
+            {state.phase === 'draft'
+              ? draftComplete
+                ? state.round >= state.config.totalRounds
+                  ? 'Partie beenden →'
+                  : 'Nächste Runde →'
+                : '⏳ Warten auf andere Mäuse…'
+              : 'Weiter →'}
+          </button>
+        )}
         <button className="ghost" onClick={onNewGame}>
           Neue Partie
         </button>

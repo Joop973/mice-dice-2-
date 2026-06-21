@@ -21,7 +21,13 @@ describe('expectedValue', () => {
   });
   it('mittelt explizite Faces (inkl. negativer Rot-Werte)', () => {
     expect(
-      expectedValue({ id: 'x', color: 'red', sides: 6, variant: 'normal', faces: [-2, -1, 1, 2, 3, 4] })
+      expectedValue({
+        id: 'x',
+        color: 'red',
+        sides: 6,
+        variant: 'normal',
+        faces: [-2, -1, 1, 2, 3, 4],
+      })
     ).toBeCloseTo(7 / 6);
   });
 });
@@ -91,7 +97,11 @@ describe('aiChooseSwap', () => {
 
 describe('strategicDraftValue (harte KI)', () => {
   const brown: DieDef = {
-    id: 'b', color: 'brown', sides: 6, variant: 'normal', faces: [2, 2, 2, 3, 3, 3],
+    id: 'b',
+    color: 'brown',
+    sides: 6,
+    variant: 'normal',
+    faces: [2, 2, 2, 3, 3, 3],
   };
   const sabotage: DieDef = { id: 's', color: 'sabotage', sides: 8, variant: 'normal' };
 
@@ -118,6 +128,16 @@ describe('strategicDraftValue (harte KI)', () => {
     const behind = strategicDraftValue(s, s.players[0], sabotage);
     const leading = strategicDraftValue(s, s.players[1], sabotage);
     expect(behind).toBeGreaterThan(leading);
+  });
+
+  it('bewertet Sabotage höher, wenn ein führender Gegner die Krone trägt', () => {
+    const s = createGame({ players: [{ name: 'A' }, { name: 'B' }] });
+    s.players[0].totalScore = 0; // A (wir) liegen zurück
+    s.players[1].totalScore = 40; // B führt
+    const without = strategicDraftValue(s, s.players[0], sabotage);
+    s.players[1].hasCrown = true; // jetzt trägt der Leader die Krone
+    const withCrown = strategicDraftValue(s, s.players[0], sabotage);
+    expect(withCrown).toBeGreaterThan(without);
   });
 });
 

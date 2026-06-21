@@ -8,13 +8,7 @@
 // Reihenfolge-Mehrdeutigkeit. Orange zählt die Farbvielfalt des JEWEILIGEN
 // Spielers (seine eigenen, in dieser Runde geworfenen Würfel).
 
-import type {
-  DieColor,
-  Player,
-  RolledDie,
-  ScoreBreakdown,
-  ScoreContributions,
-} from './types';
+import type { DieColor, Player, RolledDie, ScoreBreakdown, ScoreContributions } from './types';
 
 /** Normalisiert eine Farbe für die Orange-Zählung: Blau-Glitzer zählt als Blau. */
 export function colorKey(die: RolledDie): DieColor {
@@ -24,9 +18,7 @@ export function colorKey(die: RolledDie): DieColor {
 
 /** Summe aller Würfel einer bestimmten Farbe (alle Varianten). */
 export function sumOfColor(rolled: RolledDie[], color: DieColor): number {
-  return rolled
-    .filter((d) => d.color === color)
-    .reduce((acc, d) => acc + d.value, 0);
+  return rolled.filter((d) => d.color === color).reduce((acc, d) => acc + d.value, 0);
 }
 
 /** Gelb-Summe — entscheidet über die Käse-Krone. */
@@ -72,10 +64,7 @@ export function brownScore(rolled: RolledDie[]): number {
  * Punkt-Beitrag je Farbe für einen Spieler (Grundlage für Basis-Punkte UND die
  * Auswertungsanzeige). Sabotage zählt NICHT zu den eigenen Punkten (Angriff).
  */
-export function scoreContributions(
-  rolled: RolledDie[],
-  clearScores: boolean
-): ScoreContributions {
+export function scoreContributions(rolled: RolledDie[], clearScores: boolean): ScoreContributions {
   return {
     yellow: sumOfColor(rolled, 'yellow'),
     green: sumOfColor(rolled, 'green'),
@@ -91,9 +80,7 @@ export function scoreContributions(
 
 /** Summe aller Farb-Beiträge. */
 export function sumContributions(c: ScoreContributions): number {
-  return (
-    c.yellow + c.green + c.blue + c.purple + c.pink + c.red + c.clear + c.orange + c.brown
-  );
+  return c.yellow + c.green + c.blue + c.purple + c.pink + c.red + c.clear + c.orange + c.brown;
 }
 
 /**
@@ -110,11 +97,7 @@ export function baseRoundScore(rolled: RolledDie[], clearScores: boolean): numbe
  * Tie-Break: wer in dieser Runde am meisten (Basis) gepunktet hat; danach die
  * stabile Spielerreihenfolge. Gibt die Spieler-Indizes in Rang-Reihenfolge.
  */
-function crownRanking(
-  players: Player[],
-  base: number[],
-  yellow: number[]
-): number[] {
+function crownRanking(players: Player[], base: number[], yellow: number[]): number[] {
   return players
     .map((_, i) => i)
     .sort((a, b) => {

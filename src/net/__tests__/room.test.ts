@@ -5,6 +5,7 @@ import {
   createRoom,
   joinRoom,
   leaveRoom,
+  reconnectSeat,
   seatInfos,
   startRoom,
   type Room,
@@ -43,12 +44,10 @@ describe('createRoom / joinRoom', () => {
 
   it('lehnt Beitritt zu vollem Raum ab', () => {
     let room = createRoom('AB12', 'A');
-    room = joinRoom(room, 'B').room;
-    room = joinRoom(room, 'C').room;
-    room = joinRoom(room, 'D').room;
-    const res = joinRoom(room, 'E');
+    for (const n of ['B', 'C', 'D', 'E', 'F']) room = joinRoom(room, n).room; // 6 Sitze voll
+    const res = joinRoom(room, 'G');
     expect(res.error).toBeDefined();
-    expect(res.room.seats).toHaveLength(4);
+    expect(res.room.seats).toHaveLength(6);
   });
 });
 
@@ -69,6 +68,22 @@ describe('leaveRoom', () => {
     room = leaveRoom(room, 'p0');
     expect(room.seats).toHaveLength(2);
     expect(room.seats.find((s) => s.id === 'p0')?.connected).toBe(false);
+  });
+});
+
+describe('reconnectSeat', () => {
+  it('markiert einen getrennten Sitz wieder als verbunden', () => {
+    let room = createRoom('AB12', 'Anna', { ais: 1 });
+    room = startRoom(room, rng()).room;
+    room = leaveRoom(room, 'p0');
+    expect(room.seats.find((s) => s.id === 'p0')?.connected).toBe(false);
+    room = reconnectSeat(room, 'p0');
+    expect(room.seats.find((s) => s.id === 'p0')?.connected).toBe(true);
+  });
+
+  it('lässt unbekannte Sitze unverändert', () => {
+    const room = createRoom('AB12', 'Anna');
+    expect(reconnectSeat(room, 'p9')).toBe(room);
   });
 });
 
@@ -121,9 +136,7 @@ describe('applyAction – Autorität', () => {
     room = advanceTo(room, r, 'draft');
     expect(room.state?.phase).toBe('draft');
     // Aktiver Drafter muss der menschliche Host sein (KI hat schon gezogen).
-    const active = room.state!.players.find(
-      (p) => !room.state!.draftedThisPhase.includes(p.id)
-    );
+    const active = room.state!.players.find((p) => !room.state!.draftedThisPhase.includes(p.id));
     expect(active?.id).toBe('p0');
   });
 

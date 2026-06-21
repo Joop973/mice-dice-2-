@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  advancePhase,
-  createRNG,
-  startGame,
-  type GameState,
-  type RNG,
-} from '../../engine';
+import { advancePhase, createRNG, startGame, type GameState, type RNG } from '../../engine';
 import { detectEvents, snapshot } from '../gameEvents';
 
 // Treibt ein deterministisches Spiel und prüft, dass die Ereignis-Erkennung
@@ -40,9 +34,7 @@ describe('detectEvents', () => {
 
     const res = detectEvents(snapshot(swap), snapshot(draft));
     // Es muss mindestens ein wertungsbezogenes Ereignis geben.
-    const scoring = res.sounds.filter((s) =>
-      ['tick', 'crown', 'warn'].includes(s)
-    );
+    const scoring = res.sounds.filter((s) => ['tick', 'crown', 'warn'].includes(s));
     expect(scoring.length).toBeGreaterThan(0);
   });
 
@@ -103,5 +95,78 @@ describe('detectEvents', () => {
     const after = { ...base, rollKey: base.rollKey + 'X', rolledAny: true };
     const res = detectEvents(base, after);
     expect(res.sounds).toContain('roll');
+  });
+
+  it('liefert crownMove vom alten zum neuen Halter', () => {
+    const base = snapshot(setup(2).state);
+    const before = { ...base, crowns: { p0: true, p1: false } };
+    const after = { ...base, crowns: { p0: false, p1: true } };
+    expect(detectEvents(before, after).crownMove).toEqual({ from: 'p0', to: 'p1' });
+  });
+
+  it('crownMove from=null bei Erst-Vergabe', () => {
+    const base = snapshot(setup(2).state);
+    const before = { ...base, crowns: { p0: false, p1: false } };
+    const after = { ...base, crowns: { p0: true, p1: false } };
+    expect(detectEvents(before, after).crownMove).toEqual({ from: null, to: 'p0' });
+  });
+
+  it('meldet Sabotage am Wertungs-Übergang, aber nicht bei Draft-Picks', () => {
+    const base = snapshot(setup(2).state);
+    const sab = [{ from: 'p0', to: 'p1', amount: 7 }];
+
+    // Wertung: Gesamtpunkte ändern sich -> Sabotage feuert.
+    const before = { ...base, totals: { p0: 0, p1: 0 }, sabotage: [] };
+    const after = { ...base, totals: { p0: 5, p1: 3 }, sabotage: sab };
+    expect(detectEvents(before, after).sabotage).toEqual(sab);
+
+    // Draft-Pick: Gesamtpunkte unverändert -> keine Sabotage-Wiederholung.
+    const b2 = { ...base, totals: { p0: 5, p1: 3 }, drafted: 0, sabotage: sab };
+    const a2 = { ...base, totals: { p0: 5, p1: 3 }, drafted: 1, sabotage: sab };
+    expect(detectEvents(b2, a2).sabotage).toEqual([]);
+  });
+
+  it('deriveSabotage (via snapshot): Werfer -> Hauptopfer', () => {
+    const zero = () => ({
+      yellow: 0,
+      green: 0,
+      blue: 0,
+      purple: 0,
+      pink: 0,
+      red: 0,
+      clear: 0,
+      orange: 0,
+      brown: 0,
+    });
+    const state = {
+      ...setup(2).state,
+      lastScores: [
+        {
+          playerId: 'p0',
+          yellow: 0,
+          base: 5,
+          contributions: zero(),
+          distinctColors: 1,
+          sabotageThrown: 7,
+          sabotageReceived: 0,
+          crownBonus: 0,
+          final: 5,
+          hasCrown: false,
+        },
+        {
+          playerId: 'p1',
+          yellow: 10,
+          base: 10,
+          contributions: zero(),
+          distinctColors: 1,
+          sabotageThrown: 0,
+          sabotageReceived: 7,
+          crownBonus: 14,
+          final: 24,
+          hasCrown: true,
+        },
+      ],
+    };
+    expect(snapshot(state).sabotage).toEqual([{ from: 'p0', to: 'p1', amount: 7 }]);
   });
 });

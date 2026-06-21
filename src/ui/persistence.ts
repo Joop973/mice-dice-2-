@@ -9,14 +9,21 @@ import type { GameState } from '../engine';
 import type { Difficulty } from '../ai';
 
 const KEY = 'dicemice.localgame';
-const VERSION = 1;
+const VERSION = 2;
 
 export interface SavedGame {
   version: number;
   state: GameState;
   humans: number;
   ais: number;
+  /** Standard-/Vertretungs-Schwierigkeit (Abwärtskompatibilität). */
   difficulty: Difficulty;
+  /** Optional (v2): eigene Spielernamen. */
+  names?: string[];
+  /** Optional (v2): konfigurierte Rundenzahl. */
+  totalRounds?: number;
+  /** Optional (v2): Schwierigkeit je KI-Sitz (Index = KI-Ordinalzahl). */
+  aiDifficulty?: Difficulty[];
 }
 
 export function saveLocalGame(data: Omit<SavedGame, 'version'>): void {
@@ -32,6 +39,7 @@ export function loadLocalGame(): SavedGame | null {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as SavedGame;
+    // Nur aktuelle Version akzeptieren; ältere Stände verwerfen (kein Migrieren).
     if (parsed.version !== VERSION || !parsed.state || parsed.state.finished) return null;
     return parsed;
   } catch {

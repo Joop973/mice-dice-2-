@@ -18,7 +18,7 @@ export const DEFAULT_CONFIG: GameConfig = {
     8: [-4, -2, 5, 6, 8, 9, 10, 12], // Summe 44, mean 5.5
   },
   clearScores: false,
-  draftOfferSize: 6,
+  // draftOfferSize bewusst NICHT gesetzt -> Angebot = Spieleranzahl + 1.
   // Gezielteres Rubberbanding als „unter dem Spitzenstand": nur Mäuse unter dem
   // Durchschnitt erhalten Mitleidswürfel (Balance-Sim: ~26 -> ~16 pro Partie).
   pityMode: 'belowAverage',
@@ -84,10 +84,7 @@ export const DICE_CATALOG: DieBlueprint[] = [
 ];
 
 /** Löst den Face-Satz einer Blueprint gegen die Config auf (falls nötig). */
-export function resolveFaces(
-  blueprint: DieBlueprint,
-  config: GameConfig
-): number[] | undefined {
+export function resolveFaces(blueprint: DieBlueprint, config: GameConfig): number[] | undefined {
   switch (blueprint.facesFromConfig) {
     case 'red':
       return blueprint.sides === 6 ? config.redFaces[6] : config.redFaces[8];

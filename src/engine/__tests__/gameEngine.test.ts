@@ -81,6 +81,36 @@ describe('lastScores', () => {
   });
 });
 
+describe('Draft-Angebotsgröße', () => {
+  function offersFor(playerCount: number): number {
+    const rng = createRNG(3);
+    let s = startGame({
+      players: Array.from({ length: playerCount }, (_, i) => ({ name: `P${i}` })),
+      seed: 3,
+    }).state;
+    while (s.phase !== 'draft') s = advancePhase(s, rng);
+    return s.draftOffers.length;
+  }
+
+  it('bietet Spieleranzahl + 1 Würfel an (auch bei 6 Mäusen)', () => {
+    expect(offersFor(2)).toBe(3);
+    expect(offersFor(3)).toBe(4);
+    expect(offersFor(4)).toBe(5);
+    expect(offersFor(6)).toBe(7);
+  });
+
+  it('respektiert einen festen Override', () => {
+    const rng = createRNG(3);
+    let s = startGame({
+      players: [{ name: 'A' }, { name: 'B' }],
+      seed: 3,
+      config: { draftOfferSize: 6 },
+    }).state;
+    while (s.phase !== 'draft') s = advancePhase(s, rng);
+    expect(s.draftOffers).toHaveLength(6);
+  });
+});
+
 describe('Kronen-Endspiel-Bonus', () => {
   function playOut(endgameBonus: number) {
     const rng = createRNG(5);
@@ -140,10 +170,7 @@ describe('Phasenfolge', () => {
 
   it('beendet die Partie nach der konfigurierten Rundenzahl', () => {
     const rng = createRNG(5);
-    let s = performRoll(
-      createGame({ players: [{ name: 'A' }], config: { totalRounds: 2 } }),
-      rng
-    );
+    let s = performRoll(createGame({ players: [{ name: 'A' }], config: { totalRounds: 2 } }), rng);
     // 2 Runden × 4 Phasenübergänge -> finished.
     for (let i = 0; i < 8 && !s.finished; i++) s = advancePhase(s, rng);
     expect(s.finished).toBe(true);

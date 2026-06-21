@@ -6,26 +6,25 @@
 // Der Server ist autoritativ: diese Komponente rendert nur den empfangenen
 // GameState und schickt Aktionen; die Zug-/Rechteprüfung passiert serverseitig.
 
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { LocalTransport, WebSocketTransport, type Transport } from '../net';
 import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from '../ai';
-import type { GameState, Phase, Player } from '../engine';
+import type { GameState, Player } from '../engine';
 import { PlayerCard } from './PlayerCard';
 import { RoundSummary } from './RoundSummary';
+import { DraftTable } from './DraftTable';
+import { RollButton } from './RollButton';
+import { CrownToken } from './CrownToken';
+import { SabotageFx } from './SabotageFx';
+import { PhaseTrack } from './PhaseTrack';
+import { ScoreTrack } from './ScoreTrack';
+import { Podium } from './Podium';
 import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
-import { DIE_COLORS, DIE_LABELS } from './colors';
 
 const ENV_SERVER_URL: string =
   (import.meta.env as Record<string, string | undefined>).VITE_SERVER_URL ?? '';
-
-const PHASE_LABEL: Record<Phase, string> = {
-  roll: '1 · Würfeln',
-  pity: '2 · Mitleidswürfel',
-  swap: '3 · Klar tauschen',
-  draft: '4 · Drafting',
-};
 
 function transportFactory(serverUrl: string): () => Transport {
   const url = serverUrl.trim();
@@ -34,8 +33,8 @@ function transportFactory(serverUrl: string): () => Transport {
 
 export function OnlineFlow({ onBack }: { onBack: () => void }) {
   const client = useGameClient();
-  const { play } = useSound();
-  const fx = useGameEvents(client.state, play);
+  const { play, muted } = useSound();
+  const fx = useGameEvents(client.state, play, muted);
 
   if (client.state && client.started) {
     return <OnlineGame client={client} fx={fx} onBack={onBack} />;
@@ -54,6 +53,7 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
   const [serverUrl, setServerUrl] = useState(ENV_SERVER_URL);
   const [ais, setAis] = useState(1);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [totalRounds, setTotalRounds] = useState(10);
   const [code, setCode] = useState('');
 
   const isLocal = serverUrl.trim() === '';
@@ -102,7 +102,7 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
 
         {tab === 'create' ? (
           <>
-            <Counter label="KI-Gegner" value={ais} min={0} max={3} onChange={setAis} />
+            <Counter label="KI-Gegner" value={ais} min={0} max={5} onChange={setAis} />
             <div className="field">
               <span className="field__label">KI-Schwierigkeit</span>
               <div className="seg">
@@ -117,6 +117,20 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
                 ))}
               </div>
             </div>
+            <div className="field">
+              <span className="field__label">Runden</span>
+              <div className="seg">
+                {[5, 10, 15].map((r) => (
+                  <button
+                    key={r}
+                    className={`seg__btn${r === totalRounds ? ' seg__btn--on' : ''}`}
+                    onClick={() => setTotalRounds(r)}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
             <button
               disabled={!nameOk}
               onClick={() =>
@@ -124,6 +138,7 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
                   name: name.trim(),
                   ais,
                   difficulty,
+                  config: { totalRounds },
                 })
               }
             >
@@ -148,9 +163,7 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
             )}
             <button
               disabled={!nameOk || code.trim().length === 0 || isLocal}
-              onClick={() =>
-                client.joinRoom(transportFactory(serverUrl), code.trim(), name.trim())
-              }
+              onClick={() => client.joinRoom(transportFactory(serverUrl), code.trim(), name.trim())}
             >
               Beitreten →
             </button>
@@ -241,11 +254,6 @@ function OnlineGame({
 
   const isHost = client.seats.find((s) => s.isHost)?.id === you;
 
-  const leader = useMemo(
-    () => state.players.reduce((best, p) => (p.totalScore > best.totalScore ? p : best)),
-    [state.players]
-  );
-
   const activeDrafter: Player | undefined =
     state.phase === 'draft'
       ? state.players.find((p) => !state.draftedThisPhase.includes(p.id))
@@ -256,6 +264,12 @@ function OnlineGame({
     const me = state.players.find((p) => p.id === you);
     return me ? me.rolled.some((d) => d.color === 'clear') : false;
   }, [state.players, you]);
+
+  // „Würfeln"-Reveal (lokale Ansicht je Client; keine Netz-Aktion).
+  const [rolledRevealed, setRolledRevealed] = useState(false);
+  useEffect(() => setRolledRevealed(false), [state.round]);
+  const diceRevealed = state.phase !== 'roll' || rolledRevealed;
+  const awaitingRoll = state.phase === 'roll' && !rolledRevealed;
 
   if (state.finished) {
     return (
@@ -269,27 +283,14 @@ function OnlineGame({
           <h1>🧀 Dice Mice</h1>
         </header>
         <section className="panel panel--win">
-          <h2>Partie beendet 🎉</h2>
-          <p>
-            Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
-          </p>
-          <ol className="standings">
-            {[...state.players]
-              .sort((a, b) => b.totalScore - a.totalScore)
-              .map((p) => (
-                <li key={p.id}>
-                  {p.name}: {p.totalScore}
-                </li>
-              ))}
-          </ol>
-          <button
-            onClick={() => {
+          <Podium
+            players={state.players}
+            actionLabel="Zurück zum Menü"
+            onAction={() => {
               client.leave();
               onBack();
             }}
-          >
-            Zurück zum Menü
-          </button>
+          />
         </section>
       </div>
     );
@@ -298,7 +299,8 @@ function OnlineGame({
   const toggleClear = (id: string) =>
     setSelectedClear((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
 
@@ -316,10 +318,12 @@ function OnlineGame({
           <span>
             Runde {state.round} / {state.config.totalRounds}
           </span>
-          <span className="badge">{PHASE_LABEL[state.phase]}</span>
           <span className="code">#{client.code}</span>
         </div>
       </header>
+
+      <PhaseTrack phase={state.phase} />
+      <ScoreTrack players={state.players} />
 
       {fx.banner && (
         <div className="banner" role="status" aria-live="polite">
@@ -327,9 +331,13 @@ function OnlineGame({
         </div>
       )}
 
+      <CrownToken move={fx.crownMove} />
+      <SabotageFx moves={fx.sabotage} />
+
       <section className="players">
         {state.players.map((p) => {
           const isYou = p.id === you;
+          const seat = client.seats.find((s) => s.id === p.id);
           return (
             <PlayerCard
               key={p.id}
@@ -338,12 +346,16 @@ function OnlineGame({
               active={activeDrafter?.id === p.id}
               crowned={fx.crownedNow.has(p.id)}
               warn={fx.warnNow.has(p.id)}
+              disconnected={seat ? !seat.connected : false}
               selectedDieIds={state.phase === 'swap' && isYou ? selectedClear : undefined}
               onToggleClear={state.phase === 'swap' && isYou ? toggleClear : undefined}
+              revealed={diceRevealed}
             />
           );
         })}
       </section>
+
+      {awaitingRoll && <RollButton onReveal={() => setRolledRevealed(true)} />}
 
       {state.phase === 'swap' && (
         <section className="panel">
@@ -364,51 +376,34 @@ function OnlineGame({
       )}
 
       {state.phase === 'draft' && (
-        <section className="panel">
-          <h2>
-            Angebot
-            {activeDrafter && (
-              <>
-                {' '}· {activeDrafter.name}
-                {activeDrafter.id === you ? ' (du) wählst' : ' wählt …'}
-              </>
-            )}
-          </h2>
-          <div className="offers">
-            {state.draftOffers.map((o) => (
-              <button
-                key={o.id}
-                className="offer"
-                style={{ borderColor: DIE_COLORS[o.die.color] }}
-                disabled={!youAreActiveDrafter}
-                onClick={() => client.sendAction({ type: 'draftPick', offerId: o.id })}
-              >
-                {DIE_LABELS[o.die.color]} W{o.die.sides}
-                {o.die.variant === 'glitter' ? ' ✨' : ''}
-              </button>
-            ))}
-          </div>
-          {youAreActiveDrafter && (
-            <button className="ghost" onClick={() => client.sendAction({ type: 'draftPass' })}>
-              Passen
-            </button>
-          )}
-          {draftComplete && <p className="muted">Alle haben gewählt.</p>}
-        </section>
+        <DraftTable
+          offers={state.draftOffers}
+          activeName={
+            activeDrafter ? (activeDrafter.id === you ? 'Du' : activeDrafter.name) : undefined
+          }
+          isAITurn={!!activeDrafter && activeDrafter.id !== you}
+          canPick={youAreActiveDrafter}
+          targetId={activeDrafter?.id}
+          onPick={(offerId) => client.sendAction({ type: 'draftPick', offerId })}
+          onPass={youAreActiveDrafter ? () => client.sendAction({ type: 'draftPass' }) : undefined}
+          complete={draftComplete}
+        />
       )}
 
       <div className="actions">
         {isHost ? (
-          <button
-            onClick={() => client.sendAction({ type: 'advance' })}
-            disabled={state.phase === 'draft' && !draftComplete}
-          >
-            {state.phase === 'draft'
-              ? state.round >= state.config.totalRounds
-                ? 'Partie beenden →'
-                : 'Nächste Runde →'
-              : 'Weiter →'}
-          </button>
+          !awaitingRoll && (
+            <button
+              onClick={() => client.sendAction({ type: 'advance' })}
+              disabled={state.phase === 'draft' && !draftComplete}
+            >
+              {state.phase === 'draft'
+                ? state.round >= state.config.totalRounds
+                  ? 'Partie beenden →'
+                  : 'Nächste Runde →'
+                : 'Weiter →'}
+            </button>
+          )
         ) : (
           <p className="muted">Der Host schaltet die Phasen weiter.</p>
         )}

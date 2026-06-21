@@ -27,8 +27,8 @@ export function Die3D({ die, position, selected, pity, onClick }: Die3DProps) {
   const prevValue = useRef(die.value);
 
   const texture = useMemo(
-    () => dieTexture(die.value, DIE_COLORS[die.color]),
-    [die.value, die.color]
+    () => dieTexture(die.value, DIE_COLORS[die.color], { variant: die.variant }),
+    [die.value, die.color, die.variant]
   );
 
   // Neuer Wert -> erneut werfen (Tumble auslösen).

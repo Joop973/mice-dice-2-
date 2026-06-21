@@ -15,11 +15,13 @@ export type SoundEvent =
   | 'tick' // Punkte gutgeschrieben (positive Wertung)
   | 'round' // neue Runde beginnt
   | 'win' // Partie beendet / Sieger-Sequenz
-  | 'warn'; // negative Wertung (Rot / Sabotage)
+  | 'warn' // negative Wertung (Rot / Sabotage)
+  | 'land' // gedrafteter Würfel landet im Beutel (nach Flug-Animation)
+  | 'turn'; // dieser Mensch ist im Draft am Zug
 
-/** Ein einzelner Oszillator-Ton des Platzhalter-Synths. */
+/** Ein einzelner Ton/Geräusch des Platzhalter-Synths. */
 export interface ToneSpec {
-  /** Grundfrequenz in Hz. */
+  /** Grundfrequenz in Hz (bei `noise`: Tiefpass-Eckfrequenz). */
   freq: number;
   /** Optionale Zielfrequenz für einen Glide (linearer Ramp). */
   to?: number;
@@ -29,6 +31,10 @@ export interface ToneSpec {
   type?: OscillatorType;
   /** Spitzenlautstärke 0..1 (Standard: 0.2). */
   gain?: number;
+  /** Rausch-Burst (Würfelrattern/Holzklack) statt Oszillator. */
+  noise?: boolean;
+  /** Startversatz in s ab Ereignisbeginn (zum Überlagern); sonst sequenziell. */
+  delay?: number;
 }
 
 export interface SoundSpec {
@@ -42,32 +48,44 @@ export interface SoundSpec {
 }
 
 export const SOUNDS: Record<SoundEvent, SoundSpec> = {
+  // Würfelrattern (überlagerte Rausch-Bursts) + tiefer Holzklack zum Schluss.
   roll: {
-    tones: [{ freq: 380, to: 220, dur: 0.12, type: 'triangle', gain: 0.18 }],
+    tones: [
+      { freq: 2600, dur: 0.05, gain: 0.12, noise: true, delay: 0 },
+      { freq: 2200, dur: 0.05, gain: 0.12, noise: true, delay: 0.05 },
+      { freq: 1800, dur: 0.06, gain: 0.13, noise: true, delay: 0.11 },
+      { freq: 420, dur: 0.1, gain: 0.18, noise: true, delay: 0.18 },
+      { freq: 150, to: 90, dur: 0.12, type: 'triangle', gain: 0.16, delay: 0.19 },
+    ],
   },
+  // Holz-„Tock": kurzer Klack + warmer Anschlag.
   pick: {
     tones: [
-      { freq: 520, dur: 0.06, type: 'sine', gain: 0.2 },
-      { freq: 784, dur: 0.08, type: 'sine', gain: 0.2 },
+      { freq: 900, dur: 0.045, gain: 0.18, noise: true, delay: 0 },
+      { freq: 440, dur: 0.08, type: 'triangle', gain: 0.18, delay: 0 },
     ],
   },
   pass: {
-    tones: [{ freq: 200, dur: 0.12, type: 'sine', gain: 0.15 }],
+    tones: [{ freq: 240, to: 180, dur: 0.12, type: 'sine', gain: 0.14 }],
   },
+  // Käse-Krone: Arpeggio + heller Shimmer.
   crown: {
     tones: [
       { freq: 523, dur: 0.1, type: 'triangle', gain: 0.2 },
       { freq: 659, dur: 0.1, type: 'triangle', gain: 0.2 },
-      { freq: 784, dur: 0.18, type: 'triangle', gain: 0.22 },
+      { freq: 784, dur: 0.16, type: 'triangle', gain: 0.22 },
+      { freq: 1568, dur: 0.2, type: 'sine', gain: 0.12, delay: 0.34 },
     ],
   },
+  // Käse-„Squeak": kurzer hoher Aufwärts-Glide.
   tick: {
-    tones: [{ freq: 880, dur: 0.05, type: 'square', gain: 0.1 }],
+    tones: [{ freq: 760, to: 1060, dur: 0.07, type: 'square', gain: 0.1 }],
   },
   round: {
     tones: [
       { freq: 440, dur: 0.12, type: 'sine', gain: 0.18 },
       { freq: 660, dur: 0.14, type: 'sine', gain: 0.18 },
+      { freq: 880, dur: 0.12, type: 'triangle', gain: 0.12, delay: 0.26 },
     ],
   },
   win: {
@@ -76,9 +94,28 @@ export const SOUNDS: Record<SoundEvent, SoundSpec> = {
       { freq: 659, dur: 0.14, type: 'triangle', gain: 0.22 },
       { freq: 784, dur: 0.14, type: 'triangle', gain: 0.22 },
       { freq: 1047, dur: 0.24, type: 'triangle', gain: 0.24 },
+      { freq: 1568, dur: 0.3, type: 'sine', gain: 0.14, delay: 0.66 },
     ],
   },
+  // Sabotage/Negativ: dissonanter Abwärts-Saw + dumpfer Stoß.
   warn: {
-    tones: [{ freq: 160, to: 110, dur: 0.3, type: 'sawtooth', gain: 0.16 }],
+    tones: [
+      { freq: 170, to: 90, dur: 0.3, type: 'sawtooth', gain: 0.16 },
+      { freq: 300, dur: 0.12, gain: 0.12, noise: true, delay: 0 },
+    ],
+  },
+  // Würfel landet im Beutel: leiser Holz-Tap (kurzer Klack + tiefer Anschlag).
+  land: {
+    tones: [
+      { freq: 520, dur: 0.04, gain: 0.12, noise: true, delay: 0 },
+      { freq: 200, to: 130, dur: 0.07, type: 'triangle', gain: 0.14, delay: 0 },
+    ],
+  },
+  // „Du bist am Zug": freundliches kurzes Aufwärts-Glöckchen.
+  turn: {
+    tones: [
+      { freq: 660, dur: 0.08, type: 'sine', gain: 0.16 },
+      { freq: 880, dur: 0.12, type: 'sine', gain: 0.16 },
+    ],
   },
 };
