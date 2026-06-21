@@ -17,12 +17,7 @@ import {
   type Player,
   type RNG,
 } from './engine';
-import {
-  aiTakePhaseAction,
-  DIFFICULTIES,
-  DIFFICULTY_LABELS,
-  type Difficulty,
-} from './ai';
+import { aiTakePhaseAction, DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from './ai';
 import { PlayerCard } from './ui/PlayerCard';
 import { RoundSummary } from './ui/RoundSummary';
 import { DraftTable } from './ui/DraftTable';
@@ -262,42 +257,48 @@ export function App() {
   }
 
   return (
-    <Game
-      state={state}
-      use3d={use3d}
-      onToggle3d={() => setUse3d((v) => !v)}
-      muted={muted}
-      onToggleMute={toggleMuted}
-      musicAvailable={musicAvailable}
-      musicOn={musicOn}
-      onToggleMusic={toggleMusic}
-      fx={fx}
-      selectedClear={selectedClear}
-      onToggleClear={(id) =>
-        setSelectedClear((prev) => {
-          const next = new Set(prev);
-          next.has(id) ? next.delete(id) : next.add(id);
-          return next;
-        })
-      }
-      onClearSelection={() => setSelectedClear(new Set())}
-      onRerollSelected={() => {
-        if (selectedClear.size === 0) return;
-        let next = state;
-        for (const p of state.players) {
-          const ids = p.rolled
-            .filter((d) => d.color === 'clear' && selectedClear.has(d.id))
-            .map((d) => d.id);
-          if (ids.length > 0) next = swapClearDice(next, p.id, ids, rngRef.current);
+    <>
+      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+      <Game
+        state={state}
+        use3d={use3d}
+        onToggle3d={() => setUse3d((v) => !v)}
+        muted={muted}
+        onToggleMute={toggleMuted}
+        musicAvailable={musicAvailable}
+        musicOn={musicOn}
+        onToggleMusic={toggleMusic}
+        fx={fx}
+        selectedClear={selectedClear}
+        onToggleClear={(id) =>
+          setSelectedClear((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+          })
         }
-        setState(next);
-        setSelectedClear(new Set());
-      }}
-      onAdvance={() => setState(advancePhase(state, rngRef.current))}
-      onPick={(playerId, offerId) => setState(draftPick(state, playerId, offerId))}
-      onPass={(playerId) => setState(draftPass(state, playerId))}
-      onNewGame={() => setStarted(false)}
-    />
+        onClearSelection={() => setSelectedClear(new Set())}
+        onRerollSelected={() => {
+          if (selectedClear.size === 0) return;
+          let next = state;
+          for (const p of state.players) {
+            const ids = p.rolled
+              .filter((d) => d.color === 'clear' && selectedClear.has(d.id))
+              .map((d) => d.id);
+            if (ids.length > 0) next = swapClearDice(next, p.id, ids, rngRef.current);
+          }
+          setState(next);
+          setSelectedClear(new Set());
+        }}
+        onAdvance={() => setState(advancePhase(state, rngRef.current))}
+        onPick={(playerId, offerId) => setState(draftPick(state, playerId, offerId))}
+        onPass={(playerId) => setState(draftPass(state, playerId))}
+        onNewGame={() => setStarted(false)}
+        aiDiffForSeat={aiDiffForSeat}
+        onHelp={() => setShowTutorial(true)}
+      />
+    </>
   );
 }
 
@@ -413,7 +414,13 @@ function Setup({
       </header>
 
       <section className="panel">
-        <Counter label="Menschen (Pass-and-Play)" value={humans} min={1} max={MAX_PLAYERS} onChange={setHumans} />
+        <Counter
+          label="Menschen (Pass-and-Play)"
+          value={humans}
+          min={1}
+          max={MAX_PLAYERS}
+          onChange={setHumans}
+        />
         <Counter label="KI-Gegner" value={ais} min={0} max={MAX_PLAYERS - 1} onChange={setAis} />
 
         <div className="field">
@@ -526,6 +533,10 @@ interface GameProps {
   onPick: (playerId: string, offerId: string) => void;
   onPass: (playerId: string) => void;
   onNewGame: () => void;
+  /** KI-Stärke je Sitz – für das Badge auf der Spielerkarte. */
+  aiDiffForSeat: (playerId: string) => Difficulty;
+  /** Öffnet die Hilfe/Tutorial während des Spiels. */
+  onHelp: () => void;
 }
 
 function Game({
@@ -546,6 +557,8 @@ function Game({
   onPick,
   onPass,
   onNewGame,
+  aiDiffForSeat,
+  onHelp,
 }: GameProps) {
   const activeDrafter: Player | undefined =
     state.phase === 'draft'
@@ -634,6 +647,9 @@ function Game({
           >
             {muted ? '🔇' : '🔊'}
           </button>
+          <button className="toggle3d" onClick={onHelp} aria-label="Hilfe / Tutorial">
+            ❔
+          </button>
           {musicAvailable && (
             <button
               className="toggle3d"
@@ -684,6 +700,7 @@ function Game({
             selectedDieIds={state.phase === 'swap' ? selectedClear : undefined}
             onToggleClear={state.phase === 'swap' && !p.isAI ? onToggleClear : undefined}
             revealed={diceRevealed}
+            aiBadge={p.isAI ? DIFFICULTY_LABELS[aiDiffForSeat(p.id)] : undefined}
           />
         ))}
       </section>

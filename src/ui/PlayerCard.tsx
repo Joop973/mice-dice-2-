@@ -26,6 +26,10 @@ interface PlayerCardProps {
   onToggleClear?: (dieId: string) => void;
   /** Würfel anzeigen? false = „noch nicht gewürfelt" (vor dem Würfeln-Knopf). */
   revealed?: boolean;
+  /** Mensch im Online-Spiel getrennt (KI/Auto-Play übernimmt) → Hinweis-Badge. */
+  disconnected?: boolean;
+  /** KI-Stärke als Kurztext ("leicht"/"mittel"/"schwer") – nur für KI-Sitze. */
+  aiBadge?: string;
 }
 
 export function PlayerCard({
@@ -37,6 +41,8 @@ export function PlayerCard({
   selectedDieIds,
   onToggleClear,
   revealed = true,
+  disconnected = false,
+  aiBadge,
 }: PlayerCardProps) {
   const { colorblind } = useSettings();
   const className = [
@@ -48,11 +54,7 @@ export function PlayerCard({
     .filter(Boolean)
     .join(' ');
 
-  const avatarState: AvatarState = player.hasCrown
-    ? 'crowned'
-    : warn
-      ? 'sabotaged'
-      : 'idle';
+  const avatarState: AvatarState = player.hasCrown ? 'crowned' : warn ? 'sabotaged' : 'idle';
 
   return (
     <article className={className} data-fly-target={player.id}>
@@ -76,7 +78,21 @@ export function PlayerCard({
               {PLAYER_GLYPHS[playerIndex(player.id) % PLAYER_GLYPHS.length]}
             </span>
           )}
-          {active && <span className="turn-pill" aria-hidden="true">🐾 Am Zug</span>}
+          {aiBadge && player.isAI && (
+            <span className="ai-badge" title={`KI-Stärke: ${aiBadge}`}>
+              {aiBadge}
+            </span>
+          )}
+          {disconnected && (
+            <span className="disc-badge" title="Verbindung getrennt – KI übernimmt">
+              getrennt
+            </span>
+          )}
+          {active && (
+            <span className="turn-pill" aria-hidden="true">
+              🐾 Am Zug
+            </span>
+          )}
         </span>
         <span className="player__score">
           <AnimatedNumber value={player.totalScore} />

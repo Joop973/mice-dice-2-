@@ -17,18 +17,14 @@ const ORDER: (keyof ScoreContributions)[] = [
   'brown',
 ];
 
-export function RoundSummary({
-  scores,
-  players,
-}: {
-  scores: ScoreBreakdown[];
-  players: Player[];
-}) {
+export function RoundSummary({ scores, players }: { scores: ScoreBreakdown[]; players: Player[] }) {
   const nameById = new Map(players.map((p) => [p.id, p.name]));
 
   return (
-    <section className="panel summary">
-      <h2>Rundenauswertung</h2>
+    <details className="panel summary" open>
+      <summary className="summary__toggle">
+        <h2>Rundenauswertung</h2>
+      </summary>
       <ul className="summary__list">
         {scores.map((s) => {
           const parts = ORDER.filter((c) => s.contributions[c] !== 0);
@@ -68,6 +64,6 @@ export function RoundSummary({
           );
         })}
       </ul>
-    </section>
+    </details>
   );
 }

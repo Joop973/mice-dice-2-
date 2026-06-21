@@ -11,7 +11,12 @@
   --wood: #6b4a2e;
   --wood-light: #8a6038;
   --wood-dark: #3a2a1d;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
 }
 
 * {
@@ -31,7 +36,12 @@ body {
   padding: env(safe-area-inset-top) 16px 32px;
   /* Das Spielbrett: grüner Filz mit Holzschienen seitlich */
   min-height: 100vh;
-  background: radial-gradient(ellipse at center top, var(--felt) 0%, var(--felt-mid) 62%, var(--felt-edge) 100%);
+  background: radial-gradient(
+    ellipse at center top,
+    var(--felt) 0%,
+    var(--felt-mid) 62%,
+    var(--felt-edge) 100%
+  );
   border-left: 8px solid var(--wood-dark);
   border-right: 8px solid var(--wood-dark);
   box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.45);
@@ -83,7 +93,9 @@ body {
   border: 2px solid var(--wood-dark);
   border-radius: 14px;
   padding: 12px 14px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 10px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .player__head {
@@ -202,17 +214,25 @@ body {
 }
 
 .die--pity {
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px #5fbf6a;
-  animation: die-roll-in 320ms ease-out both, pity-shimmer 1.8s ease-in-out 320ms infinite;
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.2),
+    0 0 0 2px #5fbf6a;
+  animation:
+    die-roll-in 320ms ease-out both,
+    pity-shimmer 1.8s ease-in-out 320ms infinite;
 }
 
 @keyframes pity-shimmer {
   0%,
   100% {
-    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px #5fbf6a;
+    box-shadow:
+      inset 0 -3px 0 rgba(0, 0, 0, 0.2),
+      0 0 0 2px #5fbf6a;
   }
   50% {
-    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2), 0 0 9px 2px #5fbf6a;
+    box-shadow:
+      inset 0 -3px 0 rgba(0, 0, 0, 0.2),
+      0 0 9px 2px #5fbf6a;
   }
 }
 
@@ -245,8 +265,11 @@ body {
 .player--active {
   outline: 3px solid var(--accent);
   outline-offset: 1px;
-  box-shadow: 0 0 0 1px var(--accent), 0 0 18px rgba(244, 197, 66, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 10px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 18px rgba(244, 197, 66, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .standings {
@@ -313,7 +336,9 @@ body {
   border-radius: 14px;
   padding: 14px;
   margin-top: 16px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 10px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
 .panel h2 {
@@ -348,15 +373,21 @@ button {
   font-size: 1rem;
   cursor: pointer;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    inset 0 -4px 0 rgba(0, 0, 0, 0.28), 0 3px 6px rgba(0, 0, 0, 0.4);
-  transition: transform 100ms ease, box-shadow 100ms ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.28),
+    0 3px 6px rgba(0, 0, 0, 0.4);
+  transition:
+    transform 100ms ease,
+    box-shadow 100ms ease;
 }
 
 button:not(:disabled):active {
   transform: translateY(2px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
+    0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 button:disabled {
@@ -425,12 +456,42 @@ button.ghost {
 }
 
 /* Rundenauswertung */
+.summary__toggle {
+  cursor: pointer;
+  list-style: none; /* eigenes Dreieck statt Standard-Marker */
+}
+.summary__toggle::-webkit-details-marker {
+  display: none;
+}
+.summary__toggle h2 {
+  display: inline;
+}
+.summary__toggle::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--accent);
+  transition: transform 0.15s ease;
+}
+.summary[open] .summary__toggle::before {
+  transform: rotate(90deg);
+}
+
 .summary__list {
   list-style: none;
-  margin: 0;
+  margin: 12px 0 0;
   padding: 0;
   display: grid;
   gap: 12px;
+}
+
+/* Auf schmalen Schirmen die Auswertung scrollbar halten, damit Draft-Tisch und
+   Aktionsknöpfe ohne langes Scrollen erreichbar bleiben. */
+@media (max-width: 640px) {
+  .summary[open] .summary__list {
+    max-height: 38vh;
+    overflow-y: auto;
+  }
 }
 
 .summary__row {
@@ -504,7 +565,9 @@ button.ghost {
   border-radius: 26px;
   padding: 18px 16px 16px;
   text-align: center;
-  box-shadow: inset 0 0 42px rgba(0, 0, 0, 0.45), 0 6px 18px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 0 42px rgba(0, 0, 0, 0.45),
+    0 6px 18px rgba(0, 0, 0, 0.4);
 }
 
 .table__prompt {
@@ -547,7 +610,9 @@ button.ghost {
   color: #1c1410;
   font: inherit;
   cursor: pointer;
-  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.22), 0 3px 6px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 -4px 0 rgba(0, 0, 0, 0.22),
+    0 3px 6px rgba(0, 0, 0, 0.4);
   animation: deal-in 360ms ease-out both;
   animation-delay: calc(var(--n, 0) * 70ms);
   transition: transform 120ms ease;
@@ -973,6 +1038,35 @@ button.ghost {
   animation: turn-pulse 1.1s ease-in-out infinite;
 }
 
+/* KI-Stärke-Badge auf der Spielerkarte (dezent, neben dem Namen) */
+.ai-badge {
+  margin-left: 6px;
+  background: #2a2118;
+  border: 1px solid #4a3d33;
+  color: #c9bca8;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* „getrennt"-Badge: getrennter Mensch im Online-Spiel (KI übernimmt) */
+.disc-badge {
+  margin-left: 6px;
+  background: #3a2420;
+  border: 1px solid #6b3a2f;
+  color: #ff8a7a;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 @keyframes turn-pulse {
   0%,
   100% {
@@ -1013,7 +1107,9 @@ button.ghost {
   font-size: 0.8rem;
   opacity: 0.55;
   filter: grayscale(0.6);
-  transition: transform 200ms ease, opacity 200ms ease;
+  transition:
+    transform 200ms ease,
+    opacity 200ms ease;
 }
 
 .phasetrack__step.is-done {
@@ -1399,7 +1495,9 @@ button.ghost {
   animation-delay: 0.3s;
 }
 @keyframes thinking-bounce {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     opacity: 0.35;
     transform: translateY(0);
   }
@@ -1414,13 +1512,18 @@ button.ghost {
   animation: advance-glow 1.4s ease-in-out infinite;
 }
 @keyframes advance-glow {
-  0%, 100% {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25),
-      inset 0 -4px 0 rgba(0, 0, 0, 0.28), 0 3px 6px rgba(0, 0, 0, 0.4);
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -4px 0 rgba(0, 0, 0, 0.28),
+      0 3px 6px rgba(0, 0, 0, 0.4);
   }
   50% {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25),
-      inset 0 -4px 0 rgba(0, 0, 0, 0.28), 0 0 14px 2px rgba(244, 197, 66, 0.55);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -4px 0 rgba(0, 0, 0, 0.28),
+      0 0 14px 2px rgba(244, 197, 66, 0.55);
   }
 }
 
