@@ -13,10 +13,10 @@ afterEach(() => {
 describe('App-Menü', () => {
   it('öffnet die Spielregeln und kehrt zurück', () => {
     render(<App />);
-    fireEvent.click(screen.getByText('📖 Spielregeln'));
+    fireEvent.click(screen.getByText('Spielregeln'));
     expect(screen.getByText('Würfel & Wertung')).toBeTruthy();
     fireEvent.click(screen.getByText('← Zurück'));
-    expect(screen.getByText('🎲 Solo / Pass-and-Play')).toBeTruthy();
+    expect(screen.getByText('Solo / Pass-and-Play')).toBeTruthy();
   });
 
   it('zeigt „Fortsetzen" nur, wenn eine Partie gespeichert ist', () => {

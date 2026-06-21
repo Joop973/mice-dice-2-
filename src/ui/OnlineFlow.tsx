@@ -18,6 +18,7 @@ import { useSound } from '../sound';
 import { DIE_COLORS, DIE_LABELS } from './colors';
 import { PHASE_LABEL } from './phaseLabels';
 import { Counter } from './Counter';
+import { PixelIcon } from './PixelIcon';
 
 const ENV_SERVER_URL: string =
   (import.meta.env as Record<string, string | undefined>).VITE_SERVER_URL ?? '';
@@ -57,7 +58,9 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Dice Mice · Online</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice · Online
+        </h1>
         <p className="hint">
           {isLocal
             ? 'Kein Server angegeben → lokal simuliert (Solo gegen KI über den Online-Pfad).'
@@ -173,7 +176,9 @@ function Lobby({ client, onBack }: { client: GameClient; onBack: () => void }) {
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Lobby</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Lobby
+        </h1>
         <p className="hint">
           Raumcode: <strong className="code">{client.code}</strong>
           {' · '}teile ihn zum Beitreten.
@@ -185,9 +190,18 @@ function Lobby({ client, onBack }: { client: GameClient; onBack: () => void }) {
         <ul className="standings">
           {client.seats.map((s) => (
             <li key={s.id}>
-              {s.isHost ? '⭐ ' : ''}
+              {s.isHost && (
+                <>
+                  <PixelIcon name="star" title="Host" />{' '}
+                </>
+              )}
               {s.name}
-              {s.isAI ? ' 🤖' : ''}
+              {s.isAI && (
+                <>
+                  {' '}
+                  <PixelIcon name="ai" title="KI-Gegner" />
+                </>
+              )}
               {s.id === client.you ? ' (du)' : ''}
               {!s.connected ? ' – getrennt' : ''}
             </li>
@@ -261,10 +275,14 @@ function OnlineGame({
           ))}
         </div>
         <header className="app__header">
-          <h1>🧀 Dice Mice</h1>
+          <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
+        </h1>
         </header>
         <section className="panel panel--win">
-          <h2>Partie beendet 🎉</h2>
+          <h2>
+            Partie beendet <PixelIcon name="trophy" size={22} title="" />
+          </h2>
           <p>
             Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
           </p>
@@ -306,7 +324,9 @@ function OnlineGame({
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Dice Mice</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
+        </h1>
         <div className="app__meta">
           <span>
             Runde {state.round} / {state.config.totalRounds}
@@ -379,7 +399,12 @@ function OnlineGame({
                 onClick={() => client.sendAction({ type: 'draftPick', offerId: o.id })}
               >
                 {DIE_LABELS[o.die.color]} W{o.die.sides}
-                {o.die.variant === 'glitter' ? ' ✨' : ''}
+                {o.die.variant === 'glitter' && (
+                  <>
+                    {' '}
+                    <PixelIcon name="sparkle" title="Glitzer" />
+                  </>
+                )}
               </button>
             ))}
           </div>

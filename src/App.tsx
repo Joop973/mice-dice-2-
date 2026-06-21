@@ -32,6 +32,7 @@ import { useSound } from './sound';
 import { DIE_COLORS, DIE_LABELS } from './ui/colors';
 import { PHASE_LABEL, PHASE_HINT } from './ui/phaseLabels';
 import { Counter } from './ui/Counter';
+import { PixelIcon } from './ui/PixelIcon';
 
 const AI_STEP_DELAY_MS = 400;
 
@@ -230,28 +231,36 @@ function Menu({
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Dice Mice</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
+        </h1>
         <p className="hint">Würfelspiel mit Mäuse-Thema</p>
       </header>
       <section className="panel">
         {onResume && (
           <>
-            <button onClick={onResume}>▶️ Partie fortsetzen (Runde {resumeRound})</button>
+            <button onClick={onResume}>
+              <PixelIcon name="play" title="" /> Partie fortsetzen (Runde {resumeRound})
+            </button>
             <p className="muted" style={{ margin: '10px 0 18px' }}>
               Deine zuletzt gespeicherte lokale Partie.
             </p>
           </>
         )}
-        <button onClick={onLocal}>🎲 Solo / Pass-and-Play</button>
+        <button onClick={onLocal}>
+          <PixelIcon name="dice" title="" /> Solo / Pass-and-Play
+        </button>
         <p className="muted" style={{ margin: '10px 0 18px' }}>
           Lokal an einem Gerät – allein gegen die KI oder reihum.
         </p>
-        <button onClick={onOnline}>🌐 Online spielen</button>
+        <button onClick={onOnline}>
+          <PixelIcon name="globe" title="" /> Online spielen
+        </button>
         <p className="muted" style={{ margin: '10px 0 18px' }}>
           Raum erstellen und Code teilen. Ohne Server lokal simuliert.
         </p>
         <button className="ghost" onClick={onRules}>
-          📖 Spielregeln
+          <PixelIcon name="book" title="" /> Spielregeln
         </button>
       </section>
     </div>
@@ -285,7 +294,9 @@ function Setup({
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Dice Mice</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
+        </h1>
         <p className="hint">Neue Partie einrichten</p>
       </header>
 
@@ -377,10 +388,14 @@ function Game({
           ))}
         </div>
         <header className="app__header">
-          <h1>🧀 Dice Mice</h1>
+          <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
+        </h1>
         </header>
         <section className="panel panel--win">
-          <h2>Partie beendet 🎉</h2>
+          <h2>
+            Partie beendet <PixelIcon name="trophy" size={22} title="" />
+          </h2>
           <p>
             Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
           </p>
@@ -402,7 +417,9 @@ function Game({
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Dice Mice</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
+        </h1>
         <div className="app__meta">
           <span>
             Runde {state.round} / {state.config.totalRounds}
@@ -417,7 +434,7 @@ function Game({
             aria-label={muted ? 'Ton einschalten' : 'Ton ausschalten'}
             aria-pressed={muted}
           >
-            {muted ? '🔇' : '🔊'}
+            <PixelIcon name={muted ? 'soundOff' : 'soundOn'} title={muted ? 'Ton aus' : 'Ton an'} />
           </button>
         </div>
       </header>
@@ -485,7 +502,12 @@ function Game({
                 onClick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
               >
                 {DIE_LABELS[o.die.color]} W{o.die.sides}
-                {o.die.variant === 'glitter' ? ' ✨' : ''}
+                {o.die.variant === 'glitter' && (
+                  <>
+                    {' '}
+                    <PixelIcon name="sparkle" title="Glitzer" />
+                  </>
+                )}
               </button>
             ))}
           </div>

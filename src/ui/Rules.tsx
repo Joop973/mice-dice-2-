@@ -3,6 +3,7 @@
 
 import type { DieColor } from '../engine';
 import { DIE_COLORS, DIE_LABELS } from './colors';
+import { PixelIcon } from './PixelIcon';
 
 const PHASES: { title: string; text: string }[] = [
   { title: '1 · Würfeln', text: 'Alle Mäuse werfen ihren kompletten Würfelbeutel.' },
@@ -21,7 +22,7 @@ const PHASES: { title: string; text: string }[] = [
 ];
 
 const CATALOG: { color: DieColor; dice: string; scoring: string }[] = [
-  { color: 'yellow', dice: 'W6, W8', scoring: 'Summe. Höchste Gelb-Summe trägt die 👑 Käse-Krone (Rundenbonus + Endspiel-Bonus).' },
+  { color: 'yellow', dice: 'W6, W8', scoring: 'Summe. Höchste Gelb-Summe trägt die Käse-Krone (Rundenbonus + Endspiel-Bonus).' },
   { color: 'green', dice: 'W20', scoring: 'Summe.' },
   { color: 'blue', dice: 'W6/8/12 (+ Glitzer)', scoring: 'Summe. Blau + Blau-Glitzer zählen für Orange als eine Farbe.' },
   { color: 'purple', dice: 'W8, W12', scoring: 'Summe.' },
@@ -37,7 +38,9 @@ export function Rules({ onBack }: { onBack: () => void }) {
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Spielregeln</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Spielregeln
+        </h1>
         <p className="hint">Würfle clever, sammle Käse, schnapp dir die Krone.</p>
       </header>
 

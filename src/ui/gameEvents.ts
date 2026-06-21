@@ -80,7 +80,7 @@ export function detectEvents(prev: Snapshot, cur: Snapshot): DetectedEvents {
   let banner: string | null = null;
 
   if (justFinished) {
-    banner = 'Sieger! 🎉';
+    banner = 'Sieger!';
     sounds.push('win');
   } else if (crownedNow.size > 0) {
     sounds.push('crown');

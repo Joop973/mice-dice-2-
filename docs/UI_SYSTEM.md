@@ -137,11 +137,17 @@ Die Würfel sind der einzige bewusste Stilbruch — sauber aufgelöst:
 
 ---
 
-## 8. Emoji-Ersatz (Pixel-Assets) — am Ist-Stand korrigiert (Phase 1)
+## 8. Emoji-Ersatz (Pixel-Assets) — UMGESETZT (Phase 7c)
 
-Die folgende Tabelle listet die **real im Code vorhandenen** Emojis (Stand Phase 1)
-mit Fundstellen. `🐾` (Am-Zug), `🎵` (Musik) und `🏆` (Podium) aus früheren Entwürfen
-kommen im Code **nicht** vor und wurden entfernt.
+**Status:** Alle UI-Emojis sind durch das Pixel-Art-Icon-System `src/ui/PixelIcon.tsx`
+ersetzt (16×16-Raster, `shape-rendering: crispEdges`, Farben aus der Palette §4).
+Krone/KI laufen über `PixelIcon name="crown"|"ai"`. **Format-Entscheidung:** Inline-
+**SVG mit crispEdges** statt PNG — scharf, integer-skalierbar, kein Build-Schritt, keine
+Binärdateien (LEITFADEN §9 nennt „SVG bevorzugt"; weicht bewusst von der PNG-Notiz in
+`claude.md` ab → Code gewinnt). Avatare (6 Mäuse) als eigene Pixel-Grafik stehen noch
+aus (Feature, kein Emoji — siehe `ASSET_AUDIT.md`).
+
+Die folgende Tabelle dokumentiert die ersetzten Emojis und das Ziel-Icon:
 
 | Bisher | Neu (Pixel-Asset) | Fundstellen |
 |---|---|---|

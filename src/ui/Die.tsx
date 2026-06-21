@@ -16,7 +16,7 @@ interface DieProps {
 
 export function Die({ die, selected, pity, onClick }: DieProps) {
   const label = `${DIE_LABELS[die.color]} W${die.sides}${
-    die.variant === 'glitter' ? ' ✨' : ''
+    die.variant === 'glitter' ? ' Glitzer' : ''
   }`;
   const className = [
     'die',

@@ -4,6 +4,7 @@
 import type { Player } from '../engine';
 import { DiceView } from './DiceView';
 import { AnimatedNumber } from './AnimatedNumber';
+import { PixelIcon } from './PixelIcon';
 
 interface PlayerCardProps {
   player: Player;
@@ -43,9 +44,18 @@ export function PlayerCard({
     <article className={className}>
       <header className="player__head">
         <span className="player__name">
-          {player.hasCrown ? '👑 ' : ''}
+          {player.hasCrown && (
+            <>
+              <PixelIcon name="crown" title="Käse-Krone" />{' '}
+            </>
+          )}
           {player.name}
-          {player.isAI ? ' 🤖' : ''}
+          {player.isAI && (
+            <>
+              {' '}
+              <PixelIcon name="ai" title="KI-Gegner" />
+            </>
+          )}
         </span>
         <span className="player__score">
           <AnimatedNumber value={player.totalScore} />
