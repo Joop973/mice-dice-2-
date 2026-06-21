@@ -4,17 +4,9 @@
 // einzeln gezeichneter Würfelseiten. Texturen werden pro (Wert+Farbe) gecacht.
 
 import * as THREE from 'three';
+import { THEME, luminance } from '../theme';
 
 const cache = new Map<string, THREE.CanvasTexture>();
-
-/** Relative Luminanz einer Hex-Farbe (#rrggbb) für die Kontrastwahl. */
-function luminance(hex: string): number {
-  const c = hex.replace('#', '');
-  const r = parseInt(c.slice(0, 2), 16) / 255;
-  const g = parseInt(c.slice(2, 4), 16) / 255;
-  const b = parseInt(c.slice(4, 6), 16) / 255;
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
 
 export function dieTexture(value: number, bg: string): THREE.CanvasTexture {
   const key = `${value}|${bg}`;
@@ -34,7 +26,7 @@ export function dieTexture(value: number, bg: string): THREE.CanvasTexture {
   ctx.strokeRect(6, 6, size - 12, size - 12);
 
   // Kontrastreiche Zahlenfarbe je nach Hintergrund.
-  ctx.fillStyle = luminance(bg) > 0.5 ? '#1c1410' : '#f6efe6';
+  ctx.fillStyle = luminance(bg) > 0.5 ? THEME.wood900 : THEME.cream100;
   ctx.font = 'bold 74px system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';

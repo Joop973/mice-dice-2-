@@ -7,6 +7,7 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { RolledDie } from '../../engine';
 import { DIE_COLORS } from '../colors';
+import { THEME } from '../theme';
 import { dieTexture } from './dieTexture';
 
 interface Die3DProps {
@@ -17,9 +18,9 @@ interface Die3DProps {
   onClick?: () => void;
 }
 
-const ACCENT = new THREE.Color('#f4c542');
-const PITY = new THREE.Color('#5fbf6a');
-const BLACK = new THREE.Color('#000000');
+const ACCENT = new THREE.Color(THEME.cheese500);
+const PITY = new THREE.Color(THEME.good500);
+const BLACK = new THREE.Color(THEME.black);
 
 export function Die3D({ die, position, selected, pity, onClick }: Die3DProps) {
   const group = useRef<THREE.Group>(null);
