@@ -1,9 +1,49 @@
 :root {
   color-scheme: dark;
-  --bg: #1c1410;
-  --panel: #2a211b;
-  --accent: #f4c542;
-  --text: #f6efe6;
+
+  /* --- Palette (Single Source) — siehe docs/UI_SYSTEM.md §4 ----------------
+   * Holz ist Hauptmaterial (Tisch/Rahmen/Karten); "felt" = Tischtuch/Platzset.
+   * Komponenten nutzen ausschließlich diese Variablen, keine Hex-Literale. */
+
+  /* Holz */
+  --wood-900: #1c1410;
+  --wood-800: #2a211b;
+  --wood-700: #4a3d33;
+  --wood-600: #8a6240;
+
+  /* Tischtuch / Filz */
+  --felt-700: #3a3f47;
+
+  /* Käse / Akzent */
+  --cheese-500: #f4c542;
+
+  /* Neutral / Text */
+  --cream-100: #f6efe6;
+  --tan-200: #e8ddcd;
+  --tan-300: #cbbfae;
+  --tan-400: #9c8e7d;
+  --tan-500: #7d7164;
+
+  /* Semantik */
+  --good-500: #5fbf6a;
+  --bad-500: #c0392b;
+  --bad-300: #ff8a7a;
+  --bad-200: #ff9a8a;
+  --cool-300: #b9c0c9;
+
+  /* Konfetti-Akzente */
+  --confetti-pink: #e0568a;
+  --confetti-blue: #5aa9e6;
+
+  /* Glow/Schatten (Akzent als RGB für rgba()) */
+  --accent-rgb: 244, 197, 66;
+
+  /* Aliase (Rückwärtskompatibilität / sprechende Rollen) */
+  --bg: var(--wood-900);
+  --panel: var(--wood-800);
+  --accent: var(--cheese-500);
+  --text: var(--cream-100);
+
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -39,12 +79,12 @@ body {
   display: flex;
   gap: 12px;
   align-items: center;
-  color: #cbbfae;
+  color: var(--tan-300);
 }
 
 .badge {
   background: var(--accent);
-  color: #1c1410;
+  color: var(--wood-900);
   border-radius: 999px;
   padding: 2px 12px;
   font-weight: 600;
@@ -74,7 +114,7 @@ body {
 }
 
 .player__score em {
-  color: #cbbfae;
+  color: var(--tan-300);
   font-style: normal;
 }
 
@@ -99,7 +139,7 @@ body {
 .toggle3d {
   background: transparent;
   color: var(--text);
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-700);
   border-radius: 999px;
   padding: 2px 12px;
   font-size: 0.8rem;
@@ -112,7 +152,7 @@ body {
   border-radius: 10px;
   display: grid;
   place-items: center;
-  color: #1c1410;
+  color: var(--wood-900);
   font-weight: 700;
   box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
 }
@@ -134,7 +174,7 @@ body {
 }
 
 .die--pity {
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px #5fbf6a;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px var(--good-500);
 }
 
 .die__tag {
@@ -142,8 +182,8 @@ body {
   bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
-  background: #5fbf6a;
-  color: #1c1410;
+  background: var(--good-500);
+  color: var(--wood-900);
   font-size: 0.55rem;
   font-weight: 700;
   padding: 1px 5px;
@@ -153,12 +193,12 @@ body {
 
 .dice__empty,
 .muted {
-  color: #9c8e7d;
+  color: var(--tan-400);
   font-size: 0.9rem;
 }
 
 .hint {
-  color: #cbbfae;
+  color: var(--tan-300);
   margin: 0 0 12px;
 }
 
@@ -212,14 +252,14 @@ body {
 .seg__btn {
   background: transparent;
   color: var(--text);
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-700);
   padding: 8px 12px;
   font-size: 0.9rem;
 }
 
 .seg__btn--on {
   background: var(--accent);
-  color: #1c1410;
+  color: var(--wood-900);
   border-color: var(--accent);
 }
 
@@ -253,7 +293,7 @@ body {
 
 button {
   background: var(--accent);
-  color: #1c1410;
+  color: var(--wood-900);
   border: none;
   border-radius: 10px;
   padding: 12px 18px;
@@ -270,12 +310,12 @@ button:disabled {
 button.ghost {
   background: transparent;
   color: var(--text);
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-700);
 }
 
 .log {
   margin-top: 24px;
-  color: #cbbfae;
+  color: var(--tan-300);
   font-size: 0.9rem;
 }
 
@@ -286,9 +326,9 @@ button.ghost {
 
 /* Online-Modus: Formulare, Codes, Fehlertexte */
 .input {
-  background: #1c1410;
+  background: var(--wood-900);
   color: var(--text);
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-700);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 1rem;
@@ -298,20 +338,20 @@ button.ghost {
 }
 
 .input::placeholder {
-  color: #7d7164;
+  color: var(--tan-500);
 }
 
 .code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 2px;
-  background: #1c1410;
-  border: 1px solid #4a3d33;
+  background: var(--wood-900);
+  border: 1px solid var(--wood-700);
   border-radius: 8px;
   padding: 1px 8px;
 }
 
 .error {
-  color: #ff8a7a;
+  color: var(--bad-300);
   font-size: 0.9rem;
   margin: 10px 0 0;
 }
@@ -326,7 +366,7 @@ button.ghost {
 }
 
 .summary__row {
-  border-top: 1px solid #4a3d33;
+  border-top: 1px solid var(--wood-700);
   padding-top: 10px;
 }
 
@@ -351,7 +391,7 @@ button.ghost {
 }
 
 .summary__final.neg {
-  color: #ff8a7a;
+  color: var(--bad-300);
 }
 
 .summary__chips {
@@ -361,23 +401,23 @@ button.ghost {
 }
 
 .chip {
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-700);
   border-left-width: 4px;
   border-radius: 6px;
   padding: 2px 8px;
   font-size: 0.8rem;
-  color: #e8ddcd;
-  background: #1c1410;
+  color: var(--tan-200);
+  background: var(--wood-900);
 }
 
 .chip--bad {
-  border-color: #c0392b;
-  color: #ff9a8a;
+  border-color: var(--bad-500);
+  color: var(--bad-200);
 }
 
 .chip--throw {
-  border-color: #3a3f47;
-  color: #b9c0c9;
+  border-color: var(--felt-700);
+  color: var(--cool-300);
 }
 
 .chip--crown {
@@ -389,7 +429,7 @@ button.ghost {
 .rules__p {
   margin: 0;
   line-height: 1.5;
-  color: #e8ddcd;
+  color: var(--tan-200);
 }
 
 .rules__phases {
@@ -405,7 +445,7 @@ button.ghost {
 }
 
 .rules__phase-text {
-  color: #cbbfae;
+  color: var(--tan-300);
   font-size: 0.92rem;
 }
 
@@ -438,7 +478,7 @@ button.ghost {
 }
 
 .rules__die-scoring {
-  color: #cbbfae;
+  color: var(--tan-300);
   font-size: 0.92rem;
 }
 
@@ -468,10 +508,10 @@ button.ghost {
 /* Kronenwechsel: goldener Puls auf der Spielerkarte. */
 @keyframes crown-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(244, 197, 66, 0.6);
+    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.6);
   }
   100% {
-    box-shadow: 0 0 0 14px rgba(244, 197, 66, 0);
+    box-shadow: 0 0 0 14px rgba(var(--accent-rgb), 0);
   }
 }
 
@@ -503,7 +543,7 @@ button.ghost {
 
 .player--warn {
   animation: warn-shake 600ms ease-in-out both;
-  box-shadow: 0 0 0 2px #c0392b inset;
+  box-shadow: 0 0 0 2px var(--bad-500) inset;
 }
 
 /* Runden-/Sieger-Banner: blendet kurz mittig ein. */
@@ -532,7 +572,7 @@ button.ghost {
 
 .banner span {
   background: var(--accent);
-  color: #1c1410;
+  color: var(--wood-900);
   font-weight: 800;
   font-size: 1.1rem;
   padding: 8px 22px;
@@ -589,13 +629,13 @@ button.ghost {
 }
 
 .confetti span:nth-child(3n) {
-  background: #5fbf6a;
+  background: var(--good-500);
 }
 .confetti span:nth-child(3n + 1) {
-  background: #e0568a;
+  background: var(--confetti-pink);
 }
 .confetti span:nth-child(4n) {
-  background: #5aa9e6;
+  background: var(--confetti-blue);
 }
 
 /* Bewegungsreduzierung respektieren: keine dekorativen Animationen. */
@@ -609,3 +649,4 @@ button.ghost {
     animation: none;
   }
 }
+</content>
