@@ -5,6 +5,7 @@
 
 import * as THREE from 'three';
 import { THEME, luminance } from '../theme';
+import { pipsFor } from '../dicePips';
 
 const cache = new Map<string, THREE.CanvasTexture>();
 
@@ -25,12 +26,27 @@ export function dieTexture(value: number, bg: string): THREE.CanvasTexture {
   ctx.lineWidth = 8;
   ctx.strokeRect(6, 6, size - 12, size - 12);
 
-  // Kontrastreiche Zahlenfarbe je nach Hintergrund.
-  ctx.fillStyle = luminance(bg) > 0.5 ? THEME.wood900 : THEME.cream100;
-  ctx.font = 'bold 74px system-ui, -apple-system, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(String(value), size / 2, size / 2 + 4);
+  // Kontrastfarbe je nach Hintergrund.
+  const fg = luminance(bg) > 0.5 ? THEME.wood900 : THEME.cream100;
+  ctx.fillStyle = fg;
+
+  const pips = pipsFor(value);
+  if (pips) {
+    // Pixel-Augen im 3x3-Raster (quadratische Pips → scharfer Würfel-Look).
+    const step = size / 4; // Raster bei 32/64/96
+    const r = Math.round(size * 0.09);
+    for (const i of pips) {
+      const cx = Math.round((1 + (i % 3)) * step);
+      const cy = Math.round((1 + Math.floor(i / 3)) * step);
+      ctx.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+    }
+  } else {
+    // Höhere Werte (W12/W20): Zahl als Fallback.
+    ctx.font = 'bold 74px system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(value), size / 2, size / 2 + 4);
+  }
 
   const tex = new THREE.CanvasTexture(canvas);
   // Pixel-Look: harte Kanten statt Weichzeichnen (Nearest, keine Mipmaps).
