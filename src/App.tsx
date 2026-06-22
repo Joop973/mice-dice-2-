@@ -28,6 +28,7 @@ import { DIE_COLORS, DIE_LABELS } from './ui/colors';
 import { PHASE_LABEL, PHASE_HINT } from './ui/phaseLabels';
 import { Counter } from './ui/Counter';
 import { PixelIcon } from './ui/PixelIcon';
+import { MouseAvatar } from './ui/MouseAvatar';
 import { WinScreen } from './ui/WinScreen';
 import { useClearSelection } from './ui/useClearSelection';
 
@@ -228,7 +229,20 @@ function Menu({
         </h1>
         <p className="hint">Würfelspiel mit Mäuse-Thema</p>
       </header>
-      <section className="panel">
+
+      <div className="hero" aria-hidden="true">
+        <span className="hero__mouse hero__mouse--back">
+          <MouseAvatar colorIndex={2} size={64} />
+        </span>
+        <span className="hero__plate">
+          <MouseAvatar colorIndex={0} size={104} />
+        </span>
+        <span className="hero__mouse hero__mouse--back">
+          <MouseAvatar colorIndex={3} size={64} />
+        </span>
+      </div>
+
+      <section className="panel menu">
         {onResume && (
           <>
             <button onClick={onResume}>
@@ -291,6 +305,14 @@ function Setup({
         </h1>
         <p className="hint">Neue Partie einrichten</p>
       </header>
+
+      <div className="hero hero--small" aria-hidden="true">
+        {Array.from({ length: total }, (_, i) => (
+          <span key={i} className="hero__mouse--back">
+            <MouseAvatar colorIndex={i} size={48} />
+          </span>
+        ))}
+      </div>
 
       <section className="panel">
         <Counter
