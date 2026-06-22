@@ -8,6 +8,7 @@
 
 import type { CSSProperties } from 'react';
 import { playerColor } from './colors';
+import { AVATAR_SRC } from './avatarArt';
 
 // Feste Palette-Farben des Maus-Körpers.
 const FILL: Record<string, string> = {
@@ -54,6 +55,22 @@ interface MouseAvatarProps {
 }
 
 export function MouseAvatar({ colorIndex, size = 28, title, style }: MouseAvatarProps) {
+  // Externe Pixel-Art bevorzugen (public/sprites/), sonst eingebauter SVG-Fallback.
+  const src = AVATAR_SRC[colorIndex];
+  if (src) {
+    return (
+      <img
+        src={src}
+        width={size}
+        height={size}
+        alt={title ?? ''}
+        aria-hidden={title ? undefined : true}
+        className="pixel-sprite"
+        style={{ width: size, height: size, ...style }}
+      />
+    );
+  }
+
   const accent = playerColor(colorIndex);
   const fill: Record<string, string> = { ...FILL, C: accent };
 

@@ -33,13 +33,14 @@ export const DIE_LABELS: Record<DieColor, string> = {
 // Spielerfarben (Ohren-Innenseite + Schal der Maus-Avatare). Single-Source,
 // auf die Pixel-Palette abgestimmt und CVD-tauglich unterscheidbar (Gelb, Blau,
 // Grün, Magenta, Orange, Türkis). Bis zu 6 Spieler werden eindeutig eingefärbt.
+// Reihenfolge passend zu den Schalfarben der Maus-Sprites (public/sprites).
 export const PLAYER_COLORS: readonly string[] = [
-  '#f4c542', // 0 Gelb (Käse)
-  '#5aa9e6', // 1 Blau
-  '#5fbf6a', // 2 Grün
-  '#e0568a', // 3 Magenta
-  '#f0913f', // 4 Orange
-  '#4bb3a6', // 5 Türkis
+  '#d8483a', // 0 Rot
+  '#3f7fd0', // 1 Blau
+  '#4fa64a', // 2 Grün
+  '#8a5bc0', // 3 Lila
+  '#e0832f', // 4 Orange
+  '#3fa890', // 5 Türkis
 ];
 
 /** Farbe eines Spielers anhand seines Index (stabil, wrappt bei >6). */

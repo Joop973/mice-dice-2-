@@ -6,6 +6,7 @@
 // Stil-Anker: warme Küche, Käse/Holz. '.' = transparent.
 
 import type { CSSProperties, ReactElement } from 'react';
+import { ICON_SRC } from './avatarArt';
 
 /** Zeichen -> Palette-Farbe. */
 const C: Record<string, string> = {
@@ -264,6 +265,22 @@ interface PixelIconProps {
 }
 
 export function PixelIcon({ name, size = 16, title, style }: PixelIconProps) {
+  // Externe Pixel-Art bevorzugen (public/sprites/), sonst gerastertes SVG-Icon.
+  const src = ICON_SRC[name];
+  if (src) {
+    return (
+      <img
+        src={src}
+        width={size}
+        height={size}
+        alt={title ?? ''}
+        aria-hidden={title ? undefined : true}
+        className="pixel-sprite"
+        style={{ width: size, height: size, ...style }}
+      />
+    );
+  }
+
   const grid = ICONS[name];
   const cells: ReactElement[] = [];
   for (let y = 0; y < grid.length; y++) {

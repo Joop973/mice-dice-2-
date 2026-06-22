@@ -20,7 +20,25 @@ besteht derzeit **kein** Drittlizenz-Bedarf. Beim ersten externen Asset hier ein
 | `public/icons/favicon.svg` | SVG | Projekt (eigen) |
 | `public/icons/*.png` | aus SVG generiert (`gen:icons`) | Projekt (eigen) |
 
-## Externe Assets
+## Pixel-Art-Sprites (`public/sprites/*.png`)
+
+Quelle: **`art/source-sheet.png`** — ein Pixel-Art-Sheet (1536×1024), das der
+**Projektinhaber bereitgestellt** hat (Upload, 2026-06-22). Die Einzel-Sprites sind
+daraus per `scripts/slice-sprites.mjs` ausgeschnitten und freigestellt
+(Holzhintergrund per Flood-Fill entfernt).
+
+| Datei(en) | Inhalt | Herkunft | Lizenz/Rechte |
+|---|---|---|---|
+| `mouse-0..5.png` | 6 Spieler-Mäuse (Schal in Spielerfarbe) | aus `art/source-sheet.png` | **vom Projektinhaber bereitgestellt** |
+| `mouse-crowned/win/sad.png` | Stimmungs-Mäuse | dito | dito |
+| `crown.png`, `ai.png`, `trophy.png`, `cheese.png`, `music-on/off.png`, `paw.png` | Icons/Objekte | dito | dito |
+
+> ⚠️ **Zu klären vom Projektinhaber:** Ist das Quell-Sheet **selbst erstellt**, **lizenziert
+> gekauft** oder **KI-generiert**? Bitte Herkunft/Lizenz hier präzisieren (bei Drittquelle:
+> URL, Autor, Lizenz, Datum). Solange ungeklärt, gilt: Nutzung nur mit Rechten des
+> Projektinhabers; **keine** Veröffentlichung ohne diese Klärung.
+
+## Externe Assets (Dritte)
 
 | Datei | Quelle (URL) | Autor | Lizenz | Lizenz-Ära/Datum | Download-Datum | Screenshot |
 |---|---|---|---|---|---|---|
