@@ -56,9 +56,9 @@ export function PlayerCard({
             <MouseAvatar colorIndex={colorIndex} size={40} title={`Maus von ${player.name}`} />
           </span>{' '}
           {player.hasCrown && (
-            <>
-              <PixelIcon name="crown" title="Käse-Krone" />{' '}
-            </>
+            <span className="player__crown">
+              <PixelIcon name="crown" title="Käse-Krone" />
+            </span>
           )}
           {player.name}
           {player.isAI && (

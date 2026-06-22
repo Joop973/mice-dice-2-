@@ -703,12 +703,18 @@ button.ghost:active {
 /* Würfel-Eintritt: rollt bei jedem frischen Wurf kurz herein. */
 @keyframes die-roll-in {
   0% {
-    transform: translateY(-8px) rotate(-12deg) scale(0.85);
+    transform: translateY(-16px) rotate(-20deg) scale(0.78);
     opacity: 0;
   }
-  60% {
-    transform: translateY(0) rotate(6deg) scale(1.04);
+  55% {
+    transform: translateY(3px) rotate(9deg) scale(1.1);
     opacity: 1;
+  }
+  72% {
+    transform: translateY(-4px) rotate(-4deg) scale(0.97);
+  }
+  86% {
+    transform: translateY(1px) rotate(2deg) scale(1.02);
   }
   100% {
     transform: translateY(0) rotate(0) scale(1);
@@ -716,7 +722,43 @@ button.ghost:active {
 }
 
 .die {
-  animation: die-roll-in 320ms ease-out both;
+  animation: die-roll-in 460ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+/* Aktive Maus „atmet": sanftes Wippen des Avatars. */
+@keyframes avatar-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.player--active .player__avatar {
+  animation: avatar-bob 1.5s ease-in-out infinite;
+}
+
+/* Käse-Krone hüpft fröhlich. */
+@keyframes crown-hop {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  30% {
+    transform: translateY(-4px) rotate(-8deg);
+  }
+  45% {
+    transform: translateY(0) rotate(5deg);
+  }
+}
+
+.player__crown {
+  display: inline-flex;
+  transform-origin: 50% 100%;
+  animation: crown-hop 1.9s ease-in-out infinite;
 }
 
 /* Kronenwechsel: goldener Puls auf der Spielerkarte. */
@@ -830,26 +872,31 @@ button.ghost:active {
   }
 }
 
+/* Konfetti aus kleinen Käsestücken (Dreieck-Keil mit Löchern). */
 .confetti span {
   position: absolute;
   top: -10vh;
   left: calc(var(--i) * 7%);
-  width: 9px;
+  width: 16px;
   height: 14px;
-  border-radius: 2px;
-  background: var(--accent);
-  animation: confetti-fall 2.4s linear infinite;
+  background:
+    radial-gradient(circle at 32% 50%, rgba(120, 80, 0, 0.45) 0 1.4px, transparent 2px),
+    radial-gradient(circle at 64% 66%, rgba(120, 80, 0, 0.4) 0 1.4px, transparent 2px),
+    linear-gradient(180deg, var(--cheese-300), var(--cheese-500));
+  clip-path: polygon(0% 100%, 100% 100%, 100% 18%);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+  animation: confetti-fall 2.6s linear infinite;
   animation-delay: calc(var(--i) * 140ms);
 }
 
+/* Etwas Farbvielfalt: ein paar dunklere/hellere Käsestücke. */
 .confetti span:nth-child(3n) {
-  background: var(--good-500);
+  background:
+    radial-gradient(circle at 40% 50%, rgba(120, 80, 0, 0.4) 0 1.4px, transparent 2px),
+    linear-gradient(180deg, #f0a93f, #e0883a);
 }
-.confetti span:nth-child(3n + 1) {
-  background: var(--confetti-pink);
-}
-.confetti span:nth-child(4n) {
-  background: var(--confetti-blue);
+.confetti span:nth-child(4n + 1) {
+  background: linear-gradient(180deg, var(--cream-100), var(--tan-200));
 }
 
 /* Bewegungsreduzierung respektieren: keine dekorativen Animationen. */
@@ -859,7 +906,9 @@ button.ghost:active {
   .player--warn,
   .banner span,
   .panel--win,
-  .confetti span {
+  .confetti span,
+  .player--active .player__avatar,
+  .player__crown {
     animation: none;
   }
   /* Kein Press-/Hover-Versatz, wenn Bewegung reduziert ist. */
