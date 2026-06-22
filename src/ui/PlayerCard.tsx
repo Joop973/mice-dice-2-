@@ -1,11 +1,13 @@
 // Spieler-Karte: Kopf (Krone, Name, Punkte) + Würfelreihe (2D oder 3D).
 // In der Swap-Phase sind Klar-Würfel klickbar (Auswahl zum Neu-Würfeln).
 
+import type { CSSProperties } from 'react';
 import type { Player } from '../engine';
 import { DiceView } from './DiceView';
 import { AnimatedNumber } from './AnimatedNumber';
 import { PixelIcon } from './PixelIcon';
 import { MouseAvatar } from './MouseAvatar';
+import { playerColor } from './colors';
 
 interface PlayerCardProps {
   player: Player;
@@ -44,11 +46,15 @@ export function PlayerCard({
     .filter(Boolean)
     .join(' ');
 
+  const style = { '--player': playerColor(colorIndex) } as CSSProperties;
+
   return (
-    <article className={className}>
+    <article className={className} style={style}>
       <header className="player__head">
         <span className="player__name">
-          <MouseAvatar colorIndex={colorIndex} title={`Maus von ${player.name}`} />{' '}
+          <span className="player__avatar">
+            <MouseAvatar colorIndex={colorIndex} size={40} title={`Maus von ${player.name}`} />
+          </span>{' '}
           {player.hasCrown && (
             <>
               <PixelIcon name="crown" title="Käse-Krone" />{' '}

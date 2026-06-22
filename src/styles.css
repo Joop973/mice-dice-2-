@@ -12,7 +12,13 @@
   --wood-600: #8a6240;
 
   /* Tischtuch / Filz */
-  --felt-700: #3a3f47;
+  --felt-700: #3a3f47; /* Slate (Sabotage/Throw-Chips) */
+
+  /* Spieltuch (grünes Filz der Tischfläche) */
+  --cloth-500: #4a8a5d;
+  --cloth-600: #3a6f4a;
+  --cloth-700: #2c5a3c;
+  --cloth-900: #1d3d28;
 
   /* Käse / Akzent (3 Stufen für Bevel: hell oben, dunkel an der Kante) */
   --cheese-300: #f7d873;
@@ -60,8 +66,16 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  min-height: 100vh;
   color: var(--text);
+  /* Warmer Holztisch: Planken-Fugen + feine Maserung + Lichtschein von oben. */
+  background-color: var(--wood-800);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% -10%, rgba(255, 224, 160, 0.12), transparent 60%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0 2px, rgba(0, 0, 0, 0) 2px 124px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, rgba(0, 0, 0, 0) 1px 7px),
+    linear-gradient(180deg, #5a4232, var(--wood-900));
+  background-attachment: fixed;
 }
 
 /* A11y: sichtbarer Gold-Fokusring für Tastatur-Navigation (zentral). */
@@ -73,8 +87,32 @@ body {
 
 .app {
   max-width: 720px;
-  margin: 0 auto;
-  padding: env(safe-area-inset-top) 16px 32px;
+  margin: 18px auto;
+  padding: calc(env(safe-area-inset-top) + 14px) 16px 28px;
+  border-radius: 20px;
+  /* Grünes Spieltuch mit weichem Lichtfleck … */
+  background:
+    radial-gradient(ellipse 80% 50% at 30% 12%, rgba(255, 255, 255, 0.06), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.04) 0 2px, transparent 2px 5px),
+    linear-gradient(165deg, var(--cloth-500), var(--cloth-700));
+  /* … gefasst in einen geschnitzten Holzrahmen mit Tiefe. */
+  box-shadow:
+    0 0 0 8px var(--wood-600),
+    0 0 0 11px var(--wood-900),
+    0 22px 48px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 60px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 640px) {
+  .app {
+    margin: 8px;
+    box-shadow:
+      0 0 0 6px var(--wood-600),
+      0 0 0 8px var(--wood-900),
+      0 14px 30px rgba(0, 0, 0, 0.55),
+      inset 0 0 50px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .app__header {
@@ -86,23 +124,43 @@ body {
 
 .app__header h1 {
   margin: 0;
-  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--cheese-300);
+  /* Geprägte Holzschild-Anmutung. */
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 2px 3px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(244, 197, 66, 0.25);
+}
+
+.app__header .hint {
+  color: var(--cream-100);
+  opacity: 0.85;
 }
 
 .app__meta {
   display: flex;
   gap: 12px;
   align-items: center;
-  color: var(--tan-300);
+  color: var(--cream-100);
 }
 
 .badge {
-  background: var(--accent);
+  background: linear-gradient(var(--cheese-300), var(--cheese-500));
   color: var(--wood-900);
   border-radius: 999px;
-  padding: 2px 12px;
-  font-weight: 600;
+  padding: 3px 13px;
+  font-weight: 700;
   font-size: 0.85rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 0 var(--cheese-700),
+    0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .players {
@@ -111,9 +169,55 @@ body {
 }
 
 .player {
-  background: var(--panel);
+  position: relative;
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 12px 14px 14px;
+  /* Holzkarte mit feiner Maserung … */
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 6px),
+    linear-gradient(180deg, var(--wood-700), var(--wood-800));
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  /* … mit Spielerfarbe als Kopfleiste. */
+  border-top: 4px solid var(--player, var(--accent));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+    0 7px 16px rgba(0, 0, 0, 0.45);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+@media (hover: hover) {
+  .player:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+      0 12px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.player__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Runde Holz-/Filz-Plakette in Spielerfarbe hinter dem Maus-Avatar. */
+.player__avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.25), transparent 60%),
+    var(--player, var(--accent));
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.3),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.35),
+    0 2px 5px rgba(0, 0, 0, 0.4);
 }
 
 .player__head {
@@ -139,9 +243,26 @@ body {
   gap: 8px;
 }
 
+/* Würfel-Ablage: vertiefte Filzschale. */
+.dice,
+.dice3d {
+  border-radius: 12px;
+  padding: 8px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.05), transparent 70%),
+    linear-gradient(180deg, var(--cloth-700), var(--cloth-900));
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+.dice:empty {
+  display: none;
+}
+
 .dice3d {
   width: 100%;
-  height: 96px;
+  height: 104px;
 }
 
 .dice-canvas {
@@ -169,14 +290,25 @@ body {
 }
 
 .die {
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   color: var(--wood-900);
-  font-weight: 700;
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+  font-weight: 800;
+  /* Plastischer Spielstein: Glanzkante oben, Schattenkante unten, Schlagschatten. */
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.26),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.15),
+    0 4px 8px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 120ms ease;
+}
+
+.die--clickable:hover {
+  transform: translateY(-2px) rotate(-2deg);
 }
 
 .die__value {
@@ -222,12 +354,17 @@ body {
 }
 
 .hint {
-  color: var(--tan-300);
+  color: var(--cream-100);
+  opacity: 0.9;
   margin: 0 0 12px;
 }
 
 .player--active {
   outline: 2px solid var(--accent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 3px rgba(244, 197, 66, 0.25),
+    0 12px 26px rgba(0, 0, 0, 0.5);
 }
 
 .standings {
@@ -294,10 +431,18 @@ body {
 }
 
 .panel {
-  background: var(--panel);
+  position: relative;
   border-radius: 14px;
-  padding: 14px;
+  padding: 16px;
   margin-top: 16px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 6px),
+    linear-gradient(180deg, var(--wood-700), var(--wood-800));
+  border: 1px solid rgba(0, 0, 0, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.32),
+    0 8px 18px rgba(0, 0, 0, 0.45);
 }
 
 .panel h2 {
@@ -343,7 +488,15 @@ button {
     0 2px 0 rgba(0, 0, 0, 0.25);
   transition:
     transform 80ms ease,
-    box-shadow 80ms ease;
+    box-shadow 80ms ease,
+    filter 120ms ease;
+}
+
+@media (hover: hover) {
+  button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.06) saturate(1.05);
+  }
 }
 
 button:active {
@@ -708,12 +861,18 @@ button.ghost:active {
   .confetti span {
     animation: none;
   }
-  /* Kein Press-Versatz, wenn Bewegung reduziert ist. */
-  button {
+  /* Kein Press-/Hover-Versatz, wenn Bewegung reduziert ist. */
+  button,
+  .player,
+  .die {
     transition: none;
   }
+  button:hover,
   button:active,
-  button.ghost:active {
+  button.ghost:active,
+  .player:hover,
+  .die--clickable:hover {
     transform: none;
+    filter: none;
   }
 }
