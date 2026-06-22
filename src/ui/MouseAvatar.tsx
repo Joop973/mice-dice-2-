@@ -10,28 +10,37 @@ import type { CSSProperties } from 'react';
 import { playerColor } from './colors';
 
 // Feste Palette-Farben des Maus-Körpers.
-const BODY = '#a8a29a'; // warmes Grau (Fell)
-const LINE = '#5b5048'; // dunkle Kontur (kein reines Schwarz)
-const DARK = '#1c1410'; // Augen / Nase
+const FILL: Record<string, string> = {
+  d: '#5b5048', // dunkle Kontur (kein reines Schwarz)
+  m: '#bcb4aa', // Fell (warmes Hellgrau)
+  l: '#968d83', // Fell-Schatten
+  w: '#f6efe6', // Augen-Glanz / Innenohr-Highlight
+  k: '#1c1410', // Augen
+  p: '#e0568a', // Nase / Bäckchen
+  Y: '#f4c542', // Käse hell
+  y: '#b8902a', // Käse-Kante / Loch
+};
 
-// 16x16-Raster. d=Kontur, m=Fell, k=Augen/Nase, C=Spielerfarbe.
+// 16x16-Raster einer niedlichen, frontalen Maus mit Käsestück.
+// d=Kontur, m=Fell, l=Fellschatten, w=Glanz, k=Augen, p=Nase, C=Spielerfarbe
+// (Ohr-Innenseite), Y/y=Käse.
 const MOUSE: readonly string[] = [
   '................',
-  '..dd......dd....',
-  '..dCd....dCd....',
-  '..dCd....dCd....',
-  '..ddd....ddd....',
-  '....dddddd......',
-  '...dmmmmmmd.....',
+  '.dd........dd...',
+  'dCCd......dCCd..',
+  'dCwd......dwCd..',
+  '.dmddddddddmd...',
   '..dmmmmmmmmd....',
-  '..dmkmmmmkmd....',
+  '.dmmmmmmmmmmd...',
+  '.dmkwmmmmwkmd...',
+  '.dmkkmmmmkkmd...',
+  '.dmmmmppmmmmd...',
+  '.dmmmmllmmmmd...',
   '..dmmmmmmmmd....',
-  '..dmmmmkmmmd....',
-  '...dmmmmmmd.....',
-  '...CCCCCCCC.....',
-  '...CdCCCCdC.....',
-  '...C......C.....',
-  '................',
+  '...dddddddd.....',
+  '.....yYYYy......',
+  '....yYkYYkYy....',
+  '....yYYYYYYy....',
 ];
 
 interface MouseAvatarProps {
@@ -46,7 +55,7 @@ interface MouseAvatarProps {
 
 export function MouseAvatar({ colorIndex, size = 28, title, style }: MouseAvatarProps) {
   const accent = playerColor(colorIndex);
-  const fill: Record<string, string> = { d: LINE, m: BODY, k: DARK, C: accent };
+  const fill: Record<string, string> = { ...FILL, C: accent };
 
   const cells = [];
   for (let y = 0; y < MOUSE.length; y++) {
