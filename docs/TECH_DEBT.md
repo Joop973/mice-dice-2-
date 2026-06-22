@@ -85,7 +85,12 @@ darüber führen. CSS-Media-Query bleibt (CSS-seitig korrekt).
   ESLint flat (`eslint.config.js`) + Prettier (`.prettierrc.json`) eingerichtet,
   Scripts `lint`/`lint:fix`/`format`/`format:check`. `src/engine` und `docs` in
   `.prettierignore` (Engine tabu, Doku-Umbrüche manuell).
-- **Offen:** E2E (Playwright) ist weiterhin nicht eingerichtet.
+- **E2E (Playwright): scaffolded** — `playwright.config.ts`, `e2e/smoke.spec.ts`
+  (Menü→Setup→Würfeln + Regeln), Script `test:e2e`. vitest ist via `test.include` auf
+  `src/**` beschränkt, damit es die `.spec.ts` nicht greift. **Einschränkung:** Die
+  Browser-Binärdateien (`npx playwright install chromium`) sind in dieser Sandbox durch
+  die Netzwerk-Egress-Policy blockiert (`cdn.playwright.dev`); der Lauf gelingt in
+  CI/lokal mit Browser-Zugriff.
 
 ## Nicht-Befunde (Verdacht widerlegt)
 

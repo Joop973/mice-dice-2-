@@ -11,7 +11,10 @@
 - **Three.js + @react-three/fiber** für 3D-Würfel, mit 2D-CSS-Fallback.
 - **WebSocket-Server** (`ws`) in Node für den Online-Modus; `tsx` als Runner.
 - **vitest** + Testing Library (jsdom) für Unit/Component-Tests.
-- **Kein** ESLint/Prettier, **kein** Playwright/E2E im Repo (anders als im Leitfaden behauptet).
+- **ESLint** (flat, `eslint.config.js`) + **Prettier** (`.prettierrc.json`) für
+  Korrektheit/Formatierung; `src/engine` und `docs` sind von Prettier ausgenommen.
+- **Playwright** (`e2e/`, `playwright.config.ts`, Script `test:e2e`) für E2E-Rauchtests
+  (Browser-Binaries müssen mit Netzwerkzugriff einmalig installiert werden).
 
 ## Verzeichnisbild (real)
 
@@ -114,6 +117,9 @@ App.tsx (lokal)            OnlineFlow.tsx (online)
 | Zweck | Kommando |
 |---|---|
 | Unit/Component-Tests | `npm test` (`vitest run`) |
+| E2E (Browser nötig) | `npm run test:e2e` (`playwright test`) |
+| Lint | `npm run lint` (`eslint .`) |
+| Format prüfen / schreiben | `npm run format:check` / `npm run format` |
 | Typecheck (App) | `npm run typecheck` |
 | Typecheck (Server) | `npm run typecheck:server` |
 | Build | `npm run build` |
@@ -122,6 +128,6 @@ App.tsx (lokal)            OnlineFlow.tsx (online)
 | Icons generieren | `npm run gen:icons` |
 | Balance-Simulation | `npm run sim` |
 
-> **Nicht vorhanden:** `test:e2e`, `lint`, `format:check`. Die Definition of Done im
-> Leitfaden setzt dieses Tooling voraus — es fehlt aktuell (siehe TECH_DEBT).
+> **Hinweis:** `lint`/`format:check`/`test:e2e` sind eingerichtet. Der E2E-Lauf
+> braucht installierte Browser-Binaries (in dieser Sandbox blockiert, siehe TECH_DEBT §H).
 </invoke>

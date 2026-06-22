@@ -81,7 +81,8 @@ Vor/nach jeder Änderung (real verfügbar):
 > **Tooling vorhanden:** `eslint.config.js` (flat, recommended + react-hooks,
 > Prettier-kompatibel) und Prettier (`.prettierrc.json`). **`src/engine/` und `docs/`
 > sind in `.prettierignore`** (Engine ist tabu; Doku-Zeilenumbrüche bleiben bewusst
-> manuell). E2E (Playwright) ist weiterhin nicht eingerichtet.
+> manuell). E2E (Playwright) ist scaffolded (`npm run test:e2e`); der Lauf braucht
+> installierte Browser-Binaries (in dieser Sandbox blockiert — CI/lokal ausführen).
 
 ## 8. Assets & Lizenzen
 

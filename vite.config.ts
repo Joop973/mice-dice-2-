@@ -58,5 +58,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // Nur Unit/Component-Tests; Playwright-E2E (e2e/*.spec.ts) laufen getrennt.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 });
