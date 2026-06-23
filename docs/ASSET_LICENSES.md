@@ -38,6 +38,15 @@ daraus per `scripts/slice-sprites.mjs` ausgeschnitten und freigestellt
 > URL, Autor, Lizenz, Datum). Solange ungeklärt, gilt: Nutzung nur mit Rechten des
 > Projektinhabers; **keine** Veröffentlichung ohne diese Klärung.
 
+## Szenen-Grafiken (`public/scenes/*.png`)
+
+| Datei | Inhalt | Herkunft | Lizenz/Rechte |
+|---|---|---|---|
+| `menu.png` | Startbildschirm-Kulisse (Speisekammer mit Mäusen am Tisch) | **vom Projektinhaber als Mockup bereitgestellt** (Upload, 2026-06-23), für Web verkleinert (Breite 720) + PNG-optimiert | **vom Projektinhaber bereitgestellt** |
+
+> ⚠️ **Zu klären (wie beim Sprite-Sheet):** selbst erstellt, lizenziert gekauft oder
+> KI-generiert? Bitte Herkunft/Lizenz hier präzisieren.
+
 ## Externe Assets (Dritte)
 
 | Datei | Quelle (URL) | Autor | Lizenz | Lizenz-Ära/Datum | Download-Datum | Screenshot |

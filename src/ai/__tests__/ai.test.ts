@@ -36,7 +36,7 @@ describe('expectedValue', () => {
 function toDraft(seed: number): { state: GameState; rng: ReturnType<typeof createRNG> } {
   const rng = createRNG(seed);
   let s = performRoll(createGame({ players: [{ name: 'KI', isAI: true }] }), rng);
-  s = advancePhase(advancePhase(advancePhase(s, rng), rng), rng); // -> draft
+  while (s.phase !== 'draft') s = advancePhase(s, rng); // -> draft (Swap ggf. übersprungen)
   return { state: s, rng };
 }
 

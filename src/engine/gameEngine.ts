@@ -76,7 +76,13 @@ function rollPlayer(player: Player, rng: RNG): RolledDie[] {
 
 /** Initialisiert eine neue Partie. Würfelt Runde 1 noch NICHT. */
 export function createGame(opts: CreateGameOptions): GameState {
-  const config: GameConfig = { ...DEFAULT_CONFIG, ...opts.config };
+  const config: GameConfig = {
+    ...DEFAULT_CONFIG,
+    ...opts.config,
+    // Standard-Angebotsgröße: genau Spieleranzahl + 1 Würfel zur Auswahl. Eine
+    // explizit übergebene draftOfferSize (z. B. in Tests) hat Vorrang.
+    draftOfferSize: opts.config?.draftOfferSize ?? opts.players.length + 1,
+  };
   let nextId = 0;
 
   const players: Player[] = opts.players.map((p, idx) => {
@@ -276,10 +282,39 @@ function applyScores(next: GameState, breakdown: ScoreBreakdown[]): void {
   }
 }
 
+/** true, wenn irgendein Spieler in dieser Runde mindestens einen Klar-Würfel geworfen hat. */
+function anyClearRolled(state: GameState): boolean {
+  return state.players.some((p) => p.rolled.some((d) => d.color === 'clear'));
+}
+
+/**
+ * Wertet die Runde aus (Krone, Sabotage), erzeugt das Draft-Angebot und schaltet
+ * in die Draft-Phase. Gemeinsamer Übergang für „swap -> draft" und den Fall, dass
+ * die Swap-Phase mangels Klar-Würfeln übersprungen wird.
+ */
+function scoreAndOpenDraft(state: GameState, rng: RNG): GameState {
+  const next = cloneState(state);
+  const breakdown = scoreRound(
+    next.players,
+    next.config.clearScores,
+    next.config.crownBonusPerRound
+  );
+  applyScores(next, breakdown);
+  next.lastScores = breakdown;
+  const { offers, nextId } = generateDraftOffers(next, rng);
+  next.draftOffers = offers;
+  next.draftedThisPhase = [];
+  next.nextId = nextId;
+  next.phase = 'draft';
+  return next;
+}
+
 /**
  * Schaltet zur nächsten Phase weiter und führt automatische Übergänge aus:
  *  - roll  -> pity:  Mitleidswürfel verteilen
- *  - pity  -> swap:  (nur Phasenwechsel; Tausch passiert interaktiv vorher)
+ *  - pity  -> swap:  (nur Phasenwechsel; Tausch passiert interaktiv vorher).
+ *                    Hat niemand Klar-Würfel, wird die Swap-Phase übersprungen
+ *                    und direkt gewertet (pity -> draft).
  *  - swap  -> draft: Runde werten, Krone setzen, Angebot erzeugen
  *  - draft -> roll:  nächste Runde (oder Partie beendet)
  */
@@ -293,23 +328,12 @@ export function advancePhase(state: GameState, rng: RNG): GameState {
       return { ...withPity, phase: 'pity' };
     }
     case 'pity': {
+      // Keine Klar-Würfel im Spiel? Tausch-Phase überspringen und direkt werten.
+      if (!anyClearRolled(state)) return scoreAndOpenDraft(state, rng);
       return { ...cloneState(state), phase: 'swap' };
     }
     case 'swap': {
-      const next = cloneState(state);
-      const breakdown = scoreRound(
-        next.players,
-        next.config.clearScores,
-        next.config.crownBonusPerRound
-      );
-      applyScores(next, breakdown);
-      next.lastScores = breakdown;
-      const { offers, nextId } = generateDraftOffers(next, rng);
-      next.draftOffers = offers;
-      next.draftedThisPhase = [];
-      next.nextId = nextId;
-      next.phase = 'draft';
-      return next;
+      return scoreAndOpenDraft(state, rng);
     }
     case 'draft': {
       const next = cloneState(state);

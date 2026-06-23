@@ -15,10 +15,10 @@ import { RoundSummary } from './RoundSummary';
 import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
-import { DIE_COLORS, DIE_LABELS } from './colors';
 import { PHASE_LABEL, PHASE_HINT } from './phaseLabels';
 import { Counter } from './Counter';
 import { PixelIcon } from './PixelIcon';
+import { OfferButton } from './OfferButton';
 import { WinScreen } from './WinScreen';
 import { useClearSelection } from './useClearSelection';
 
@@ -363,21 +363,14 @@ function OnlineGame({
           </h2>
           <div className="offers">
             {state.draftOffers.map((o) => (
-              <button
+              <OfferButton
                 key={o.id}
-                className="offer"
-                style={{ borderColor: DIE_COLORS[o.die.color] }}
+                color={o.die.color}
+                sides={o.die.sides}
+                variant={o.die.variant}
                 disabled={!youAreActiveDrafter}
-                onClick={() => client.sendAction({ type: 'draftPick', offerId: o.id })}
-              >
-                {DIE_LABELS[o.die.color]} W{o.die.sides}
-                {o.die.variant === 'glitter' && (
-                  <>
-                    {' '}
-                    <PixelIcon name="sparkle" title="Glitzer" />
-                  </>
-                )}
-              </button>
+                onPick={() => client.sendAction({ type: 'draftPick', offerId: o.id })}
+              />
             ))}
           </div>
           {youAreActiveDrafter && (

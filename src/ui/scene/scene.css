@@ -1,0 +1,398 @@
+/* Bild-basierte Startkulisse + animiertes Spielbrett.
+ * Farben aus der Palette in styles.css. Bewegungen sind dekorativ und bei
+ * prefers-reduced-motion abgeschaltet. */
+
+/* ====================== Startbildschirm (Mockup-Grafik) ================== */
+
+.menu-bg {
+  position: relative;
+  min-height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  background: #2a1d14;
+}
+
+.menu-bg__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  image-rendering: pixelated;
+  z-index: 0;
+  /* Sehr dezentes „Atmen" der Szene für Lebendigkeit. */
+  transform-origin: center 35%;
+}
+
+/* Flackernder Lichtschein über der Laterne (links) der Vorlage. */
+.menu-bg__lantern {
+  position: absolute;
+  left: 7%;
+  top: 30%;
+  width: 26%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 190, 90, 0.45), transparent 68%);
+  mix-blend-mode: screen;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Transparenter Hotspot über der „Play"-Holzscheibe. */
+.menu-bg__play {
+  position: absolute;
+  left: 50%;
+  top: 78%;
+  width: 42%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  z-index: 3;
+  -webkit-tap-highlight-color: transparent;
+}
+.menu-bg__play:active {
+  transform: translate(-50%, -50%) scale(0.96);
+}
+@media (hover: hover) {
+  .menu-bg__play:hover {
+    box-shadow: 0 0 40px rgba(255, 200, 110, 0.55);
+  }
+}
+
+/* Kleine Holz-Chips für die übrigen Aktionen, unten eingeblendet. */
+.menu-bg__chips {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom) + 14px);
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  padding: 0 14px;
+}
+
+.wood-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: 2px solid #2a1810;
+  cursor: pointer;
+  color: var(--cream-100);
+  font-weight: 700;
+  font-size: 0.92rem;
+  background: linear-gradient(180deg, #8a5a34, #5a3a22);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 230, 185, 0.22),
+    0 4px 10px rgba(0, 0, 0, 0.5);
+  transition: transform 110ms ease, box-shadow 110ms ease;
+}
+.wood-chip:active { transform: translateY(2px); }
+@media (hover: hover) {
+  .wood-chip:hover {
+    box-shadow: inset 0 2px 0 rgba(255, 230, 185, 0.3), 0 0 16px rgba(255, 190, 90, 0.4);
+  }
+}
+
+/* ====================== Schwebende Staubpartikel ======================== */
+
+.motes {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.motes span {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 235, 190, 0.85);
+  filter: blur(0.4px);
+  opacity: 0;
+}
+
+/* ====================== In-Game: Tisch statt Liste ====================== */
+
+/* Wertungs-Banner (Holzschild oben). */
+.phase-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 6px auto 12px;
+  padding: 10px 26px;
+  border-radius: 14px;
+  text-align: center;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 7px),
+    linear-gradient(180deg, #9c6b3f, #6b4527);
+  border: 3px solid #3f2a18;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 220, 170, 0.22),
+    inset 0 -5px 9px rgba(0, 0, 0, 0.4),
+    0 8px 18px rgba(0, 0, 0, 0.5);
+}
+.phase-banner__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--cheese-300);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+.phase-banner__hint {
+  font-size: 0.82rem;
+  color: var(--cream-100);
+  opacity: 0.85;
+}
+
+/* Der Tisch: quadratischer Bühnenraum, in dem die Sitze auf einer Ellipse liegen. */
+.board {
+  position: relative;
+  width: min(420px, 92vw);
+  aspect-ratio: 1 / 1;
+  margin: 8px auto 4px;
+}
+.board__rug {
+  position: absolute;
+  inset: 6% 0 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, #b94a3a 0 9deg, #e3d8bd 9deg 18deg);
+  opacity: 0.4;
+  filter: blur(0.6px);
+}
+.board__felt {
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 42% 32%, rgba(255, 235, 195, 0.22), transparent 58%),
+    radial-gradient(circle at 50% 60%, #4f7a3e, #2f5026 70%);
+  border: 7px solid #6b4527;
+  box-shadow:
+    inset 0 5px 0 rgba(255, 235, 195, 0.12),
+    inset 0 -12px 26px rgba(0, 0, 0, 0.5),
+    0 14px 28px rgba(0, 0, 0, 0.5),
+    0 0 0 3px #3f2a18;
+}
+.board__felt-shine {
+  position: absolute;
+  top: 14%;
+  left: 22%;
+  width: 44%;
+  height: 26%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.14), transparent 70%);
+}
+
+/* Sitzplatz einer Maus auf dem Tisch-Rand. */
+.seat {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  z-index: 2;
+}
+.seat__mouse {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 30%, rgba(255, 240, 210, 0.22), transparent 55%),
+    linear-gradient(160deg, var(--wood-600), var(--wood-800));
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -4px 6px rgba(0, 0, 0, 0.4),
+    0 3px 6px rgba(0, 0, 0, 0.45);
+}
+.seat__token {
+  position: absolute;
+  right: -8px;
+  bottom: -6px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--wood-900);
+  background: linear-gradient(180deg, var(--cheese-300), var(--cheese-500));
+  border: 2px solid #3f2a18;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+.seat__name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--cream-100);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  max-width: 92px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.seat__dice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  max-width: 96px;
+}
+
+/* Würfel-Chip (kleiner farbiger Block mit Wert). */
+.die-chip {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.72);
+  background: var(--die, var(--cheese-500));
+  border: none;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.25),
+    0 2px 3px rgba(0, 0, 0, 0.4);
+}
+.die-chip--clear {
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.5);
+}
+.die-chip--sel {
+  outline: 2px solid var(--cheese-300);
+  outline-offset: 1px;
+  transform: translateY(-2px);
+}
+.die-chip--pity {
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.25),
+    0 0 0 2px rgba(95, 191, 106, 0.8);
+}
+
+/* Aktiver Drafter / Kronen-/Warn-Hervorhebung. */
+.seat--active .seat__mouse {
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    0 0 0 3px var(--cheese-300),
+    0 0 18px rgba(244, 197, 66, 0.6);
+}
+.seat--crowned .seat__mouse { animation: seat-pop 0.6s ease; }
+.seat--warn .seat__mouse { animation: seat-shake 0.5s ease; }
+
+/* Rangliste (Holzpanel). */
+.scoreboard {
+  max-width: 420px;
+  margin: 10px auto 0;
+  padding: 8px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--wood-700), var(--wood-900));
+  border: 2px solid #3f2a18;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 14px rgba(0, 0, 0, 0.45);
+  display: grid;
+  gap: 4px;
+}
+.score-row {
+  display: grid;
+  grid-template-columns: 22px 24px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--cream-100);
+}
+.score-row__rank {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: var(--wood-900);
+  background: linear-gradient(180deg, var(--cheese-300), var(--cheese-500));
+}
+.score-row__name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.score-row__pts {
+  font-weight: 800;
+  color: var(--cheese-300);
+}
+
+/* ====================== Animationen ====================== */
+@media (prefers-reduced-motion: no-preference) {
+  .menu-bg__img { animation: scene-breathe 14s ease-in-out infinite; }
+  .menu-bg__lantern { animation: lantern-flicker 1.8s ease-in-out infinite; }
+  .motes span { animation: mote-drift 9s linear infinite; }
+
+  /* Mäuse atmen/wippen, leicht versetzt nach Sitz-Index. */
+  .seat { animation: seat-bob 3.2s ease-in-out infinite; }
+  .seat:nth-child(3) { animation-delay: 0.4s; }
+  .seat:nth-child(4) { animation-delay: 0.8s; }
+  .seat:nth-child(5) { animation-delay: 1.2s; }
+  .seat:nth-child(6) { animation-delay: 1.6s; }
+
+  /* Würfel-Chips kullern minimal. */
+  .seat__dice .die-chip { animation: chip-wobble 4.5s ease-in-out infinite; }
+}
+
+@keyframes scene-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+@keyframes lantern-flicker {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  30% { opacity: 1; transform: scale(1.06); }
+  55% { opacity: 0.82; transform: scale(0.97); }
+  80% { opacity: 0.96; transform: scale(1.03); }
+}
+@keyframes mote-drift {
+  0% { opacity: 0; transform: translateY(20px) translateX(0); }
+  15% { opacity: 0.85; }
+  85% { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(-120px) translateX(14px); }
+}
+@keyframes seat-bob {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, calc(-50% - 3px)); }
+}
+@keyframes chip-wobble {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+@keyframes seat-pop {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  40% { transform: translate(-50%, -50%) scale(1.18); }
+}
+@keyframes seat-shake {
+  0%, 100% { transform: translate(-50%, -50%); }
+  25% { transform: translate(calc(-50% - 4px), -50%); }
+  75% { transform: translate(calc(-50% + 4px), -50%); }
+}
