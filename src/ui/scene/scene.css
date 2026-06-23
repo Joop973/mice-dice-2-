@@ -268,6 +268,98 @@
   font-size: 1rem;
   color: var(--cheese-300);
 }
+.dock__secondary {
+  align-self: center;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+/* --- Wurf-Screen: eigene Würfel rollen --------------------------------- */
+.roll-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 8px;
+}
+.roll-reveal__title {
+  margin: 0;
+  color: var(--cheese-300);
+  font-size: 1.4rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+.roll-reveal__row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.roll-reveal__who {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--cream-100);
+}
+.roll-reveal__dice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  max-width: 92vw;
+}
+.roll-die {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 11px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.74);
+  background: var(--die, var(--cheese-500));
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.25),
+    0 5px 10px rgba(0, 0, 0, 0.45);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .roll-die--rolling { animation: die-tumble 0.16s linear infinite; }
+}
+@keyframes die-tumble {
+  0% { transform: rotate(-13deg) translateY(0); }
+  50% { transform: rotate(13deg) translateY(-7px); }
+  100% { transform: rotate(-13deg) translateY(0); }
+}
+
+/* --- Auswahl-Screen: Würfel aus dem Angebot antippen ------------------- */
+.draft-select {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 8px;
+}
+.draft-select__turn {
+  margin: 0;
+  text-align: center;
+  color: var(--cheese-300);
+  font-size: 1.15rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.offers--big {
+  gap: 12px;
+  justify-content: center;
+  max-width: 92vw;
+}
+.offers--big .offer {
+  font-size: 1.05rem;
+  padding: 14px 16px;
+  min-width: 86px;
+  min-height: 60px;
+}
 
 /* ====================== In-Game: Tisch statt Liste ====================== */
 

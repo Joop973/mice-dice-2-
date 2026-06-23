@@ -8,11 +8,12 @@
 // Alle Bewegungen sind in scene.css definiert und bei prefers-reduced-motion
 // abgeschaltet. Mäuse/Würfel bleiben die vorhandenen Pixel-Assets.
 
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { MouseAvatar } from '../MouseAvatar';
 import { PixelIcon } from '../PixelIcon';
 import { DIE_COLORS } from '../colors';
-import { PHASE_LABEL } from '../phaseLabels';
+import { PHASE_LABEL, PHASE_HINT } from '../phaseLabels';
+import { shouldAnimate } from '../../motion';
 import type { Phase, Player, RolledDie } from '../../engine';
 import './scene.css';
 
@@ -112,6 +113,8 @@ interface BoardTableProps {
   onToggleClear?: (id: string) => void;
   crownedNow?: Set<string>;
   warnNow?: Set<string>;
+  /** Würfel ausblenden (z. B. vor dem Wurf in der Übersicht). */
+  hideDice?: boolean;
 }
 
 /** Mäuse rund um den Filztisch – ersetzt die alte Spielerliste. */
@@ -123,6 +126,7 @@ export function BoardTable({
   onToggleClear,
   crownedNow,
   warnNow,
+  hideDice,
 }: BoardTableProps) {
   const n = players.length;
   return (
@@ -151,7 +155,7 @@ export function BoardTable({
               </span>
             </div>
             <span className="seat__name">{p.name}</span>
-            {p.rolled.length > 0 && (
+            {!hideDice && p.rolled.length > 0 && (
               <div className="seat__dice">
                 {p.rolled.map((d) => (
                   <DieChip
@@ -205,6 +209,111 @@ export function Scoreboard({ players }: { players: Player[] }) {
           <span className="score-row__pts">{p.totalScore}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Gemeinsame Vollbild-Hülle für die einzelnen Phasen-Screens. */
+export function GameScreen({
+  round,
+  total,
+  muted,
+  onToggleMute,
+  phase,
+  children,
+  dock,
+}: {
+  round: number;
+  total: number;
+  muted: boolean;
+  onToggleMute: () => void;
+  phase: Phase;
+  children: ReactNode;
+  dock: ReactNode;
+}) {
+  return (
+    <div className="game">
+      <div className="game__top">
+        <div className="game__bar">
+          <span className="game__round">
+            Runde {round}/{total}
+          </span>
+          <span className="game__brand">
+            <PixelIcon name="cheese" size={20} title="Dice Mice" /> Dice Mice
+          </span>
+          <button
+            className="icon-btn"
+            onClick={onToggleMute}
+            aria-label={muted ? 'Ton einschalten' : 'Ton ausschalten'}
+            aria-pressed={muted}
+          >
+            <PixelIcon name={muted ? 'soundOff' : 'soundOn'} title={muted ? 'Ton aus' : 'Ton an'} />
+          </button>
+        </div>
+        <PhaseBanner phase={phase} hint={PHASE_HINT[phase]} />
+      </div>
+      <div className="game__stage">{children}</div>
+      <div className="game__dock">{dock}</div>
+    </div>
+  );
+}
+
+/** Ein einzelner Würfel, der kurz „rollt" und dann auf seinem Wert landet. */
+function RollingDie({ value, color }: { value: number; color: string }) {
+  const animate = shouldAnimate();
+  const [display, setDisplay] = useState<number>(animate ? 1 : value);
+  const [rolling, setRolling] = useState<boolean>(animate);
+
+  useEffect(() => {
+    if (!animate) {
+      setDisplay(value);
+      setRolling(false);
+      return;
+    }
+    setRolling(true);
+    let n = 0;
+    const iv = setInterval(() => {
+      n += 1;
+      setDisplay(1 + Math.floor(Math.random() * 6));
+      if (n >= 11) {
+        clearInterval(iv);
+        setDisplay(value);
+        setRolling(false);
+      }
+    }, 60);
+    return () => clearInterval(iv);
+  }, [value, animate]);
+
+  return (
+    <span
+      className={`roll-die${rolling ? ' roll-die--rolling' : ''}`}
+      style={{ ['--die' as string]: color } as CSSProperties}
+    >
+      {display}
+    </span>
+  );
+}
+
+/** „Dein Wurf!"-Screen: zeigt die eigenen (menschlichen) Würfel beim Rollen. */
+export function RollReveal({ players }: { players: Player[] }) {
+  return (
+    <div className="roll-reveal">
+      <h2 className="roll-reveal__title">Dein Wurf!</h2>
+      {players.map((p, i) =>
+        p.isAI ? null : (
+          <div key={p.id} className="roll-reveal__row">
+            <div className="roll-reveal__who">
+              <MouseAvatar colorIndex={i} size={36} title={p.name} />
+              <span>{p.name}</span>
+            </div>
+            <div className="roll-reveal__dice">
+              {p.rolled.map((d) => (
+                <RollingDie key={d.id} value={d.value} color={DIE_COLORS[d.color]} />
+              ))}
+            </div>
+          </div>
+        )
+      )}
     </div>
   );
 }

@@ -23,12 +23,11 @@ import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
 import { useSound } from './sound';
-import { PHASE_HINT } from './ui/phaseLabels';
 import { Counter } from './ui/Counter';
 import { PixelIcon } from './ui/PixelIcon';
 import { OfferButton } from './ui/OfferButton';
 import { MouseAvatar } from './ui/MouseAvatar';
-import { MenuScene, BoardTable, Scoreboard, PhaseBanner } from './ui/scene/KitchenScene';
+import { MenuScene, BoardTable, Scoreboard, GameScreen, RollReveal } from './ui/scene/KitchenScene';
 import { WinScreen } from './ui/WinScreen';
 import { useClearSelection } from './ui/useClearSelection';
 
@@ -350,129 +349,182 @@ function Game({
   onPass,
   onNewGame,
 }: GameProps) {
+  // Sub-Schritt der Würfel-Phase: erst Übersicht ("Würfeln"), dann der Wurf.
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    setRevealed(false);
+  }, [state.round]);
+
   const activeDrafter: Player | undefined =
     state.phase === 'draft'
       ? state.players.find((p) => !state.draftedThisPhase.includes(p.id))
       : undefined;
   const draftComplete = state.phase === 'draft' && !activeDrafter;
   const humanDrafting = activeDrafter && !activeDrafter.isAI;
-  const hasClearDice = state.players.some((p) => p.rolled.some((d) => d.color === 'clear'));
 
   if (state.finished) {
     return <WinScreen players={state.players} actionLabel="Neue Partie" onAction={onNewGame} />;
   }
 
-  return (
-    <div className="game">
-      <div className="game__top">
-        <div className="game__bar">
-          <span className="game__round">
-            Runde {state.round}/{state.config.totalRounds}
-          </span>
-          <span className="game__brand">
-            <PixelIcon name="cheese" size={20} title="Dice Mice" /> Dice Mice
-          </span>
-          <button
-            className="icon-btn"
-            onClick={onToggleMute}
-            aria-label={muted ? 'Ton einschalten' : 'Ton ausschalten'}
-            aria-pressed={muted}
-          >
-            <PixelIcon name={muted ? 'soundOff' : 'soundOn'} title={muted ? 'Ton aus' : 'Ton an'} />
-          </button>
-        </div>
-        <PhaseBanner phase={state.phase} hint={PHASE_HINT[state.phase]} />
-      </div>
+  const top = {
+    round: state.round,
+    total: state.config.totalRounds,
+    muted,
+    onToggleMute,
+    phase: state.phase,
+  };
 
-      <div className="game__stage">
-        {fx.banner && (
-          <div className="banner banner--float" role="status" aria-live="polite">
-            <span>{fx.banner}</span>
-          </div>
-        )}
+  const newGameBtn = (
+    <button className="ghost dock__secondary" onClick={onNewGame}>
+      Neue Partie
+    </button>
+  );
 
+  const eventBanner = fx.banner ? (
+    <div className="banner banner--float" role="status" aria-live="polite">
+      <span>{fx.banner}</span>
+    </div>
+  ) : null;
+
+  // Screen 1 — Übersicht VOR dem Wurf: Tisch-Ansicht, Würfel noch verdeckt.
+  if (state.phase === 'roll' && !revealed) {
+    return (
+      <GameScreen
+        {...top}
+        dock={
+          <>
+            <button className="dock__primary" onClick={() => setRevealed(true)}>
+              Würfeln →
+            </button>
+            {newGameBtn}
+          </>
+        }
+      >
+        <BoardTable players={state.players} hideDice crownedNow={fx.crownedNow} warnNow={fx.warnNow} />
+        <Scoreboard players={state.players} />
+      </GameScreen>
+    );
+  }
+
+  // Screen 2 — Wurf: die eigenen Würfel rollen sehen.
+  if (state.phase === 'roll' && revealed) {
+    return (
+      <GameScreen
+        {...top}
+        dock={
+          <>
+            <button className="dock__primary" onClick={onAdvance}>
+              Weiter →
+            </button>
+            {newGameBtn}
+          </>
+        }
+      >
+        <RollReveal players={state.players} />
+      </GameScreen>
+    );
+  }
+
+  // Screen 3 — Übersicht NACH dem Wurf (Mitleidswürfel + Stand).
+  if (state.phase === 'pity') {
+    return (
+      <GameScreen
+        {...top}
+        dock={
+          <>
+            <button className="dock__primary" onClick={onAdvance}>
+              Weiter →
+            </button>
+            {newGameBtn}
+          </>
+        }
+      >
+        {eventBanner}
+        <BoardTable players={state.players} crownedNow={fx.crownedNow} warnNow={fx.warnNow} />
+        <Scoreboard players={state.players} />
+      </GameScreen>
+    );
+  }
+
+  // Screen 4a — Auswahl: eigene Klar-Würfel zum Neu-Würfeln antippen.
+  if (state.phase === 'swap') {
+    return (
+      <GameScreen
+        {...top}
+        dock={
+          <>
+            <button
+              className="dock__primary"
+              onClick={onRerollSelected}
+              disabled={selectedClear.size === 0}
+            >
+              {selectedClear.size > 0
+                ? `${selectedClear.size} Klar-Würfel neu würfeln`
+                : 'Klar-Würfel antippen'}
+            </button>
+            <button className="dock__primary ghost" onClick={onAdvance}>
+              Weiter →
+            </button>
+            {newGameBtn}
+          </>
+        }
+      >
+        {eventBanner}
         <BoardTable
           players={state.players}
-          activeId={activeDrafter?.id}
-          swap={state.phase === 'swap'}
+          swap
           selectedClear={selectedClear}
           onToggleClear={onToggleClear}
           crownedNow={fx.crownedNow}
           warnNow={fx.warnNow}
         />
+      </GameScreen>
+    );
+  }
 
-        <Scoreboard players={state.players} />
-
-        {state.log.length > 0 && (
-          <details className="log log--float">
-            <summary>Protokoll</summary>
-            <ul>
-              {state.log.slice(-10).map((line, i) => (
-                <li key={i}>{line}</li>
-              ))}
-            </ul>
-          </details>
-        )}
-      </div>
-
-      <div className="game__dock">
-        {state.phase === 'swap' && hasClearDice && (
-          <button className="dock__primary" onClick={onRerollSelected} disabled={selectedClear.size === 0}>
-            {selectedClear.size > 0
-              ? `${selectedClear.size} Klar-Würfel neu würfeln`
-              : 'Klar-Würfel antippen'}
+  // Screen 4b — Auswahl: einen Würfel aus dem Angebot antippen (Draft).
+  return (
+    <GameScreen
+      {...top}
+      dock={
+        <>
+          {state.lastScores && <RoundSummary scores={state.lastScores} players={state.players} />}
+          {humanDrafting && (
+            <button className="ghost" onClick={() => onPass(activeDrafter!.id)}>
+              {activeDrafter!.name} passt
+            </button>
+          )}
+          <button className="dock__primary" onClick={onAdvance} disabled={!draftComplete}>
+            {state.round >= state.config.totalRounds ? 'Partie beenden →' : 'Nächste Runde →'}
           </button>
-        )}
-
-        {state.phase === 'draft' && (
-          <>
-            {state.lastScores && <RoundSummary scores={state.lastScores} players={state.players} />}
-            <div className="dock__draft">
-              <h2 className="dock__title">
-                Angebot
-                {activeDrafter && (
-                  <>
-                    {' · '}
-                    {activeDrafter.name}
-                    {activeDrafter.isAI ? ' (KI) wählt …' : ' ist am Zug'}
-                  </>
-                )}
-              </h2>
-              <div className="offers">
-                {state.draftOffers.map((o) => (
-                  <OfferButton
-                    key={o.id}
-                    color={o.die.color}
-                    sides={o.die.sides}
-                    variant={o.die.variant}
-                    disabled={!humanDrafting}
-                    onPick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
-                  />
-                ))}
-              </div>
-              {humanDrafting && (
-                <button className="ghost" onClick={() => onPass(activeDrafter!.id)}>
-                  {activeDrafter!.name} passt
-                </button>
-              )}
-              {draftComplete && <p className="muted">Alle haben gewählt.</p>}
-            </div>
-          </>
-        )}
-
-        <div className="actions">
-          <button onClick={onAdvance} disabled={state.phase === 'draft' && !draftComplete}>
-            {state.phase === 'draft'
-              ? state.round >= state.config.totalRounds
-                ? 'Partie beenden →'
-                : 'Nächste Runde →'
-              : 'Weiter →'}
-          </button>
-          <button className="ghost" onClick={onNewGame}>
-            Neue Partie
-          </button>
+          {newGameBtn}
+        </>
+      }
+    >
+      {eventBanner}
+      <div className="draft-select">
+        <h2 className="draft-select__turn">
+          {draftComplete
+            ? 'Alle haben gewählt.'
+            : activeDrafter
+              ? activeDrafter.isAI
+                ? `${activeDrafter.name} (KI) wählt …`
+                : `${activeDrafter.name} – tippe einen Würfel`
+              : ''}
+        </h2>
+        <div className="offers offers--big">
+          {state.draftOffers.map((o) => (
+            <OfferButton
+              key={o.id}
+              color={o.die.color}
+              sides={o.die.sides}
+              variant={o.die.variant}
+              disabled={!humanDrafting}
+              onPick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
+            />
+          ))}
         </div>
       </div>
-    </div>
+    </GameScreen>
   );
 }
