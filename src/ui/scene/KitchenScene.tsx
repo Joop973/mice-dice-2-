@@ -99,8 +99,8 @@ function DieChip({
 /** Position eines Sitzes auf der Tisch-Ellipse (i=0 unten, dann im Kreis). */
 function seatStyle(i: number, n: number): CSSProperties {
   const angle = ((90 + (i * 360) / n) * Math.PI) / 180;
-  const x = 50 + 45 * Math.cos(angle);
-  const y = 50 + 43 * Math.sin(angle);
+  const x = 50 + 40 * Math.cos(angle);
+  const y = 50 + 38 * Math.sin(angle);
   return { left: `${x}%`, top: `${y}%` };
 }
 
@@ -144,7 +144,7 @@ export function BoardTable({
         return (
           <div key={p.id} className={cls} style={seatStyle(i, n)}>
             <div className="seat__mouse">
-              <MouseAvatar colorIndex={i} size={56} title={p.name} />
+              <MouseAvatar colorIndex={i} size={48} title={p.name} />
               <span className="seat__token">
                 {p.hasCrown && <PixelIcon name="crown" title="Käse-Krone" />}
                 {p.totalScore}

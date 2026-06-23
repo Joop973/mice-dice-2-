@@ -120,6 +120,155 @@
   opacity: 0;
 }
 
+/* ============ Vollbild-Spiel-Layout (ohne Seiten-Scroll) ================ */
+
+.game {
+  height: 100svh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  /* Warmer Holztisch als Rahmen für die Szene. */
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -6%, rgba(255, 220, 150, 0.12), transparent 62%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0 2px, transparent 2px 96px),
+    linear-gradient(180deg, #5a4030, #2a1d14);
+}
+
+/* --- Obere Leiste: Runde + Marke + Ton, darunter das Phasen-Schild ------- */
+.game__top {
+  padding: calc(env(safe-area-inset-top) + 6px) 10px 0;
+}
+.game__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--cream-100);
+}
+.game__round {
+  font-weight: 700;
+  font-size: 0.86rem;
+  opacity: 0.9;
+}
+.game__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  color: var(--cheese-300);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--wood-600), var(--wood-800));
+  color: var(--cream-100);
+  border: 2px solid #2a1810;
+  box-shadow: inset 0 1px 0 rgba(255, 230, 185, 0.2), 0 3px 7px rgba(0, 0, 0, 0.4);
+}
+/* Phasen-Schild im Vollbild-Layout kompakter. */
+.game__top .phase-banner {
+  margin: 6px auto 0;
+  padding: 6px 18px;
+}
+.game__top .phase-banner__title {
+  font-size: 1rem;
+}
+
+/* --- Bühne: Tisch zentriert, Rangliste + Log als Overlays --------------- */
+.game__stage {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+/* Tisch skaliert auf den kleineren von verfügbarer Breite/Höhe, bleibt quadratisch. */
+.game__stage .board {
+  inline-size: min(88vw, 44svh, 420px);
+  block-size: auto;
+  margin: 0;
+}
+/* Rangliste als kompaktes Overlay oben rechts. */
+.game__stage .scoreboard {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 128px;
+  margin: 0;
+  padding: 5px;
+  gap: 2px;
+  z-index: 5;
+}
+.game__stage .score-row {
+  grid-template-columns: 16px 18px 1fr auto;
+  gap: 5px;
+  padding: 3px 5px;
+}
+.game__stage .score-row__name {
+  font-size: 0.74rem;
+}
+.game__stage .score-row__rank {
+  width: 16px;
+  height: 16px;
+  font-size: 0.68rem;
+}
+/* Schwebender Banner (Sabotage/Krone) mittig über der Bühne. */
+.banner--float {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  z-index: 6;
+  max-width: 80%;
+}
+/* Protokoll als kleines, zusammenklappbares Overlay unten links. */
+.log--float {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  margin: 0;
+  max-width: 150px;
+  font-size: 0.72rem;
+  opacity: 0.85;
+  z-index: 5;
+}
+
+/* --- Dock: phasenabhängige Aktionen, am unteren Rand fixiert ------------ */
+.game__dock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px calc(env(safe-area-inset-bottom) + 8px);
+  max-height: 44svh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.45));
+  border-top: 2px solid rgba(0, 0, 0, 0.5);
+  box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.4);
+}
+.game__dock .actions {
+  margin-top: 0;
+}
+.dock__primary {
+  width: 100%;
+}
+.dock__draft {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dock__title {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--cheese-300);
+}
+
 /* ====================== In-Game: Tisch statt Liste ====================== */
 
 /* Wertungs-Banner (Holzschild oben). */
@@ -199,7 +348,7 @@
 .seat {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 96px;
+  width: 84px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -210,8 +359,8 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 62px;
-  height: 62px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   background:
     radial-gradient(circle at 38% 30%, rgba(255, 240, 210, 0.22), transparent 55%),
@@ -388,11 +537,11 @@
   50% { transform: rotate(4deg); }
 }
 @keyframes seat-pop {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  40% { transform: translate(-50%, -50%) scale(1.18); }
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.18); }
 }
 @keyframes seat-shake {
-  0%, 100% { transform: translate(-50%, -50%); }
-  25% { transform: translate(calc(-50% - 4px), -50%); }
-  75% { transform: translate(calc(-50% + 4px), -50%); }
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }

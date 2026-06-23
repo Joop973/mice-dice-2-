@@ -363,17 +363,17 @@ function Game({
   }
 
   return (
-    <div className="app">
-      <header className="app__header">
-        <h1>
-          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
-        </h1>
-        <div className="app__meta">
-          <span>
-            Runde {state.round} / {state.config.totalRounds}
+    <div className="game">
+      <div className="game__top">
+        <div className="game__bar">
+          <span className="game__round">
+            Runde {state.round}/{state.config.totalRounds}
+          </span>
+          <span className="game__brand">
+            <PixelIcon name="cheese" size={20} title="Dice Mice" /> Dice Mice
           </span>
           <button
-            className="toggle3d"
+            className="icon-btn"
             onClick={onToggleMute}
             aria-label={muted ? 'Ton einschalten' : 'Ton ausschalten'}
             aria-pressed={muted}
@@ -381,102 +381,98 @@ function Game({
             <PixelIcon name={muted ? 'soundOff' : 'soundOn'} title={muted ? 'Ton aus' : 'Ton an'} />
           </button>
         </div>
-      </header>
-
-      {fx.banner && (
-        <div className="banner" role="status" aria-live="polite">
-          <span>{fx.banner}</span>
-        </div>
-      )}
-
-      <PhaseBanner phase={state.phase} hint={PHASE_HINT[state.phase]} />
-
-      <BoardTable
-        players={state.players}
-        activeId={activeDrafter?.id}
-        swap={state.phase === 'swap'}
-        selectedClear={selectedClear}
-        onToggleClear={onToggleClear}
-        crownedNow={fx.crownedNow}
-        warnNow={fx.warnNow}
-      />
-
-      <Scoreboard players={state.players} />
-
-      {state.phase === 'swap' && (
-        <section className="panel">
-          {hasClearDice ? (
-            <button onClick={onRerollSelected} disabled={selectedClear.size === 0}>
-              {selectedClear.size > 0
-                ? `${selectedClear.size} Klar-Würfel neu würfeln`
-                : 'Klar-Würfel auswählen'}
-            </button>
-          ) : (
-            <p className="muted">Keine Klar-Würfel im Spiel.</p>
-          )}
-        </section>
-      )}
-
-      {state.phase === 'draft' && state.lastScores && (
-        <RoundSummary scores={state.lastScores} players={state.players} />
-      )}
-
-      {state.phase === 'draft' && (
-        <section className="panel">
-          <h2>
-            Angebot
-            {activeDrafter && (
-              <>
-                {' '}
-                · {activeDrafter.name}
-                {activeDrafter.isAI ? ' (KI) wählt …' : ' ist am Zug'}
-              </>
-            )}
-          </h2>
-          <div className="offers">
-            {state.draftOffers.map((o) => (
-              <OfferButton
-                key={o.id}
-                color={o.die.color}
-                sides={o.die.sides}
-                variant={o.die.variant}
-                disabled={!humanDrafting}
-                onPick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
-              />
-            ))}
-          </div>
-          {humanDrafting && (
-            <button className="ghost" onClick={() => onPass(activeDrafter!.id)}>
-              {activeDrafter!.name} passt
-            </button>
-          )}
-          {draftComplete && <p className="muted">Alle haben gewählt.</p>}
-        </section>
-      )}
-
-      <div className="actions">
-        <button onClick={onAdvance} disabled={state.phase === 'draft' && !draftComplete}>
-          {state.phase === 'draft'
-            ? state.round >= state.config.totalRounds
-              ? 'Partie beenden →'
-              : 'Nächste Runde →'
-            : 'Weiter →'}
-        </button>
-        <button className="ghost" onClick={onNewGame}>
-          Neue Partie
-        </button>
+        <PhaseBanner phase={state.phase} hint={PHASE_HINT[state.phase]} />
       </div>
 
-      {state.log.length > 0 && (
-        <details className="log">
-          <summary>Protokoll</summary>
-          <ul>
-            {state.log.slice(-10).map((line, i) => (
-              <li key={i}>{line}</li>
-            ))}
-          </ul>
-        </details>
-      )}
+      <div className="game__stage">
+        {fx.banner && (
+          <div className="banner banner--float" role="status" aria-live="polite">
+            <span>{fx.banner}</span>
+          </div>
+        )}
+
+        <BoardTable
+          players={state.players}
+          activeId={activeDrafter?.id}
+          swap={state.phase === 'swap'}
+          selectedClear={selectedClear}
+          onToggleClear={onToggleClear}
+          crownedNow={fx.crownedNow}
+          warnNow={fx.warnNow}
+        />
+
+        <Scoreboard players={state.players} />
+
+        {state.log.length > 0 && (
+          <details className="log log--float">
+            <summary>Protokoll</summary>
+            <ul>
+              {state.log.slice(-10).map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          </details>
+        )}
+      </div>
+
+      <div className="game__dock">
+        {state.phase === 'swap' && hasClearDice && (
+          <button className="dock__primary" onClick={onRerollSelected} disabled={selectedClear.size === 0}>
+            {selectedClear.size > 0
+              ? `${selectedClear.size} Klar-Würfel neu würfeln`
+              : 'Klar-Würfel antippen'}
+          </button>
+        )}
+
+        {state.phase === 'draft' && (
+          <>
+            {state.lastScores && <RoundSummary scores={state.lastScores} players={state.players} />}
+            <div className="dock__draft">
+              <h2 className="dock__title">
+                Angebot
+                {activeDrafter && (
+                  <>
+                    {' · '}
+                    {activeDrafter.name}
+                    {activeDrafter.isAI ? ' (KI) wählt …' : ' ist am Zug'}
+                  </>
+                )}
+              </h2>
+              <div className="offers">
+                {state.draftOffers.map((o) => (
+                  <OfferButton
+                    key={o.id}
+                    color={o.die.color}
+                    sides={o.die.sides}
+                    variant={o.die.variant}
+                    disabled={!humanDrafting}
+                    onPick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
+                  />
+                ))}
+              </div>
+              {humanDrafting && (
+                <button className="ghost" onClick={() => onPass(activeDrafter!.id)}>
+                  {activeDrafter!.name} passt
+                </button>
+              )}
+              {draftComplete && <p className="muted">Alle haben gewählt.</p>}
+            </div>
+          </>
+        )}
+
+        <div className="actions">
+          <button onClick={onAdvance} disabled={state.phase === 'draft' && !draftComplete}>
+            {state.phase === 'draft'
+              ? state.round >= state.config.totalRounds
+                ? 'Partie beenden →'
+                : 'Nächste Runde →'
+              : 'Weiter →'}
+          </button>
+          <button className="ghost" onClick={onNewGame}>
+            Neue Partie
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
