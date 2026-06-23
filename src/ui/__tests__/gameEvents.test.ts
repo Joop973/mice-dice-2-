@@ -24,15 +24,18 @@ describe('detectEvents', () => {
     expect(res.banner).toBeNull();
   });
 
-  it('erkennt die Wertung in swap->draft (Tick und/oder Krone)', () => {
+  it('erkennt die Wertung beim Übergang in die Draft-Phase (Tick und/oder Krone)', () => {
     const { state, rng } = setup(7);
-    // roll -> pity -> swap
-    const swap = advancePhase(advancePhase(state, rng), rng);
-    expect(swap.phase).toBe('swap');
-    const draft = advancePhase(swap, rng); // swap -> draft: hier wird gewertet
+    // Bis kurz vor die Draft-Phase laufen (Swap wird ohne Klar-Würfel übersprungen).
+    let beforeDraft = state;
+    let draft = advancePhase(beforeDraft, rng);
+    while (draft.phase !== 'draft') {
+      beforeDraft = draft;
+      draft = advancePhase(draft, rng);
+    }
     expect(draft.phase).toBe('draft');
 
-    const res = detectEvents(snapshot(swap), snapshot(draft));
+    const res = detectEvents(snapshot(beforeDraft), snapshot(draft));
     // Es muss mindestens ein wertungsbezogenes Ereignis geben.
     const scoring = res.sounds.filter((s) => ['tick', 'crown', 'warn'].includes(s));
     expect(scoring.length).toBeGreaterThan(0);

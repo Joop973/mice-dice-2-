@@ -494,6 +494,43 @@ body {
   box-shadow: none; /* Outline-Familie (Rahmen in Würfelfarbe) */
 }
 
+/* Angebot-Würfel + Kurzbeschreibung (Tooltip beim Hovern/langen Drücken). */
+.offer-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.offer__tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: max-content;
+  max-width: 220px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--wood-900, #2a1d12);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  pointer-events: none;
+}
+
+.offer__tip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--wood-900, #2a1d12);
+}
+
 /* Startbildschirm: Hero-Mäuse auf einem runden Holzteller. */
 .hero {
   display: flex;

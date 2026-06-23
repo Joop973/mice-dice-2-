@@ -24,10 +24,10 @@ import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
 import { useSound } from './sound';
-import { DIE_COLORS, DIE_LABELS } from './ui/colors';
 import { PHASE_LABEL, PHASE_HINT } from './ui/phaseLabels';
 import { Counter } from './ui/Counter';
 import { PixelIcon } from './ui/PixelIcon';
+import { OfferButton } from './ui/OfferButton';
 import { MouseAvatar } from './ui/MouseAvatar';
 import { WinScreen } from './ui/WinScreen';
 import { useClearSelection } from './ui/useClearSelection';
@@ -479,21 +479,14 @@ function Game({
           </h2>
           <div className="offers">
             {state.draftOffers.map((o) => (
-              <button
+              <OfferButton
                 key={o.id}
-                className="offer"
-                style={{ borderColor: DIE_COLORS[o.die.color] }}
+                color={o.die.color}
+                sides={o.die.sides}
+                variant={o.die.variant}
                 disabled={!humanDrafting}
-                onClick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
-              >
-                {DIE_LABELS[o.die.color]} W{o.die.sides}
-                {o.die.variant === 'glitter' && (
-                  <>
-                    {' '}
-                    <PixelIcon name="sparkle" title="Glitzer" />
-                  </>
-                )}
-              </button>
+                onPick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
+              />
             ))}
           </div>
           {humanDrafting && (

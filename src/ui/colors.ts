@@ -30,6 +30,23 @@ export const DIE_LABELS: Record<DieColor, string> = {
   brown: 'Braun',
 };
 
+/**
+ * Kurze Beschreibung jeder Würfelfarbe (für Tooltips beim Drüberfahren bzw.
+ * langem Drücken im Draft-Angebot). Eine knappe Zeile pro Farbe.
+ */
+export const DIE_DESCRIPTIONS: Record<DieColor, string> = {
+  yellow: 'Gelb: höchste Gelb-Summe gewinnt die Käse-Krone.',
+  green: 'Grün: zählt einfach mit seiner Augensumme.',
+  blue: 'Blau: zählt mit seiner Summe; Glitzer zählt als dieselbe Farbe.',
+  purple: 'Lila: zählt einfach mit seiner Augensumme.',
+  red: 'Rot: hohes Risiko – kann negativ sein, dafür hohe Spitzenwerte.',
+  clear: 'Klar: in der Tausch-Phase neu würfelbar. Zählt selbst nicht zur Wertung.',
+  pink: 'Pink: zählt einfach mit seiner Augensumme.',
+  orange: 'Orange: Wert × Anzahl verschiedener Farben dieser Runde.',
+  sabotage: 'Sabotage: die Summe wird dem Kronenhalter abgezogen.',
+  brown: 'Braun: Summe × Größe der größten gleichen Gruppe.',
+};
+
 // Spielerfarben (Ohren-Innenseite + Schal der Maus-Avatare). Single-Source,
 // auf die Pixel-Palette abgestimmt und CVD-tauglich unterscheidbar (Gelb, Blau,
 // Grün, Magenta, Orange, Türkis). Bis zu 6 Spieler werden eindeutig eingefärbt.

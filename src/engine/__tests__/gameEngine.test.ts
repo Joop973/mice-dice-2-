@@ -125,9 +125,12 @@ describe('performRoll', () => {
 });
 
 describe('Phasenfolge', () => {
-  it('läuft roll -> pity -> swap -> draft und erzeugt ein Angebot', () => {
+  it('läuft roll -> pity -> swap -> draft (mit Klar-Würfel) und erzeugt ein Angebot', () => {
     const rng = createRNG(123);
-    let s = performRoll(createGame({ players: [{ name: 'A' }, { name: 'B' }] }), rng);
+    let g = createGame({ players: [{ name: 'A' }, { name: 'B' }] });
+    // Klar-Würfel in den Beutel legen, damit die Swap-Phase nicht übersprungen wird.
+    g.players[0].bag.push({ id: 'clear1', color: 'clear', sides: 6, variant: 'normal' });
+    let s = performRoll(g, rng);
     expect(s.phase).toBe('roll');
     s = advancePhase(s, rng);
     expect(s.phase).toBe('pity');
@@ -135,6 +138,18 @@ describe('Phasenfolge', () => {
     expect(s.phase).toBe('swap');
     s = advancePhase(s, rng);
     expect(s.phase).toBe('draft');
+    expect(s.draftOffers.length).toBeGreaterThan(0);
+  });
+
+  it('überspringt die Swap-Phase, wenn niemand Klar-Würfel hat (pity -> draft)', () => {
+    const rng = createRNG(123);
+    let s = performRoll(createGame({ players: [{ name: 'A' }, { name: 'B' }] }), rng);
+    s = advancePhase(s, rng);
+    expect(s.phase).toBe('pity');
+    s = advancePhase(s, rng);
+    // Ohne Klar-Würfel direkt in die Draft-Phase (Tausch übersprungen, gewertet).
+    expect(s.phase).toBe('draft');
+    expect(s.lastScores).toBeDefined();
     expect(s.draftOffers.length).toBeGreaterThan(0);
   });
 
@@ -155,9 +170,7 @@ describe('Draft', () => {
   it('verschiebt einen Würfel aus dem Angebot in den Beutel', () => {
     const rng = createRNG(99);
     let s = performRoll(createGame({ players: [{ name: 'A' }] }), rng);
-    s = advancePhase(s, rng); // pity
-    s = advancePhase(s, rng); // swap
-    s = advancePhase(s, rng); // draft
+    while (s.phase !== 'draft') s = advancePhase(s, rng); // -> draft (Swap ggf. übersprungen)
     const bagBefore = s.players[0].bag.length;
     const offerId = s.draftOffers[0].id;
     s = draftPick(s, 'p0', offerId);
@@ -168,7 +181,7 @@ describe('Draft', () => {
   it('lässt einen Spieler pro Phase nur einmal draften', () => {
     const rng = createRNG(31);
     let s = performRoll(createGame({ players: [{ name: 'A' }] }), rng);
-    s = advancePhase(advancePhase(advancePhase(s, rng), rng), rng); // -> draft
+    while (s.phase !== 'draft') s = advancePhase(s, rng); // -> draft
     s = draftPick(s, 'p0', s.draftOffers[0].id);
     const afterFirst = s.players[0].bag.length;
     s = draftPick(s, 'p0', s.draftOffers[0].id);
@@ -178,7 +191,7 @@ describe('Draft', () => {
   it('lässt einen Spieler passen, ohne einen Würfel zu nehmen', () => {
     const rng = createRNG(77);
     let s = performRoll(createGame({ players: [{ name: 'A' }] }), rng);
-    s = advancePhase(advancePhase(advancePhase(s, rng), rng), rng); // -> draft
+    while (s.phase !== 'draft') s = advancePhase(s, rng); // -> draft
     const bagBefore = s.players[0].bag.length;
     const offersBefore = s.draftOffers.length;
     s = draftPass(s, 'p0');
