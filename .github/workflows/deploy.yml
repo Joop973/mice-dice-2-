@@ -12,7 +12,7 @@ name: Deploy PWA
 
 on:
   push:
-    branches: [main, claude/festive-thompson-tb89lq]
+    branches: [main, claude/festive-thompson-tb89lq, claude/memory-feature-u5k7en]
   workflow_dispatch:
 
 permissions:

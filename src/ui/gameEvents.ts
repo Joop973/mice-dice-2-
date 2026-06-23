@@ -80,7 +80,7 @@ export function detectEvents(prev: Snapshot, cur: Snapshot): DetectedEvents {
   let banner: string | null = null;
 
   if (justFinished) {
-    banner = 'Sieger! 🎉';
+    banner = 'Sieger!';
     sounds.push('win');
   } else if (crownedNow.size > 0) {
     sounds.push('crown');
@@ -95,12 +95,7 @@ export function detectEvents(prev: Snapshot, cur: Snapshot): DetectedEvents {
     sounds.push('round');
   } else if (draftedGrew) {
     sounds.push(cur.offers < prev.offers ? 'pick' : 'pass');
-  } else if (
-    rollChanged &&
-    !scoredPositive &&
-    warnNow.size === 0 &&
-    crownedNow.size === 0
-  ) {
+  } else if (rollChanged && !scoredPositive && warnNow.size === 0 && crownedNow.size === 0) {
     sounds.push('roll');
   }
 

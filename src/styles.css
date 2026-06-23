@@ -1,10 +1,62 @@
 :root {
   color-scheme: dark;
-  --bg: #1c1410;
-  --panel: #2a211b;
-  --accent: #f4c542;
-  --text: #f6efe6;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* --- Palette (Single Source) — siehe docs/UI_SYSTEM.md §4 ----------------
+   * Holz ist Hauptmaterial (Tisch/Rahmen/Karten); "felt" = Tischtuch/Platzset.
+   * Komponenten nutzen ausschließlich diese Variablen, keine Hex-Literale. */
+
+  /* Holz */
+  --wood-900: #1c1410;
+  --wood-800: #2a211b;
+  --wood-700: #4a3d33;
+  --wood-600: #8a6240;
+
+  /* Tischtuch / Filz */
+  --felt-700: #3a3f47; /* Slate (Sabotage/Throw-Chips) */
+
+  /* Spielbrett-Holz: hellere, warme Brett-Oberfläche auf dem dunklen Tisch. */
+  --board-700: #7a5638;
+  --board-800: #5a3f28;
+  --board-900: #3f2c1c;
+
+  /* Käse / Akzent (3 Stufen für Bevel: hell oben, dunkel an der Kante) */
+  --cheese-300: #f7d873;
+  --cheese-500: #f4c542;
+  --cheese-700: #b8902a;
+
+  /* Neutral / Text */
+  --cream-100: #f6efe6;
+  --tan-200: #e8ddcd;
+  --tan-300: #cbbfae;
+  --tan-400: #9c8e7d;
+  --tan-500: #7d7164;
+
+  /* Semantik */
+  --good-500: #5fbf6a;
+  --bad-500: #c0392b;
+  --bad-300: #ff8a7a;
+  --bad-200: #ff9a8a;
+  --cool-300: #b9c0c9;
+
+  /* Konfetti-Akzente */
+  --confetti-pink: #e0568a;
+  --confetti-blue: #5aa9e6;
+
+  /* Glow/Schatten (Akzent als RGB für rgba()) */
+  --accent-rgb: 244, 197, 66;
+
+  /* Aliase (Rückwärtskompatibilität / sprechende Rollen) */
+  --bg: var(--wood-900);
+  --panel: var(--wood-800);
+  --accent: var(--cheese-500);
+  --text: var(--cream-100);
+
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
 }
 
 * {
@@ -13,14 +65,63 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  min-height: 100vh;
   color: var(--text);
+  /* Warmer Holztisch: Planken-Fugen + feine Maserung + Lichtschein von oben. */
+  background-color: var(--wood-800);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% -10%, rgba(255, 224, 160, 0.12), transparent 60%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0 2px, rgba(0, 0, 0, 0) 2px 124px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, rgba(0, 0, 0, 0) 1px 7px),
+    linear-gradient(180deg, #5a4232, var(--wood-900));
+  background-attachment: fixed;
+}
+
+/* A11y: sichtbarer Gold-Fokusring für Tastatur-Navigation (zentral). */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Externe Pixel-Art-Sprites scharf (nearest) und ohne Verzerrung skalieren. */
+.pixel-sprite {
+  image-rendering: pixelated;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+  flex: 0 0 auto;
 }
 
 .app {
   max-width: 720px;
-  margin: 0 auto;
-  padding: env(safe-area-inset-top) 16px 32px;
+  margin: 18px auto;
+  padding: calc(env(safe-area-inset-top) + 14px) 16px 28px;
+  border-radius: 20px;
+  /* Warmes Holz-Spielbrett mit Maserung und Lichtfleck … */
+  background:
+    radial-gradient(ellipse 80% 50% at 30% 10%, rgba(255, 240, 210, 0.1), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 3px, transparent 3px 92px),
+    linear-gradient(160deg, var(--board-700), var(--board-900));
+  /* … gefasst in einen geschnitzten Holzrahmen mit Tiefe. */
+  box-shadow:
+    0 0 0 8px var(--wood-600),
+    0 0 0 11px var(--wood-900),
+    0 22px 48px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 70px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 640px) {
+  .app {
+    margin: 8px;
+    box-shadow:
+      0 0 0 6px var(--wood-600),
+      0 0 0 8px var(--wood-900),
+      0 14px 30px rgba(0, 0, 0, 0.55),
+      inset 0 0 50px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .app__header {
@@ -32,23 +133,43 @@ body {
 
 .app__header h1 {
   margin: 0;
-  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--cheese-300);
+  /* Geprägte Holzschild-Anmutung. */
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 2px 3px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(244, 197, 66, 0.25);
+}
+
+.app__header .hint {
+  color: var(--cream-100);
+  opacity: 0.85;
 }
 
 .app__meta {
   display: flex;
   gap: 12px;
   align-items: center;
-  color: #cbbfae;
+  color: var(--cream-100);
 }
 
 .badge {
-  background: var(--accent);
-  color: #1c1410;
+  background: linear-gradient(var(--cheese-300), var(--cheese-500));
+  color: var(--wood-900);
   border-radius: 999px;
-  padding: 2px 12px;
-  font-weight: 600;
+  padding: 3px 13px;
+  font-weight: 700;
   font-size: 0.85rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 0 var(--cheese-700),
+    0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .players {
@@ -57,9 +178,56 @@ body {
 }
 
 .player {
-  background: var(--panel);
+  position: relative;
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 12px 14px 14px;
+  /* Holzkarte mit feiner Maserung … */
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 6px),
+    linear-gradient(180deg, var(--wood-700), var(--wood-800));
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  /* … mit Spielerfarbe als Kopfleiste. */
+  border-top: 4px solid var(--player, var(--accent));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+    0 7px 16px rgba(0, 0, 0, 0.45);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+@media (hover: hover) {
+  .player:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+      0 12px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.player__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Runder Holz-Token hinter dem Maus-Sprite (der Schal trägt die Spielerfarbe). */
+.player__avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 30%, rgba(255, 240, 210, 0.22), transparent 55%),
+    linear-gradient(160deg, var(--wood-600), var(--wood-800));
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -4px 6px rgba(0, 0, 0, 0.4),
+    0 2px 5px rgba(0, 0, 0, 0.45),
+    0 0 0 2px var(--player, var(--accent));
 }
 
 .player__head {
@@ -74,7 +242,7 @@ body {
 }
 
 .player__score em {
-  color: #cbbfae;
+  color: var(--tan-300);
   font-style: normal;
 }
 
@@ -85,40 +253,98 @@ body {
   gap: 8px;
 }
 
+/* Würfel-Ablage: in das Brett eingelassene, dunkle Holzschale. */
+.dice,
+.dice3d {
+  border-radius: 12px;
+  padding: 8px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 70px),
+    linear-gradient(180deg, var(--wood-800), var(--wood-900));
+  box-shadow:
+    inset 0 3px 9px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.dice:empty {
+  display: none;
+}
+
 .dice3d {
   width: 100%;
-  height: 96px;
+  height: 104px;
 }
 
 .dice-canvas {
   width: 100%;
   height: 100%;
   touch-action: none;
+  /* Pixel-Look: scharfe Kanten beim Hochskalieren (kein Weichzeichnen). */
+  image-rendering: pixelated;
 }
 
 .toggle3d {
   background: transparent;
   color: var(--text);
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-700);
   border-radius: 999px;
   padding: 2px 12px;
   font-size: 0.8rem;
   font-weight: 600;
+  box-shadow: none; /* Outline-Familie: kein Token-Bevel */
+  /* Tap-Ziel: Hitbox ≥ 44px, ohne die Pille optisch aufzublähen. */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .die {
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
-  color: #1c1410;
-  font-weight: 700;
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+  color: var(--wood-900);
+  font-weight: 800;
+  /* Plastischer Spielstein: Glanzkante oben, Schattenkante unten, Schlagschatten. */
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.26),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.15),
+    0 4px 8px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 120ms ease;
+}
+
+.die--clickable:hover {
+  transform: translateY(-2px) rotate(-2deg);
 }
 
 .die__value {
   font-size: 1.2rem;
+}
+
+/* Würfel-Augen (2D): 3x3-Raster aus Pixel-Pips, Farbe = currentColor. */
+.die__pips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 3px;
+  width: 30px;
+  height: 30px;
+}
+
+.pip {
+  width: 100%;
+  height: 100%;
+}
+
+.pip--on {
+  border-radius: 2px;
+  background: currentColor;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.22);
 }
 
 .die--clickable {
@@ -134,7 +360,9 @@ body {
 }
 
 .die--pity {
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px #5fbf6a;
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.2),
+    0 0 0 2px var(--good-500);
 }
 
 .die__tag {
@@ -142,8 +370,8 @@ body {
   bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
-  background: #5fbf6a;
-  color: #1c1410;
+  background: var(--good-500);
+  color: var(--wood-900);
   font-size: 0.55rem;
   font-weight: 700;
   padding: 1px 5px;
@@ -153,17 +381,22 @@ body {
 
 .dice__empty,
 .muted {
-  color: #9c8e7d;
+  color: var(--tan-400);
   font-size: 0.9rem;
 }
 
 .hint {
-  color: #cbbfae;
+  color: var(--cream-100);
+  opacity: 0.9;
   margin: 0 0 12px;
 }
 
 .player--active {
   outline: 2px solid var(--accent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 3px rgba(244, 197, 66, 0.25),
+    0 12px 26px rgba(0, 0, 0, 0.5);
 }
 
 .standings {
@@ -190,8 +423,8 @@ body {
 }
 
 .counter button {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   font-size: 1.3rem;
   line-height: 1;
@@ -212,22 +445,36 @@ body {
 .seg__btn {
   background: transparent;
   color: var(--text);
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-700);
   padding: 8px 12px;
   font-size: 0.9rem;
+  min-height: 44px;
+  box-shadow: none; /* Outline-Familie */
 }
 
 .seg__btn--on {
   background: var(--accent);
-  color: #1c1410;
+  color: var(--wood-900);
   border-color: var(--accent);
+  /* Gefüllte Familie: Token-Bevel wie der Standardknopf. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3px 0 var(--cheese-700);
 }
 
 .panel {
-  background: var(--panel);
+  position: relative;
   border-radius: 14px;
-  padding: 14px;
+  padding: 16px;
   margin-top: 16px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 6px),
+    linear-gradient(180deg, var(--wood-700), var(--wood-800));
+  border: 1px solid rgba(0, 0, 0, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.32),
+    0 8px 18px rgba(0, 0, 0, 0.45);
 }
 
 .panel h2 {
@@ -243,6 +490,64 @@ body {
   padding: 8px 12px;
   cursor: pointer;
   font-weight: 600;
+  min-height: 44px;
+  box-shadow: none; /* Outline-Familie (Rahmen in Würfelfarbe) */
+}
+
+/* Startbildschirm: Hero-Mäuse auf einem runden Holzteller. */
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  margin: 6px 0 4px;
+}
+
+.hero__plate {
+  display: inline-grid;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.18), transparent 55%),
+    radial-gradient(circle at 50% 120%, rgba(0, 0, 0, 0.4), transparent 60%),
+    linear-gradient(160deg, var(--wood-600), var(--wood-800));
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.4),
+    0 8px 18px rgba(0, 0, 0, 0.5);
+  animation: avatar-bob 2.6s ease-in-out infinite;
+}
+
+.hero__mouse--back {
+  opacity: 0.92;
+  margin-bottom: 6px;
+  animation: avatar-bob 2.6s ease-in-out infinite;
+}
+
+.hero__mouse--back:first-child {
+  animation-delay: 0.5s;
+  transform: scaleX(-1);
+}
+
+.hero__mouse--back:last-child {
+  animation-delay: 1s;
+}
+
+/* Menü-Knöpfe: vollbreite, großflächige Holztafeln mit Icon links. */
+.menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  justify-content: flex-start;
+  font-size: 1.05rem;
+  padding: 15px 16px;
+}
+
+.menu .muted {
+  margin: 8px 2px 16px;
 }
 
 .actions {
@@ -251,31 +556,66 @@ body {
   margin-top: 20px;
 }
 
+/* Button-System: ZWEI Familien.
+ * 1) Gefüllter Holz-/Token-Knopf (Standard): geschnitzte Anmutung mit Bevel
+ *    (heller Grat oben, dunkle Kante unten) + Press-Versatz beim Drücken.
+ * 2) .ghost = Outline (sekundär). Andere Knöpfe (.toggle3d/.seg__btn/.offer/
+ *    .counter) sind Sub-Rollen dieser beiden Familien, kein dritter Stil. */
 button {
-  background: var(--accent);
-  color: #1c1410;
+  background: linear-gradient(var(--cheese-300), var(--cheese-500));
+  color: var(--wood-900);
   border: none;
   border-radius: 10px;
   padding: 12px 18px;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3px 0 var(--cheese-700),
+    0 2px 0 rgba(0, 0, 0, 0.25);
+  transition:
+    transform 80ms ease,
+    box-shadow 80ms ease,
+    filter 120ms ease;
+}
+
+@media (hover: hover) {
+  button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.06) saturate(1.05);
+  }
+}
+
+button:active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 0 var(--cheese-700),
+    0 1px 0 rgba(0, 0, 0, 0.2);
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 button.ghost {
   background: transparent;
   color: var(--text);
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-700);
+  box-shadow: none;
+}
+
+button.ghost:active {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .log {
   margin-top: 24px;
-  color: #cbbfae;
+  color: var(--tan-300);
   font-size: 0.9rem;
 }
 
@@ -286,32 +626,33 @@ button.ghost {
 
 /* Online-Modus: Formulare, Codes, Fehlertexte */
 .input {
-  background: #1c1410;
+  background: var(--wood-900);
   color: var(--text);
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-700);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 1rem;
   min-width: 0;
+  min-height: 44px;
   flex: 1;
   max-width: 60%;
 }
 
 .input::placeholder {
-  color: #7d7164;
+  color: var(--tan-500);
 }
 
 .code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 2px;
-  background: #1c1410;
-  border: 1px solid #4a3d33;
+  background: var(--wood-900);
+  border: 1px solid var(--wood-700);
   border-radius: 8px;
   padding: 1px 8px;
 }
 
 .error {
-  color: #ff8a7a;
+  color: var(--bad-300);
   font-size: 0.9rem;
   margin: 10px 0 0;
 }
@@ -326,7 +667,7 @@ button.ghost {
 }
 
 .summary__row {
-  border-top: 1px solid #4a3d33;
+  border-top: 1px solid var(--wood-700);
   padding-top: 10px;
 }
 
@@ -351,7 +692,7 @@ button.ghost {
 }
 
 .summary__final.neg {
-  color: #ff8a7a;
+  color: var(--bad-300);
 }
 
 .summary__chips {
@@ -361,23 +702,23 @@ button.ghost {
 }
 
 .chip {
-  border: 1px solid #4a3d33;
+  border: 1px solid var(--wood-700);
   border-left-width: 4px;
   border-radius: 6px;
   padding: 2px 8px;
   font-size: 0.8rem;
-  color: #e8ddcd;
-  background: #1c1410;
+  color: var(--tan-200);
+  background: var(--wood-900);
 }
 
 .chip--bad {
-  border-color: #c0392b;
-  color: #ff9a8a;
+  border-color: var(--bad-500);
+  color: var(--bad-200);
 }
 
 .chip--throw {
-  border-color: #3a3f47;
-  color: #b9c0c9;
+  border-color: var(--felt-700);
+  color: var(--cool-300);
 }
 
 .chip--crown {
@@ -389,7 +730,7 @@ button.ghost {
 .rules__p {
   margin: 0;
   line-height: 1.5;
-  color: #e8ddcd;
+  color: var(--tan-200);
 }
 
 .rules__phases {
@@ -405,7 +746,7 @@ button.ghost {
 }
 
 .rules__phase-text {
-  color: #cbbfae;
+  color: var(--tan-300);
   font-size: 0.92rem;
 }
 
@@ -438,7 +779,7 @@ button.ghost {
 }
 
 .rules__die-scoring {
-  color: #cbbfae;
+  color: var(--tan-300);
   font-size: 0.92rem;
 }
 
@@ -449,12 +790,18 @@ button.ghost {
 /* Würfel-Eintritt: rollt bei jedem frischen Wurf kurz herein. */
 @keyframes die-roll-in {
   0% {
-    transform: translateY(-8px) rotate(-12deg) scale(0.85);
+    transform: translateY(-16px) rotate(-20deg) scale(0.78);
     opacity: 0;
   }
-  60% {
-    transform: translateY(0) rotate(6deg) scale(1.04);
+  55% {
+    transform: translateY(3px) rotate(9deg) scale(1.1);
     opacity: 1;
+  }
+  72% {
+    transform: translateY(-4px) rotate(-4deg) scale(0.97);
+  }
+  86% {
+    transform: translateY(1px) rotate(2deg) scale(1.02);
   }
   100% {
     transform: translateY(0) rotate(0) scale(1);
@@ -462,16 +809,52 @@ button.ghost {
 }
 
 .die {
-  animation: die-roll-in 320ms ease-out both;
+  animation: die-roll-in 460ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+/* Aktive Maus „atmet": sanftes Wippen des Avatars. */
+@keyframes avatar-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.player--active .player__avatar {
+  animation: avatar-bob 1.5s ease-in-out infinite;
+}
+
+/* Käse-Krone hüpft fröhlich. */
+@keyframes crown-hop {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  30% {
+    transform: translateY(-4px) rotate(-8deg);
+  }
+  45% {
+    transform: translateY(0) rotate(5deg);
+  }
+}
+
+.player__crown {
+  display: inline-flex;
+  transform-origin: 50% 100%;
+  animation: crown-hop 1.9s ease-in-out infinite;
 }
 
 /* Kronenwechsel: goldener Puls auf der Spielerkarte. */
 @keyframes crown-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(244, 197, 66, 0.6);
+    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.6);
   }
   100% {
-    box-shadow: 0 0 0 14px rgba(244, 197, 66, 0);
+    box-shadow: 0 0 0 14px rgba(var(--accent-rgb), 0);
   }
 }
 
@@ -503,7 +886,7 @@ button.ghost {
 
 .player--warn {
   animation: warn-shake 600ms ease-in-out both;
-  box-shadow: 0 0 0 2px #c0392b inset;
+  box-shadow: 0 0 0 2px var(--bad-500) inset;
 }
 
 /* Runden-/Sieger-Banner: blendet kurz mittig ein. */
@@ -532,7 +915,7 @@ button.ghost {
 
 .banner span {
   background: var(--accent);
-  color: #1c1410;
+  color: var(--wood-900);
   font-weight: 800;
   font-size: 1.1rem;
   padding: 8px 22px;
@@ -576,26 +959,31 @@ button.ghost {
   }
 }
 
+/* Konfetti aus kleinen Käsestücken (Dreieck-Keil mit Löchern). */
 .confetti span {
   position: absolute;
   top: -10vh;
   left: calc(var(--i) * 7%);
-  width: 9px;
+  width: 16px;
   height: 14px;
-  border-radius: 2px;
-  background: var(--accent);
-  animation: confetti-fall 2.4s linear infinite;
+  background:
+    radial-gradient(circle at 32% 50%, rgba(120, 80, 0, 0.45) 0 1.4px, transparent 2px),
+    radial-gradient(circle at 64% 66%, rgba(120, 80, 0, 0.4) 0 1.4px, transparent 2px),
+    linear-gradient(180deg, var(--cheese-300), var(--cheese-500));
+  clip-path: polygon(0% 100%, 100% 100%, 100% 18%);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+  animation: confetti-fall 2.6s linear infinite;
   animation-delay: calc(var(--i) * 140ms);
 }
 
+/* Etwas Farbvielfalt: ein paar dunklere/hellere Käsestücke. */
 .confetti span:nth-child(3n) {
-  background: #5fbf6a;
+  background:
+    radial-gradient(circle at 40% 50%, rgba(120, 80, 0, 0.4) 0 1.4px, transparent 2px),
+    linear-gradient(180deg, #f0a93f, #e0883a);
 }
-.confetti span:nth-child(3n + 1) {
-  background: #e0568a;
-}
-.confetti span:nth-child(4n) {
-  background: #5aa9e6;
+.confetti span:nth-child(4n + 1) {
+  background: linear-gradient(180deg, var(--cream-100), var(--tan-200));
 }
 
 /* Bewegungsreduzierung respektieren: keine dekorativen Animationen. */
@@ -605,7 +993,25 @@ button.ghost {
   .player--warn,
   .banner span,
   .panel--win,
-  .confetti span {
+  .confetti span,
+  .player--active .player__avatar,
+  .player__crown,
+  .hero__plate,
+  .hero__mouse--back {
     animation: none;
+  }
+  /* Kein Press-/Hover-Versatz, wenn Bewegung reduziert ist. */
+  button,
+  .player,
+  .die {
+    transition: none;
+  }
+  button:hover,
+  button:active,
+  button.ghost:active,
+  .player:hover,
+  .die--clickable:hover {
+    transform: none;
+    filter: none;
   }
 }

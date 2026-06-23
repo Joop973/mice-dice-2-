@@ -23,7 +23,7 @@ export function DiceCanvas({ dice, selectedDieIds, onToggleClear }: DiceCanvasPr
       className="dice-canvas"
       dpr={[1, 2]}
       camera={{ position: [0, 0.6, camZ], fov: 40 }}
-      gl={{ antialias: true, alpha: true }}
+      gl={{ antialias: false, alpha: true }}
     >
       <ambientLight intensity={0.75} />
       <directionalLight position={[3, 6, 5]} intensity={0.9} />

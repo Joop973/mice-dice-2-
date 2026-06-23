@@ -4,6 +4,7 @@
 
 import type { Player, ScoreBreakdown, ScoreContributions } from '../engine';
 import { DIE_COLORS, DIE_LABELS } from './colors';
+import { PixelIcon } from './PixelIcon';
 
 const ORDER: (keyof ScoreContributions)[] = [
   'yellow',
@@ -17,13 +18,7 @@ const ORDER: (keyof ScoreContributions)[] = [
   'brown',
 ];
 
-export function RoundSummary({
-  scores,
-  players,
-}: {
-  scores: ScoreBreakdown[];
-  players: Player[];
-}) {
+export function RoundSummary({ scores, players }: { scores: ScoreBreakdown[]; players: Player[] }) {
   const nameById = new Map(players.map((p) => [p.id, p.name]));
 
   return (
@@ -36,7 +31,11 @@ export function RoundSummary({
             <li key={s.playerId} className="summary__row">
               <div className="summary__head">
                 <span className="summary__name">
-                  {s.hasCrown ? '👑 ' : ''}
+                  {s.hasCrown && (
+                    <>
+                      <PixelIcon name="crown" title="Käse-Krone" />{' '}
+                    </>
+                  )}
                   {nameById.get(s.playerId) ?? s.playerId}
                 </span>
                 <strong className={s.final < 0 ? 'summary__final neg' : 'summary__final'}>
@@ -55,7 +54,9 @@ export function RoundSummary({
                   </span>
                 ))}
                 {s.crownBonus > 0 && (
-                  <span className="chip chip--crown">👑 Krone +{s.crownBonus}</span>
+                  <span className="chip chip--crown">
+                    <PixelIcon name="crown" title="Krone" /> Krone +{s.crownBonus}
+                  </span>
                 )}
                 {s.sabotageReceived > 0 && (
                   <span className="chip chip--bad">Sabotage −{s.sabotageReceived}</span>

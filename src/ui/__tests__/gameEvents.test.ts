@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  advancePhase,
-  createRNG,
-  startGame,
-  type GameState,
-  type RNG,
-} from '../../engine';
+import { advancePhase, createRNG, startGame, type GameState, type RNG } from '../../engine';
 import { detectEvents, snapshot } from '../gameEvents';
 
 // Treibt ein deterministisches Spiel und prüft, dass die Ereignis-Erkennung
@@ -40,9 +34,7 @@ describe('detectEvents', () => {
 
     const res = detectEvents(snapshot(swap), snapshot(draft));
     // Es muss mindestens ein wertungsbezogenes Ereignis geben.
-    const scoring = res.sounds.filter((s) =>
-      ['tick', 'crown', 'warn'].includes(s)
-    );
+    const scoring = res.sounds.filter((s) => ['tick', 'crown', 'warn'].includes(s));
     expect(scoring.length).toBeGreaterThan(0);
   });
 

@@ -41,9 +41,7 @@ function TwoD({ dice, selectedDieIds, onToggleClear }: Omit<DiceViewProps, 'use3
 }
 
 export function DiceView({ dice, use3d, selectedDieIds, onToggleClear }: DiceViewProps) {
-  const twoD = (
-    <TwoD dice={dice} selectedDieIds={selectedDieIds} onToggleClear={onToggleClear} />
-  );
+  const twoD = <TwoD dice={dice} selectedDieIds={selectedDieIds} onToggleClear={onToggleClear} />;
 
   if (!use3d || dice.length === 0 || !isWebGLAvailable()) return twoD;
 
@@ -51,11 +49,7 @@ export function DiceView({ dice, use3d, selectedDieIds, onToggleClear }: DiceVie
     <div className="dice3d">
       <DiceErrorBoundary fallback={twoD}>
         <Suspense fallback={twoD}>
-          <DiceCanvas
-            dice={dice}
-            selectedDieIds={selectedDieIds}
-            onToggleClear={onToggleClear}
-          />
+          <DiceCanvas dice={dice} selectedDieIds={selectedDieIds} onToggleClear={onToggleClear} />
         </Suspense>
       </DiceErrorBoundary>
     </div>

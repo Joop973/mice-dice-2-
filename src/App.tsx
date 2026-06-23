@@ -3,7 +3,7 @@
 // (strikte Trennung). KI-Spieler agieren automatisch über das gekapselte
 // ai-Modul. Würfel sind CSS-Platzhalter (Phase 4 -> 3D).
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   advancePhase,
   createRNG,
@@ -13,16 +13,10 @@ import {
   swapClearDice,
   type GameState,
   type NewPlayer,
-  type Phase,
   type Player,
   type RNG,
 } from './engine';
-import {
-  aiTakePhaseAction,
-  DIFFICULTIES,
-  DIFFICULTY_LABELS,
-  type Difficulty,
-} from './ai';
+import { aiTakePhaseAction, DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from './ai';
 import { PlayerCard } from './ui/PlayerCard';
 import { RoundSummary } from './ui/RoundSummary';
 import { Rules } from './ui/Rules';
@@ -31,20 +25,12 @@ import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
 import { useSound } from './sound';
 import { DIE_COLORS, DIE_LABELS } from './ui/colors';
-
-const PHASE_LABEL: Record<Phase, string> = {
-  roll: '1 · Würfeln',
-  pity: '2 · Mitleidswürfel',
-  swap: '3 · Klar tauschen',
-  draft: '4 · Drafting',
-};
-
-const PHASE_HINT: Record<Phase, string> = {
-  roll: 'Alle Mäuse haben ihren Beutel geworfen.',
-  pity: 'Schwächere Mäuse erhalten einen Mitleidswürfel (hervorgehoben).',
-  swap: 'Tippe deine Klar-Würfel an und würfle sie neu. Andere Farben bleiben.',
-  draft: 'Reihum einen Würfel aus dem Angebot wählen – oder passen.',
-};
+import { PHASE_LABEL, PHASE_HINT } from './ui/phaseLabels';
+import { Counter } from './ui/Counter';
+import { PixelIcon } from './ui/PixelIcon';
+import { MouseAvatar } from './ui/MouseAvatar';
+import { WinScreen } from './ui/WinScreen';
+import { useClearSelection } from './ui/useClearSelection';
 
 const AI_STEP_DELAY_MS = 400;
 
@@ -70,7 +56,7 @@ export function App() {
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
 
   const [state, setState] = useState<GameState | null>(null);
-  const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
+  const selectedClear = useClearSelection();
   const [use3d, setUse3d] = useState(true);
 
   const { play, muted, toggleMuted } = useSound();
@@ -99,7 +85,7 @@ export function App() {
     setAis(saved.ais);
     setDifficulty(saved.difficulty);
     setState(saved.state);
-    setSelectedClear(new Set());
+    selectedClear.reset();
     setStarted(true);
     setMode('local');
   }
@@ -111,14 +97,15 @@ export function App() {
     rngRef.current = createRNG(seed);
     aiSwapRoundRef.current = 0;
     setState(startGame({ players: buildPlayers(humans, ais), seed }).state);
-    setSelectedClear(new Set());
+    selectedClear.reset();
     setStarted(true);
   }
 
   // Auswahl zurücksetzen, sobald sich Phase/Runde ändern.
+  const resetClear = selectedClear.reset;
   useEffect(() => {
-    setSelectedClear(new Set());
-  }, [state?.phase, state?.round]);
+    resetClear();
+  }, [state?.phase, state?.round, resetClear]);
 
   // KI-Treiber: agiert automatisch in der Swap- und Draft-Phase.
   useEffect(() => {
@@ -199,25 +186,19 @@ export function App() {
       muted={muted}
       onToggleMute={toggleMuted}
       fx={fx}
-      selectedClear={selectedClear}
-      onToggleClear={(id) =>
-        setSelectedClear((prev) => {
-          const next = new Set(prev);
-          next.has(id) ? next.delete(id) : next.add(id);
-          return next;
-        })
-      }
+      selectedClear={selectedClear.selected}
+      onToggleClear={selectedClear.toggle}
       onRerollSelected={() => {
-        if (selectedClear.size === 0) return;
+        if (selectedClear.selected.size === 0) return;
         let next = state;
         for (const p of state.players) {
           const ids = p.rolled
-            .filter((d) => d.color === 'clear' && selectedClear.has(d.id))
+            .filter((d) => d.color === 'clear' && selectedClear.selected.has(d.id))
             .map((d) => d.id);
           if (ids.length > 0) next = swapClearDice(next, p.id, ids, rngRef.current);
         }
         setState(next);
-        setSelectedClear(new Set());
+        selectedClear.reset();
       }}
       onAdvance={() => setState(advancePhase(state, rngRef.current))}
       onPick={(playerId, offerId) => setState(draftPick(state, playerId, offerId))}
@@ -243,28 +224,49 @@ function Menu({
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Dice Mice</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
+        </h1>
         <p className="hint">Würfelspiel mit Mäuse-Thema</p>
       </header>
-      <section className="panel">
+
+      <div className="hero" aria-hidden="true">
+        <span className="hero__mouse hero__mouse--back">
+          <MouseAvatar colorIndex={2} size={64} />
+        </span>
+        <span className="hero__plate">
+          <MouseAvatar colorIndex={0} size={104} />
+        </span>
+        <span className="hero__mouse hero__mouse--back">
+          <MouseAvatar colorIndex={3} size={64} />
+        </span>
+      </div>
+
+      <section className="panel menu">
         {onResume && (
           <>
-            <button onClick={onResume}>▶️ Partie fortsetzen (Runde {resumeRound})</button>
+            <button onClick={onResume}>
+              <PixelIcon name="play" title="" /> Partie fortsetzen (Runde {resumeRound})
+            </button>
             <p className="muted" style={{ margin: '10px 0 18px' }}>
               Deine zuletzt gespeicherte lokale Partie.
             </p>
           </>
         )}
-        <button onClick={onLocal}>🎲 Solo / Pass-and-Play</button>
+        <button onClick={onLocal}>
+          <PixelIcon name="dice" title="" /> Solo / Pass-and-Play
+        </button>
         <p className="muted" style={{ margin: '10px 0 18px' }}>
           Lokal an einem Gerät – allein gegen die KI oder reihum.
         </p>
-        <button onClick={onOnline}>🌐 Online spielen</button>
+        <button onClick={onOnline}>
+          <PixelIcon name="globe" title="" /> Online spielen
+        </button>
         <p className="muted" style={{ margin: '10px 0 18px' }}>
           Raum erstellen und Code teilen. Ohne Server lokal simuliert.
         </p>
         <button className="ghost" onClick={onRules}>
-          📖 Spielregeln
+          <PixelIcon name="book" title="" /> Spielregeln
         </button>
       </section>
     </div>
@@ -298,12 +300,28 @@ function Setup({
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Dice Mice</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
+        </h1>
         <p className="hint">Neue Partie einrichten</p>
       </header>
 
+      <div className="hero hero--small" aria-hidden="true">
+        {Array.from({ length: total }, (_, i) => (
+          <span key={i} className="hero__mouse--back">
+            <MouseAvatar colorIndex={i} size={48} />
+          </span>
+        ))}
+      </div>
+
       <section className="panel">
-        <Counter label="Menschen (Pass-and-Play)" value={humans} min={1} max={4} onChange={setHumans} />
+        <Counter
+          label="Menschen (Pass-and-Play)"
+          value={humans}
+          min={1}
+          max={4}
+          onChange={setHumans}
+        />
         <Counter label="KI-Gegner" value={ais} min={0} max={3} onChange={setAis} />
 
         <div className="field">
@@ -330,35 +348,6 @@ function Setup({
       <div className="actions">
         <button className="ghost" onClick={onBack}>
           ← Zurück
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Counter({
-  label,
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  onChange: (n: number) => void;
-}) {
-  return (
-    <div className="field">
-      <span className="field__label">{label}</span>
-      <div className="counter">
-        <button onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>
-          −
-        </button>
-        <span className="counter__value">{value}</span>
-        <button onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>
-          +
         </button>
       </div>
     </div>
@@ -397,11 +386,6 @@ function Game({
   onPass,
   onNewGame,
 }: GameProps) {
-  const leader = useMemo(
-    () => state.players.reduce((best, p) => (p.totalScore > best.totalScore ? p : best)),
-    [state.players]
-  );
-
   const activeDrafter: Player | undefined =
     state.phase === 'draft'
       ? state.players.find((p) => !state.draftedThisPhase.includes(p.id))
@@ -411,40 +395,15 @@ function Game({
   const hasClearDice = state.players.some((p) => p.rolled.some((d) => d.color === 'clear'));
 
   if (state.finished) {
-    return (
-      <div className="app">
-        <div className="confetti" aria-hidden="true">
-          {Array.from({ length: 14 }, (_, i) => (
-            <span key={i} style={{ '--i': i } as CSSProperties} />
-          ))}
-        </div>
-        <header className="app__header">
-          <h1>🧀 Dice Mice</h1>
-        </header>
-        <section className="panel panel--win">
-          <h2>Partie beendet 🎉</h2>
-          <p>
-            Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
-          </p>
-          <ol className="standings">
-            {[...state.players]
-              .sort((a, b) => b.totalScore - a.totalScore)
-              .map((p) => (
-                <li key={p.id}>
-                  {p.name}: {p.totalScore}
-                </li>
-              ))}
-          </ol>
-          <button onClick={onNewGame}>Neue Partie</button>
-        </section>
-      </div>
-    );
+    return <WinScreen players={state.players} actionLabel="Neue Partie" onAction={onNewGame} />;
   }
 
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Dice Mice</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
+        </h1>
         <div className="app__meta">
           <span>
             Runde {state.round} / {state.config.totalRounds}
@@ -459,7 +418,7 @@ function Game({
             aria-label={muted ? 'Ton einschalten' : 'Ton ausschalten'}
             aria-pressed={muted}
           >
-            {muted ? '🔇' : '🔊'}
+            <PixelIcon name={muted ? 'soundOff' : 'soundOn'} title={muted ? 'Ton aus' : 'Ton an'} />
           </button>
         </div>
       </header>
@@ -473,10 +432,11 @@ function Game({
       <p className="hint">{PHASE_HINT[state.phase]}</p>
 
       <section className="players">
-        {state.players.map((p) => (
+        {state.players.map((p, i) => (
           <PlayerCard
             key={p.id}
             player={p}
+            colorIndex={i}
             use3d={use3d}
             active={activeDrafter?.id === p.id}
             crowned={fx.crownedNow.has(p.id)}
@@ -527,7 +487,12 @@ function Game({
                 onClick={() => activeDrafter && onPick(activeDrafter.id, o.id)}
               >
                 {DIE_LABELS[o.die.color]} W{o.die.sides}
-                {o.die.variant === 'glitter' ? ' ✨' : ''}
+                {o.die.variant === 'glitter' && (
+                  <>
+                    {' '}
+                    <PixelIcon name="sparkle" title="Glitzer" />
+                  </>
+                )}
               </button>
             ))}
           </div>

@@ -17,7 +17,7 @@ describe('OnlineFlow (Loopback)', () => {
     fireEvent.click(screen.getByText('Raum erstellen →'));
 
     // 2) Lobby erscheint mit Sitzliste (Host + 1 KI) und Start-Knopf.
-    expect(screen.getByText('🧀 Lobby')).toBeTruthy();
+    expect(screen.getByText('Lobby')).toBeTruthy();
     expect(screen.getByText(/\(du\)/)).toBeTruthy();
     const startBtn = screen.getByText('Partie starten →') as HTMLButtonElement;
     expect(startBtn.disabled).toBe(false);

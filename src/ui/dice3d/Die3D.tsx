@@ -7,6 +7,8 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { RolledDie } from '../../engine';
 import { DIE_COLORS } from '../colors';
+import { THEME } from '../theme';
+import { prefersReducedMotion } from '../../motion';
 import { dieTexture } from './dieTexture';
 
 interface Die3DProps {
@@ -17,13 +19,15 @@ interface Die3DProps {
   onClick?: () => void;
 }
 
-const ACCENT = new THREE.Color('#f4c542');
-const PITY = new THREE.Color('#5fbf6a');
-const BLACK = new THREE.Color('#000000');
+const ACCENT = new THREE.Color(THEME.cheese500);
+const PITY = new THREE.Color(THEME.good500);
+const BLACK = new THREE.Color(THEME.black);
 
 export function Die3D({ die, position, selected, pity, onClick }: Die3DProps) {
   const group = useRef<THREE.Group>(null);
-  const spin = useRef(0.7); // Sekunden Rest-Tumble; >0 beim Mount = Wurf-Gefühl
+  // Bewegungsreduzierung: kein Tumble, Würfel ruht zur Kamera (No-op).
+  const reduced = prefersReducedMotion();
+  const spin = useRef(reduced ? 0 : 0.7); // Sekunden Rest-Tumble; >0 beim Mount = Wurf-Gefühl
   const prevValue = useRef(die.value);
 
   const texture = useMemo(
@@ -31,17 +35,22 @@ export function Die3D({ die, position, selected, pity, onClick }: Die3DProps) {
     [die.value, die.color]
   );
 
-  // Neuer Wert -> erneut werfen (Tumble auslösen).
+  // Neuer Wert -> erneut werfen (Tumble auslösen) — außer bei reduced-motion.
   useEffect(() => {
     if (prevValue.current !== die.value) {
       prevValue.current = die.value;
-      spin.current = 0.7;
+      if (!reduced) spin.current = 0.7;
     }
-  }, [die.value]);
+  }, [die.value, reduced]);
 
   useFrame((_, delta) => {
     const g = group.current;
     if (!g) return;
+    if (reduced) {
+      g.rotation.x = 0;
+      g.rotation.y = 0;
+      return;
+    }
     const d = Math.min(delta, 0.05); // gegen Sprünge bei Tab-Wechseln
     if (spin.current > 0) {
       spin.current -= d;
@@ -86,8 +95,8 @@ export function Die3D({ die, position, selected, pity, onClick }: Die3DProps) {
           map={texture}
           emissive={emissive}
           emissiveIntensity={emissiveIntensity}
-          roughness={0.45}
-          metalness={0.1}
+          roughness={1}
+          metalness={0}
         />
       </mesh>
     </group>

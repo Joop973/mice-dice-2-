@@ -6,26 +6,24 @@
 // Der Server ist autoritativ: diese Komponente rendert nur den empfangenen
 // GameState und schickt Aktionen; die Zug-/Rechteprüfung passiert serverseitig.
 
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState } from 'react';
 import { LocalTransport, WebSocketTransport, type Transport } from '../net';
 import { DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from '../ai';
-import type { GameState, Phase, Player } from '../engine';
+import type { GameState, Player } from '../engine';
 import { PlayerCard } from './PlayerCard';
 import { RoundSummary } from './RoundSummary';
 import { useGameClient, type GameClient } from './useGameClient';
 import { useGameEvents } from './useGameEvents';
 import { useSound } from '../sound';
 import { DIE_COLORS, DIE_LABELS } from './colors';
+import { PHASE_LABEL, PHASE_HINT } from './phaseLabels';
+import { Counter } from './Counter';
+import { PixelIcon } from './PixelIcon';
+import { WinScreen } from './WinScreen';
+import { useClearSelection } from './useClearSelection';
 
 const ENV_SERVER_URL: string =
   (import.meta.env as Record<string, string | undefined>).VITE_SERVER_URL ?? '';
-
-const PHASE_LABEL: Record<Phase, string> = {
-  roll: '1 · Würfeln',
-  pity: '2 · Mitleidswürfel',
-  swap: '3 · Klar tauschen',
-  draft: '4 · Drafting',
-};
 
 function transportFactory(serverUrl: string): () => Transport {
   const url = serverUrl.trim();
@@ -62,7 +60,9 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Dice Mice · Online</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice · Online
+        </h1>
         <p className="hint">
           {isLocal
             ? 'Kein Server angegeben → lokal simuliert (Solo gegen KI über den Online-Pfad).'
@@ -148,9 +148,7 @@ function Connect({ client, onBack }: { client: GameClient; onBack: () => void })
             )}
             <button
               disabled={!nameOk || code.trim().length === 0 || isLocal}
-              onClick={() =>
-                client.joinRoom(transportFactory(serverUrl), code.trim(), name.trim())
-              }
+              onClick={() => client.joinRoom(transportFactory(serverUrl), code.trim(), name.trim())}
             >
               Beitreten →
             </button>
@@ -178,7 +176,9 @@ function Lobby({ client, onBack }: { client: GameClient; onBack: () => void }) {
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Lobby</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Lobby
+        </h1>
         <p className="hint">
           Raumcode: <strong className="code">{client.code}</strong>
           {' · '}teile ihn zum Beitreten.
@@ -190,9 +190,18 @@ function Lobby({ client, onBack }: { client: GameClient; onBack: () => void }) {
         <ul className="standings">
           {client.seats.map((s) => (
             <li key={s.id}>
-              {s.isHost ? '⭐ ' : ''}
+              {s.isHost && (
+                <>
+                  <PixelIcon name="star" title="Host" />{' '}
+                </>
+              )}
               {s.name}
-              {s.isAI ? ' 🤖' : ''}
+              {s.isAI && (
+                <>
+                  {' '}
+                  <PixelIcon name="ai" title="KI-Gegner" />
+                </>
+              )}
               {s.id === client.you ? ' (du)' : ''}
               {!s.connected ? ' – getrennt' : ''}
             </li>
@@ -237,14 +246,10 @@ function OnlineGame({
 }) {
   const state = client.state as GameState;
   const you = client.you;
-  const [selectedClear, setSelectedClear] = useState<Set<string>>(new Set());
+  const { muted, toggleMuted } = useSound();
+  const selectedClear = useClearSelection();
 
   const isHost = client.seats.find((s) => s.isHost)?.id === you;
-
-  const leader = useMemo(
-    () => state.players.reduce((best, p) => (p.totalScore > best.totalScore ? p : best)),
-    [state.players]
-  );
 
   const activeDrafter: Player | undefined =
     state.phase === 'draft'
@@ -259,65 +264,43 @@ function OnlineGame({
 
   if (state.finished) {
     return (
-      <div className="app">
-        <div className="confetti" aria-hidden="true">
-          {Array.from({ length: 14 }, (_, i) => (
-            <span key={i} style={{ '--i': i } as CSSProperties} />
-          ))}
-        </div>
-        <header className="app__header">
-          <h1>🧀 Dice Mice</h1>
-        </header>
-        <section className="panel panel--win">
-          <h2>Partie beendet 🎉</h2>
-          <p>
-            Sieger: <strong>{leader.name}</strong> mit {leader.totalScore} Punkten.
-          </p>
-          <ol className="standings">
-            {[...state.players]
-              .sort((a, b) => b.totalScore - a.totalScore)
-              .map((p) => (
-                <li key={p.id}>
-                  {p.name}: {p.totalScore}
-                </li>
-              ))}
-          </ol>
-          <button
-            onClick={() => {
-              client.leave();
-              onBack();
-            }}
-          >
-            Zurück zum Menü
-          </button>
-        </section>
-      </div>
+      <WinScreen
+        players={state.players}
+        actionLabel="Zurück zum Menü"
+        onAction={() => {
+          client.leave();
+          onBack();
+        }}
+      />
     );
   }
 
-  const toggleClear = (id: string) =>
-    setSelectedClear((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-
   const rerollSelected = () => {
-    if (selectedClear.size === 0) return;
-    client.sendAction({ type: 'swap', dieIds: [...selectedClear] });
-    setSelectedClear(new Set());
+    if (selectedClear.selected.size === 0) return;
+    client.sendAction({ type: 'swap', dieIds: [...selectedClear.selected] });
+    selectedClear.reset();
   };
 
   return (
     <div className="app">
       <header className="app__header">
-        <h1>🧀 Dice Mice</h1>
+        <h1>
+          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
+        </h1>
         <div className="app__meta">
           <span>
             Runde {state.round} / {state.config.totalRounds}
           </span>
           <span className="badge">{PHASE_LABEL[state.phase]}</span>
           <span className="code">#{client.code}</span>
+          <button
+            className="toggle3d"
+            onClick={toggleMuted}
+            aria-label={muted ? 'Ton einschalten' : 'Ton ausschalten'}
+            aria-pressed={muted}
+          >
+            <PixelIcon name={muted ? 'soundOff' : 'soundOn'} title={muted ? 'Ton aus' : 'Ton an'} />
+          </button>
         </div>
       </header>
 
@@ -327,19 +310,22 @@ function OnlineGame({
         </div>
       )}
 
+      <p className="hint">{PHASE_HINT[state.phase]}</p>
+
       <section className="players">
-        {state.players.map((p) => {
+        {state.players.map((p, i) => {
           const isYou = p.id === you;
           return (
             <PlayerCard
               key={p.id}
               player={p}
+              colorIndex={i}
               use3d
               active={activeDrafter?.id === p.id}
               crowned={fx.crownedNow.has(p.id)}
               warn={fx.warnNow.has(p.id)}
-              selectedDieIds={state.phase === 'swap' && isYou ? selectedClear : undefined}
-              onToggleClear={state.phase === 'swap' && isYou ? toggleClear : undefined}
+              selectedDieIds={state.phase === 'swap' && isYou ? selectedClear.selected : undefined}
+              onToggleClear={state.phase === 'swap' && isYou ? selectedClear.toggle : undefined}
             />
           );
         })}
@@ -348,9 +334,9 @@ function OnlineGame({
       {state.phase === 'swap' && (
         <section className="panel">
           {yourClearDice ? (
-            <button onClick={rerollSelected} disabled={selectedClear.size === 0}>
-              {selectedClear.size > 0
-                ? `${selectedClear.size} eigene Klar-Würfel neu würfeln`
+            <button onClick={rerollSelected} disabled={selectedClear.selected.size === 0}>
+              {selectedClear.selected.size > 0
+                ? `${selectedClear.selected.size} eigene Klar-Würfel neu würfeln`
                 : 'Eigene Klar-Würfel auswählen'}
             </button>
           ) : (
@@ -369,7 +355,8 @@ function OnlineGame({
             Angebot
             {activeDrafter && (
               <>
-                {' '}· {activeDrafter.name}
+                {' '}
+                · {activeDrafter.name}
                 {activeDrafter.id === you ? ' (du) wählst' : ' wählt …'}
               </>
             )}
@@ -384,7 +371,12 @@ function OnlineGame({
                 onClick={() => client.sendAction({ type: 'draftPick', offerId: o.id })}
               >
                 {DIE_LABELS[o.die.color]} W{o.die.sides}
-                {o.die.variant === 'glitter' ? ' ✨' : ''}
+                {o.die.variant === 'glitter' && (
+                  <>
+                    {' '}
+                    <PixelIcon name="sparkle" title="Glitzer" />
+                  </>
+                )}
               </button>
             ))}
           </div>
@@ -424,37 +416,6 @@ function OnlineGame({
       </div>
 
       {client.error && <p className="error">{client.error}</p>}
-    </div>
-  );
-}
-
-// --- Hilfskomponente (lokal, klein) ---------------------------------------
-
-function Counter({
-  label,
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  onChange: (n: number) => void;
-}) {
-  return (
-    <div className="field">
-      <span className="field__label">{label}</span>
-      <div className="counter">
-        <button onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min}>
-          −
-        </button>
-        <span className="counter__value">{value}</span>
-        <button onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max}>
-          +
-        </button>
-      </div>
     </div>
   );
 }

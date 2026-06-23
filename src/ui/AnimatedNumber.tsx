@@ -2,16 +2,9 @@
 // (Punkte-Tick). Respektiert prefers-reduced-motion: dann springt der Wert.
 
 import { useEffect, useRef, useState } from 'react';
+import { prefersReducedMotion } from '../motion';
 
 const DURATION_MS = 450;
-
-function prefersReducedMotion(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
-}
 
 export function AnimatedNumber({ value }: { value: number }) {
   const [display, setDisplay] = useState(value);
