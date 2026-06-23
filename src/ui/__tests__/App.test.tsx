@@ -13,7 +13,7 @@ afterEach(() => {
 describe('App-Menü', () => {
   it('öffnet die Spielregeln und kehrt zurück', () => {
     render(<App />);
-    fireEvent.click(screen.getByText('Spielregeln'));
+    fireEvent.click(screen.getByText('Regeln'));
     expect(screen.getByText('Würfel & Wertung')).toBeTruthy();
     fireEvent.click(screen.getByText('← Zurück'));
     expect(screen.getByText('Solo / Pass-and-Play')).toBeTruthy();
@@ -27,6 +27,6 @@ describe('App-Menü', () => {
     saveLocalGame({ state, humans: 2, ais: 0, difficulty: 'medium' });
 
     render(<App />);
-    expect(screen.getByText(/Partie fortsetzen/)).toBeTruthy();
+    expect(screen.getByText(/Fortsetzen/)).toBeTruthy();
   });
 });

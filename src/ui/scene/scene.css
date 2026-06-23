@@ -1,0 +1,539 @@
+/* Lebendige Speisekammer-Kulisse (Startbildschirm + Lobby).
+ * Alle Farben aus der Palette in styles.css. Bewegungen sind dekorativ und
+ * werden bei prefers-reduced-motion komplett abgeschaltet. */
+
+.scene {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  /* Holzwand aus vertikalen Planken + warmer Lichtschein von oben. */
+  background-color: var(--wood-800);
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255, 220, 150, 0.16), transparent 62%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.26) 0 2px, transparent 2px 84px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 9px),
+    linear-gradient(180deg, #5a4030 0%, #3a2a1e 60%, #2a1d14 100%);
+}
+
+/* Boden-Dielen im unteren Drittel (perspektivisch heller). */
+.scene::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30%;
+  z-index: 0;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0 2px, transparent 2px 68px),
+    linear-gradient(180deg, #6b4a30, #4a3422);
+  box-shadow: inset 0 14px 26px rgba(0, 0, 0, 0.55);
+}
+
+.scene__content {
+  position: relative;
+  z-index: 3;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 12px) 18px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  min-height: 100svh;
+}
+
+/* ---------- Regal mit Vorräten ------------------------------------------- */
+
+.scene__shelf {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  top: 64px;
+  height: 78px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 26px;
+  pointer-events: none;
+}
+
+/* Das Holzbrett des Regals. */
+.scene__shelf::after {
+  content: '';
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: -8px;
+  height: 12px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--wood-600), var(--wood-800));
+  box-shadow:
+    0 6px 10px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* Vorratsglas: Glaskörper + Deckel + Inhalt + Glanzstreifen. */
+.jar {
+  position: relative;
+  width: 40px;
+  height: 56px;
+  border-radius: 8px 8px 10px 10px;
+  background: linear-gradient(180deg, rgba(220, 240, 245, 0.28), rgba(160, 190, 200, 0.16));
+  border: 2px solid rgba(20, 30, 32, 0.5);
+  box-shadow:
+    inset 0 -10px 12px rgba(0, 0, 0, 0.25),
+    inset 4px 0 8px rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.jar::before {
+  /* Inhalt (Füllstand) */
+  content: '';
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  height: 62%;
+  border-radius: 4px;
+  background: var(--jar-fill, var(--cheese-500));
+}
+
+.jar::after {
+  /* Glasglanz */
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 7px;
+  height: 70%;
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
+}
+
+.jar__lid {
+  position: absolute;
+  top: -9px;
+  left: -3px;
+  right: -3px;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--wood-600), var(--wood-800));
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.18), 0 2px 3px rgba(0, 0, 0, 0.4);
+}
+
+.jar--honey {
+  --jar-fill: linear-gradient(180deg, #f4b13a, #d98a1f);
+}
+.jar--jam {
+  --jar-fill: linear-gradient(180deg, #c23a55, #7d2236);
+}
+.jar--tea {
+  --jar-fill: linear-gradient(180deg, #6f9a4a, #46662f);
+}
+
+/* Aufsteigender Dampf/Duft aus einem Glas. */
+.steam {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  width: 4px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5), transparent 70%);
+  opacity: 0;
+  transform: translateX(-50%);
+}
+
+/* Topfpflanze auf dem Regal. */
+.plant {
+  position: relative;
+  width: 38px;
+  height: 56px;
+  transform-origin: bottom center;
+}
+.plant__pot {
+  position: absolute;
+  bottom: 0;
+  left: 4px;
+  right: 4px;
+  height: 22px;
+  border-radius: 4px 4px 6px 6px;
+  background: linear-gradient(180deg, #c06b3a, #8a4a26);
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.18);
+}
+.plant__leaf {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  width: 12px;
+  height: 26px;
+  border-radius: 80% 10% 80% 10%;
+  background: linear-gradient(180deg, #6fcf76, #3f8a4a);
+  transform-origin: bottom center;
+}
+.plant__leaf:nth-child(1) { transform: translateX(-60%) rotate(-28deg); }
+.plant__leaf:nth-child(2) { transform: translateX(-50%) rotate(0deg); height: 30px; }
+.plant__leaf:nth-child(3) { transform: translateX(-40%) rotate(28deg); }
+
+/* Hängende Laterne mit flackerndem Licht. */
+.lantern {
+  position: absolute;
+  z-index: 1;
+  top: 150px;
+  left: 22px;
+  width: 34px;
+  height: 48px;
+}
+.lantern__cap {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 8px;
+  border-radius: 3px 3px 0 0;
+  background: var(--wood-700);
+}
+.lantern__body {
+  position: absolute;
+  top: 7px;
+  left: 3px;
+  right: 3px;
+  bottom: 0;
+  border-radius: 4px;
+  border: 3px solid #241a12;
+  background: linear-gradient(180deg, rgba(255, 210, 122, 0.35), rgba(255, 170, 70, 0.2));
+  overflow: hidden;
+}
+.lantern__flame {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 16px;
+  border-radius: 50% 50% 50% 50% / 70% 70% 40% 40%;
+  background: radial-gradient(circle at 50% 70%, #ffe9a8, #ffb031 60%, #f08a1f);
+  filter: drop-shadow(0 0 8px rgba(255, 180, 70, 0.8));
+}
+/* Lichtschein der Laterne auf die Wand. */
+.lantern__glow {
+  position: absolute;
+  inset: -40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 190, 90, 0.28), transparent 68%);
+  z-index: -1;
+}
+
+/* Knoblauchzopf rechts. */
+.garlic {
+  position: absolute;
+  z-index: 1;
+  top: 150px;
+  right: 22px;
+  width: 26px;
+  height: 56px;
+  transform-origin: top center;
+}
+.garlic span {
+  position: absolute;
+  width: 16px;
+  height: 18px;
+  border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+  background: radial-gradient(circle at 40% 30%, #fbf3e0, #d8cbb2);
+  box-shadow: inset -2px -2px 3px rgba(0, 0, 0, 0.18);
+}
+.garlic span:nth-child(1) { top: 2px; left: 5px; }
+.garlic span:nth-child(2) { top: 16px; left: 0; }
+.garlic span:nth-child(3) { top: 16px; left: 10px; }
+.garlic span:nth-child(4) { top: 32px; left: 5px; }
+
+/* ---------- Schwebende Staubpartikel im Licht ----------------------------- */
+
+.motes {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.motes span {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 235, 190, 0.8);
+  filter: blur(0.4px);
+  opacity: 0;
+}
+
+/* ---------- Geschnitztes „Dice Mice"-Holzschild --------------------------- */
+
+.logo-sign {
+  position: relative;
+  margin-top: 18px;
+  padding: 4px 0;
+  transform-origin: top center;
+}
+/* Aufhänge-Seile. */
+.logo-sign__rope {
+  position: absolute;
+  top: -22px;
+  width: 3px;
+  height: 26px;
+  background: repeating-linear-gradient(45deg, #8a6a44 0 3px, #6b4a30 3px 6px);
+  border-radius: 2px;
+}
+.logo-sign__rope--l { left: 24%; transform: rotate(8deg); }
+.logo-sign__rope--r { right: 24%; transform: rotate(-8deg); }
+
+.logo-sign__board {
+  position: relative;
+  padding: 14px 26px;
+  border-radius: 14px;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 7px),
+    linear-gradient(180deg, #9c6b3f, #6b4527);
+  border: 3px solid #3f2a18;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 220, 170, 0.22),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.4),
+    0 10px 22px rgba(0, 0, 0, 0.5);
+}
+.logo-sign__title {
+  margin: 0;
+  text-align: center;
+  font-weight: 800;
+  font-size: clamp(2rem, 11vw, 3.1rem);
+  line-height: 0.95;
+  letter-spacing: 1px;
+  color: var(--cheese-300);
+  /* Eingravierte Anmutung: heller Grat oben, dunkler Schatten unten. */
+  text-shadow:
+    0 1px 0 rgba(255, 240, 200, 0.35),
+    0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 3px 5px rgba(0, 0, 0, 0.55);
+}
+.logo-sign__title span { display: block; }
+
+/* ---------- Mäuse rund um den Tisch (Start-Vignette) ---------------------- */
+
+.table-scene {
+  position: relative;
+  width: min(360px, 86vw);
+  aspect-ratio: 1 / 1;
+  margin: 6px auto 0;
+}
+/* Runder Holztisch mit Teppich darunter. */
+.table-scene__rug {
+  position: absolute;
+  inset: 8% -2% -6% -2%;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from 0deg, #b94a3a 0 8deg, #d8debf 8deg 16deg);
+  opacity: 0.5;
+  filter: blur(0.5px);
+}
+.table-scene__top {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 40% 32%, rgba(255, 235, 195, 0.25), transparent 60%),
+    linear-gradient(180deg, var(--board-700), var(--board-900));
+  border: 6px solid var(--wood-700);
+  box-shadow:
+    inset 0 4px 0 rgba(255, 235, 195, 0.18),
+    inset 0 -10px 22px rgba(0, 0, 0, 0.5),
+    0 12px 26px rgba(0, 0, 0, 0.5);
+}
+/* Würfel in der Tischmitte. */
+.table-scene__dice {
+  position: absolute;
+  inset: 36%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  place-items: center;
+  gap: 6px;
+}
+.mini-die {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: var(--die, var(--cheese-500));
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.25),
+    0 3px 5px rgba(0, 0, 0, 0.4);
+  transform-origin: center 130%;
+}
+/* Maus-Plätze rund um den Tisch. */
+.table-seat {
+  position: absolute;
+  transform-origin: center bottom;
+}
+.table-seat--n { top: -2%; left: 50%; transform: translateX(-50%); }
+.table-seat--e { right: -2%; top: 50%; transform: translateY(-50%); }
+.table-seat--s { bottom: -4%; left: 50%; transform: translateX(-50%); }
+.table-seat--w { left: -2%; top: 50%; transform: translateY(-50%); }
+
+/* ---------- Geschnitzter „Play"-Button (Holzscheibe) ---------------------- */
+
+.wood-play {
+  position: relative;
+  margin-top: 4px;
+  width: 168px;
+  height: 168px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #3f2a18;
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 50%, rgba(0, 0, 0, 0.05) 0 4deg, transparent 4deg 8deg),
+    radial-gradient(circle at 42% 36%, #d6a062, #9c6b3f 55%, #6b4527 100%);
+  box-shadow:
+    inset 0 4px 0 rgba(255, 230, 185, 0.4),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.45),
+    0 0 0 6px #4a3018,
+    0 12px 24px rgba(0, 0, 0, 0.5);
+  transition: transform 110ms ease, box-shadow 110ms ease;
+}
+.wood-play::before {
+  /* eingravierter Textring */
+  content: 'Play';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-shadow: 0 1px 0 rgba(255, 240, 200, 0.4), 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+.wood-play:active {
+  transform: translateY(3px) scale(0.98);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 230, 185, 0.3),
+    inset 0 -5px 10px rgba(0, 0, 0, 0.5),
+    0 0 0 6px #4a3018,
+    0 6px 12px rgba(0, 0, 0, 0.5);
+}
+@media (hover: hover) {
+  .wood-play:hover {
+    box-shadow:
+      inset 0 4px 0 rgba(255, 230, 185, 0.5),
+      inset 0 -8px 14px rgba(0, 0, 0, 0.4),
+      0 0 0 6px #4a3018,
+      0 0 26px rgba(255, 190, 90, 0.45),
+      0 12px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Sekundäre Holz-Chips (Online, Regeln, Fortsetzen). */
+.menu-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 6px;
+}
+.wood-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 2px solid #3f2a18;
+  cursor: pointer;
+  color: var(--cream-100);
+  font-weight: 700;
+  background: linear-gradient(180deg, var(--wood-600), var(--wood-800));
+  box-shadow: inset 0 2px 0 rgba(255, 230, 185, 0.18), 0 5px 12px rgba(0, 0, 0, 0.45);
+  transition: transform 110ms ease, box-shadow 110ms ease;
+}
+.wood-chip:active { transform: translateY(2px); }
+@media (hover: hover) {
+  .wood-chip:hover { box-shadow: inset 0 2px 0 rgba(255, 230, 185, 0.25), 0 0 16px rgba(255, 190, 90, 0.35); }
+}
+
+/* ====================== Animationen ====================== */
+@media (prefers-reduced-motion: no-preference) {
+  /* UI: Logo-Schild schaukelt sanft an den Seilen. */
+  .logo-sign { animation: sign-sway 5.5s ease-in-out infinite; }
+
+  /* Mäuse: leichtes Atmen/Wippen, leicht versetzt. */
+  .table-seat { animation: mouse-bob 3.2s ease-in-out infinite; }
+  .table-seat--e { animation-delay: 0.4s; }
+  .table-seat--s { animation-delay: 0.8s; }
+  .table-seat--w { animation-delay: 1.2s; }
+
+  /* Ambiente: Laterne flackert, Pflanze wiegt sich, Dampf steigt auf. */
+  .lantern__flame { animation: flame-flicker 1.6s ease-in-out infinite; }
+  .lantern__glow { animation: glow-pulse 1.6s ease-in-out infinite; }
+  .plant { animation: plant-sway 6s ease-in-out infinite; }
+  .garlic { animation: plant-sway 7s ease-in-out infinite reverse; }
+  .steam { animation: steam-rise 3.4s ease-in-out infinite; }
+  .jar--jam .steam { animation-delay: 1.7s; }
+
+  /* Würfel-Action: Würfel in der Tischmitte kullern leicht. */
+  .mini-die { animation: die-wobble 4s ease-in-out infinite; }
+  .mini-die:nth-child(2) { animation-delay: 0.5s; }
+  .mini-die:nth-child(3) { animation-delay: 1s; }
+  .mini-die:nth-child(4) { animation-delay: 1.5s; }
+
+  /* Staubpartikel driften langsam nach oben. */
+  .motes span { animation: mote-drift 9s linear infinite; }
+}
+
+@keyframes sign-sway {
+  0%, 100% { transform: rotate(-1.6deg); }
+  50% { transform: rotate(1.6deg); }
+}
+@keyframes mouse-bob {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-3px) scaleY(1.03); }
+}
+/* Sitz-Varianten behalten ihre Zentrierung trotz bob. */
+.table-seat--n { animation-name: mouse-bob-x; }
+.table-seat--s { animation-name: mouse-bob-x; }
+.table-seat--e { animation-name: mouse-bob-y; }
+.table-seat--w { animation-name: mouse-bob-y; }
+@keyframes mouse-bob-x {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-3px); }
+}
+@keyframes mouse-bob-y {
+  0%, 100% { transform: translateY(-50%) translateY(0); }
+  50% { transform: translateY(-50%) translateY(-3px); }
+}
+@keyframes flame-flicker {
+  0%, 100% { transform: translateX(-50%) scale(1, 1); opacity: 1; }
+  25% { transform: translateX(-54%) scale(0.92, 1.08); opacity: 0.9; }
+  50% { transform: translateX(-48%) scale(1.05, 0.95); opacity: 1; }
+  75% { transform: translateX(-52%) scale(0.95, 1.05); opacity: 0.95; }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+@keyframes plant-sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+@keyframes steam-rise {
+  0% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.8); }
+  30% { opacity: 0.6; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-18px) scale(1.4); }
+}
+@keyframes die-wobble {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg) translateY(-2px); }
+}
+@keyframes mote-drift {
+  0% { opacity: 0; transform: translateY(20px) translateX(0); }
+  15% { opacity: 0.8; }
+  85% { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(-120px) translateX(14px); }
+}

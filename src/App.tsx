@@ -29,6 +29,7 @@ import { Counter } from './ui/Counter';
 import { PixelIcon } from './ui/PixelIcon';
 import { OfferButton } from './ui/OfferButton';
 import { MouseAvatar } from './ui/MouseAvatar';
+import { KitchenScene, LogoSign, TableVignette } from './ui/scene/KitchenScene';
 import { WinScreen } from './ui/WinScreen';
 import { useClearSelection } from './ui/useClearSelection';
 
@@ -222,54 +223,32 @@ function Menu({
   resumeRound?: number;
 }) {
   return (
-    <div className="app">
-      <header className="app__header">
-        <h1>
-          <PixelIcon name="cheese" size={28} title="Dice Mice" /> Dice Mice
-        </h1>
-        <p className="hint">Würfelspiel mit Mäuse-Thema</p>
-      </header>
+    <KitchenScene>
+      <LogoSign subtitle="Würfelspiel mit Mäuse-Thema" />
 
-      <div className="hero" aria-hidden="true">
-        <span className="hero__mouse hero__mouse--back">
-          <MouseAvatar colorIndex={2} size={64} />
-        </span>
-        <span className="hero__plate">
-          <MouseAvatar colorIndex={0} size={104} />
-        </span>
-        <span className="hero__mouse hero__mouse--back">
-          <MouseAvatar colorIndex={3} size={64} />
-        </span>
-      </div>
+      <TableVignette seats={4} />
 
-      <section className="panel menu">
+      <button className="wood-play" onClick={onResume ?? onLocal} aria-label="Spielen">
+        {/* Beschriftung kommt aus dem ::before der Holzscheibe. */}
+      </button>
+
+      <div className="menu-chips">
         {onResume && (
-          <>
-            <button onClick={onResume}>
-              <PixelIcon name="play" title="" /> Partie fortsetzen (Runde {resumeRound})
-            </button>
-            <p className="muted" style={{ margin: '10px 0 18px' }}>
-              Deine zuletzt gespeicherte lokale Partie.
-            </p>
-          </>
+          <button className="wood-chip" onClick={onResume}>
+            <PixelIcon name="play" title="" /> Fortsetzen (Runde {resumeRound})
+          </button>
         )}
-        <button onClick={onLocal}>
+        <button className="wood-chip" onClick={onLocal}>
           <PixelIcon name="dice" title="" /> Solo / Pass-and-Play
         </button>
-        <p className="muted" style={{ margin: '10px 0 18px' }}>
-          Lokal an einem Gerät – allein gegen die KI oder reihum.
-        </p>
-        <button onClick={onOnline}>
-          <PixelIcon name="globe" title="" /> Online spielen
+        <button className="wood-chip" onClick={onOnline}>
+          <PixelIcon name="globe" title="" /> Online
         </button>
-        <p className="muted" style={{ margin: '10px 0 18px' }}>
-          Raum erstellen und Code teilen. Ohne Server lokal simuliert.
-        </p>
-        <button className="ghost" onClick={onRules}>
-          <PixelIcon name="book" title="" /> Spielregeln
+        <button className="wood-chip" onClick={onRules}>
+          <PixelIcon name="book" title="" /> Regeln
         </button>
-      </section>
-    </div>
+      </div>
+    </KitchenScene>
   );
 }
 
