@@ -1,14 +1,25 @@
-// Lebendige Speisekammer-Kulisse für Startbildschirm und Lobby.
-// Reine Deko (aria-hidden); alle Bewegungen sind in scene.css definiert und bei
-// prefers-reduced-motion abgeschaltet. Die Mäuse-/Würfel-Sprites bleiben die
-// vorhandenen Pixel-Assets (MouseAvatar), damit der Stil konsistent ist.
+// Bild-basierte Kulissen + animiertes Spielbrett.
+//
+// Startbildschirm: die echte Mockup-Grafik (public/scenes/menu.png) als
+// Vollbild-Hintergrund mit interaktivem „Play"-Hotspot und dezenten
+// Bewegungs-Overlays (Staub, Laternen-Glühen). So trifft die Optik exakt die
+// Vorlage. In-Game: KEINE Liste mehr, sondern Mäuse rund um einen Filztisch.
+//
+// Alle Bewegungen sind in scene.css definiert und bei prefers-reduced-motion
+// abgeschaltet. Mäuse/Würfel bleiben die vorhandenen Pixel-Assets.
 
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { MouseAvatar } from '../MouseAvatar';
+import { PixelIcon } from '../PixelIcon';
+import { DIE_COLORS } from '../colors';
+import { PHASE_LABEL } from '../phaseLabels';
+import type { Phase, Player, RolledDie } from '../../engine';
 import './scene.css';
 
-/** Zufällig gestreute, langsam aufsteigende Staubpartikel im Lichtschein. */
-function DustMotes({ count = 14 }: { count?: number }) {
+const base = import.meta.env.BASE_URL;
+
+/** Langsam aufsteigende Staubpartikel im Lichtschein (rein dekorativ). */
+function DustMotes({ count = 16 }: { count?: number }) {
   return (
     <div className="motes" aria-hidden="true">
       {Array.from({ length: count }, (_, i) => (
@@ -16,8 +27,8 @@ function DustMotes({ count = 14 }: { count?: number }) {
           key={i}
           style={{
             left: `${(i * 37) % 100}%`,
-            top: `${20 + ((i * 53) % 70)}%`,
-            animationDelay: `${(i % 7) * 1.3}s`,
+            top: `${15 + ((i * 53) % 75)}%`,
+            animationDelay: `${(i % 8) * 1.1}s`,
             animationDuration: `${8 + (i % 5)}s`,
           }}
         />
@@ -26,90 +37,173 @@ function DustMotes({ count = 14 }: { count?: number }) {
   );
 }
 
-/** Vollflächige Hintergrund-Kulisse: Wand, Regal mit Vorräten, Laterne, Knoblauch. */
-export function KitchenScene({ children }: { children?: ReactNode }) {
+/**
+ * Startbildschirm als Vollbild-Grafik. Der große, transparente Button liegt
+ * über der „Play"-Holzscheibe der Vorlage; darunter kleine Holz-Chips für die
+ * übrigen Aktionen.
+ */
+export function MenuScene({
+  onPlay,
+  playLabel,
+  children,
+}: {
+  onPlay: () => void;
+  playLabel: string;
+  children?: ReactNode;
+}) {
   return (
-    <div className="scene">
-      {/* Regal mit Gläsern und Pflanze. */}
-      <div className="scene__shelf" aria-hidden="true">
-        <span className="jar jar--honey">
-          <span className="jar__lid" />
-          <span className="steam" />
-        </span>
-        <span className="jar jar--jam">
-          <span className="jar__lid" />
-          <span className="steam" />
-        </span>
-        <span className="plant">
-          <span className="plant__leaf" />
-          <span className="plant__leaf" />
-          <span className="plant__leaf" />
-          <span className="plant__pot" />
-        </span>
-        <span className="jar jar--tea">
-          <span className="jar__lid" />
-        </span>
-      </div>
-
-      {/* Hängende Laterne mit flackerndem Licht. */}
-      <div className="lantern" aria-hidden="true">
-        <span className="lantern__glow" />
-        <span className="lantern__cap" />
-        <span className="lantern__body">
-          <span className="lantern__flame" />
-        </span>
-      </div>
-
-      {/* Knoblauchzopf. */}
-      <div className="garlic" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
-
+    <div className="menu-bg">
+      <img className="menu-bg__img" src={`${base}scenes/menu.png`} alt="Dice Mice" />
+      <span className="menu-bg__lantern" aria-hidden="true" />
       <DustMotes />
-
-      <div className="scene__content">{children}</div>
+      <button className="menu-bg__play" onClick={onPlay} aria-label={playLabel} />
+      <div className="menu-bg__chips">{children}</div>
     </div>
   );
 }
 
-/** Geschnitztes „Dice Mice"-Holzschild, das an zwei Seilen schaukelt. */
-export function LogoSign({ subtitle }: { subtitle?: string }) {
+/** Würfel-Chip am Sitzplatz; Klar-Würfel sind in der Tausch-Phase wählbar. */
+function DieChip({
+  die,
+  selected,
+  onToggle,
+}: {
+  die: RolledDie;
+  selected?: boolean;
+  onToggle?: (id: string) => void;
+}) {
+  const style = { ['--die' as string]: DIE_COLORS[die.color] } as CSSProperties;
+  const cls = [
+    'die-chip',
+    die.color === 'clear' ? 'die-chip--clear' : '',
+    selected ? 'die-chip--sel' : '',
+    die.isPity ? 'die-chip--pity' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  if (onToggle && die.color === 'clear') {
+    return (
+      <button type="button" className={cls} style={style} onClick={() => onToggle(die.id)}>
+        {die.value}
+      </button>
+    );
+  }
   return (
-    <div className="logo-sign">
-      <span className="logo-sign__rope logo-sign__rope--l" aria-hidden="true" />
-      <span className="logo-sign__rope logo-sign__rope--r" aria-hidden="true" />
-      <div className="logo-sign__board">
-        <h1 className="logo-sign__title">
-          <span>Dice</span>
-          <span>Mice</span>
-        </h1>
+    <span className={cls} style={style}>
+      {die.value}
+    </span>
+  );
+}
+
+/** Position eines Sitzes auf der Tisch-Ellipse (i=0 unten, dann im Kreis). */
+function seatStyle(i: number, n: number): CSSProperties {
+  const angle = ((90 + (i * 360) / n) * Math.PI) / 180;
+  const x = 50 + 45 * Math.cos(angle);
+  const y = 50 + 43 * Math.sin(angle);
+  return { left: `${x}%`, top: `${y}%` };
+}
+
+interface BoardTableProps {
+  players: Player[];
+  activeId?: string;
+  swap?: boolean;
+  selectedClear?: Set<string>;
+  onToggleClear?: (id: string) => void;
+  crownedNow?: Set<string>;
+  warnNow?: Set<string>;
+}
+
+/** Mäuse rund um den Filztisch – ersetzt die alte Spielerliste. */
+export function BoardTable({
+  players,
+  activeId,
+  swap,
+  selectedClear,
+  onToggleClear,
+  crownedNow,
+  warnNow,
+}: BoardTableProps) {
+  const n = players.length;
+  return (
+    <div className="board">
+      <div className="board__rug" aria-hidden="true" />
+      <div className="board__felt" aria-hidden="true">
+        <span className="board__felt-shine" />
       </div>
-      {subtitle && <p className="hint" style={{ textAlign: 'center', marginTop: 8 }}>{subtitle}</p>}
+      {players.map((p, i) => {
+        const cls = [
+          'seat',
+          activeId === p.id ? 'seat--active' : '',
+          crownedNow?.has(p.id) ? 'seat--crowned' : '',
+          warnNow?.has(p.id) ? 'seat--warn' : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+        const canToggle = swap && !p.isAI ? onToggleClear : undefined;
+        return (
+          <div key={p.id} className={cls} style={seatStyle(i, n)}>
+            <div className="seat__mouse">
+              <MouseAvatar colorIndex={i} size={56} title={p.name} />
+              <span className="seat__token">
+                {p.hasCrown && <PixelIcon name="crown" title="Käse-Krone" />}
+                {p.totalScore}
+              </span>
+            </div>
+            <span className="seat__name">{p.name}</span>
+            {p.rolled.length > 0 && (
+              <div className="seat__dice">
+                {p.rolled.map((d) => (
+                  <DieChip
+                    key={d.id}
+                    die={d}
+                    selected={selectedClear?.has(d.id)}
+                    onToggle={canToggle}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-const MINI_DICE = ['#4f8ef0', '#e0564f', '#5fbf6a', '#f4c542'];
-
-/** Vignette: vier belebte Mäuse rund um einen runden Tisch mit Würfeln. */
-export function TableVignette({ seats = 4 }: { seats?: number }) {
-  const places = ['table-seat--n', 'table-seat--e', 'table-seat--s', 'table-seat--w'];
+/** Wertungs-Banner oben (Holzschild) im Stil der Vorlage. */
+export function PhaseBanner({ phase, hint }: { phase: Phase; hint: string }) {
   return (
-    <div className="table-scene" aria-hidden="true">
-      <div className="table-scene__rug" />
-      <div className="table-scene__top" />
-      <div className="table-scene__dice">
-        {MINI_DICE.map((c, i) => (
-          <span key={i} className="mini-die" style={{ ['--die' as string]: c }} />
-        ))}
-      </div>
-      {Array.from({ length: Math.min(seats, 4) }, (_, i) => (
-        <span key={i} className={`table-seat ${places[i]}`}>
-          <MouseAvatar colorIndex={i} size={62} />
-        </span>
+    <div className="phase-banner">
+      <span className="phase-banner__title">
+        <PixelIcon name="dice" title="" /> {PHASE_LABEL[phase]}
+      </span>
+      <span className="phase-banner__hint">{hint}</span>
+    </div>
+  );
+}
+
+/** Rangliste rechts/unten als Holzpanel. */
+export function Scoreboard({ players }: { players: Player[] }) {
+  const ranked = players
+    .map((p, idx) => ({ p, idx }))
+    .sort((a, b) => b.p.totalScore - a.p.totalScore);
+  return (
+    <div className="scoreboard">
+      {ranked.map(({ p, idx }, rank) => (
+        <div key={p.id} className="score-row">
+          <span className="score-row__rank">{rank + 1}</span>
+          <MouseAvatar colorIndex={idx} size={20} />
+          <span className="score-row__name">
+            {p.name}
+            {p.hasCrown && (
+              <>
+                {' '}
+                <PixelIcon name="crown" title="Krone" />
+              </>
+            )}
+          </span>
+          <span className="score-row__pts">{p.totalScore}</span>
+        </div>
       ))}
     </div>
   );

@@ -17,19 +17,18 @@ import {
   type RNG,
 } from './engine';
 import { aiTakePhaseAction, DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty } from './ai';
-import { PlayerCard } from './ui/PlayerCard';
 import { RoundSummary } from './ui/RoundSummary';
 import { Rules } from './ui/Rules';
 import { clearLocalGame, loadLocalGame, saveLocalGame } from './ui/persistence';
 import { useGameEvents, type GameEventFx } from './ui/useGameEvents';
 import { OnlineFlow } from './ui/OnlineFlow';
 import { useSound } from './sound';
-import { PHASE_LABEL, PHASE_HINT } from './ui/phaseLabels';
+import { PHASE_HINT } from './ui/phaseLabels';
 import { Counter } from './ui/Counter';
 import { PixelIcon } from './ui/PixelIcon';
 import { OfferButton } from './ui/OfferButton';
 import { MouseAvatar } from './ui/MouseAvatar';
-import { KitchenScene, LogoSign, TableVignette } from './ui/scene/KitchenScene';
+import { MenuScene, BoardTable, Scoreboard, PhaseBanner } from './ui/scene/KitchenScene';
 import { WinScreen } from './ui/WinScreen';
 import { useClearSelection } from './ui/useClearSelection';
 
@@ -58,7 +57,6 @@ export function App() {
 
   const [state, setState] = useState<GameState | null>(null);
   const selectedClear = useClearSelection();
-  const [use3d, setUse3d] = useState(true);
 
   const { play, muted, toggleMuted } = useSound();
   const fx = useGameEvents(state, play);
@@ -182,8 +180,6 @@ export function App() {
     <Game
       state={state}
       difficulty={difficulty}
-      use3d={use3d}
-      onToggle3d={() => setUse3d((v) => !v)}
       muted={muted}
       onToggleMute={toggleMuted}
       fx={fx}
@@ -223,32 +219,25 @@ function Menu({
   resumeRound?: number;
 }) {
   return (
-    <KitchenScene>
-      <LogoSign subtitle="Würfelspiel mit Mäuse-Thema" />
-
-      <TableVignette seats={4} />
-
-      <button className="wood-play" onClick={onResume ?? onLocal} aria-label="Spielen">
-        {/* Beschriftung kommt aus dem ::before der Holzscheibe. */}
+    <MenuScene
+      onPlay={onResume ?? onLocal}
+      playLabel={onResume ? `Partie fortsetzen (Runde ${resumeRound})` : 'Spielen'}
+    >
+      {onResume && (
+        <button className="wood-chip" onClick={onResume}>
+          <PixelIcon name="play" title="" /> Fortsetzen (Runde {resumeRound})
+        </button>
+      )}
+      <button className="wood-chip" onClick={onLocal}>
+        <PixelIcon name="dice" title="" /> Solo / Pass-and-Play
       </button>
-
-      <div className="menu-chips">
-        {onResume && (
-          <button className="wood-chip" onClick={onResume}>
-            <PixelIcon name="play" title="" /> Fortsetzen (Runde {resumeRound})
-          </button>
-        )}
-        <button className="wood-chip" onClick={onLocal}>
-          <PixelIcon name="dice" title="" /> Solo / Pass-and-Play
-        </button>
-        <button className="wood-chip" onClick={onOnline}>
-          <PixelIcon name="globe" title="" /> Online
-        </button>
-        <button className="wood-chip" onClick={onRules}>
-          <PixelIcon name="book" title="" /> Regeln
-        </button>
-      </div>
-    </KitchenScene>
+      <button className="wood-chip" onClick={onOnline}>
+        <PixelIcon name="globe" title="" /> Online
+      </button>
+      <button className="wood-chip" onClick={onRules}>
+        <PixelIcon name="book" title="" /> Regeln
+      </button>
+    </MenuScene>
   );
 }
 
@@ -336,8 +325,6 @@ function Setup({
 interface GameProps {
   state: GameState;
   difficulty: Difficulty;
-  use3d: boolean;
-  onToggle3d: () => void;
   muted: boolean;
   onToggleMute: () => void;
   fx: GameEventFx;
@@ -352,8 +339,6 @@ interface GameProps {
 
 function Game({
   state,
-  use3d,
-  onToggle3d,
   muted,
   onToggleMute,
   fx,
@@ -387,10 +372,6 @@ function Game({
           <span>
             Runde {state.round} / {state.config.totalRounds}
           </span>
-          <span className="badge">{PHASE_LABEL[state.phase]}</span>
-          <button className="toggle3d" onClick={onToggle3d}>
-            {use3d ? '3D' : '2D'}
-          </button>
           <button
             className="toggle3d"
             onClick={onToggleMute}
@@ -408,23 +389,19 @@ function Game({
         </div>
       )}
 
-      <p className="hint">{PHASE_HINT[state.phase]}</p>
+      <PhaseBanner phase={state.phase} hint={PHASE_HINT[state.phase]} />
 
-      <section className="players">
-        {state.players.map((p, i) => (
-          <PlayerCard
-            key={p.id}
-            player={p}
-            colorIndex={i}
-            use3d={use3d}
-            active={activeDrafter?.id === p.id}
-            crowned={fx.crownedNow.has(p.id)}
-            warn={fx.warnNow.has(p.id)}
-            selectedDieIds={state.phase === 'swap' ? selectedClear : undefined}
-            onToggleClear={state.phase === 'swap' && !p.isAI ? onToggleClear : undefined}
-          />
-        ))}
-      </section>
+      <BoardTable
+        players={state.players}
+        activeId={activeDrafter?.id}
+        swap={state.phase === 'swap'}
+        selectedClear={selectedClear}
+        onToggleClear={onToggleClear}
+        crownedNow={fx.crownedNow}
+        warnNow={fx.warnNow}
+      />
+
+      <Scoreboard players={state.players} />
 
       {state.phase === 'swap' && (
         <section className="panel">
