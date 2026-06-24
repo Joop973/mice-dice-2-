@@ -43,6 +43,19 @@ daraus per `scripts/slice-sprites.mjs` ausgeschnitten und freigestellt
 | Datei | Inhalt | Herkunft | Lizenz/Rechte |
 |---|---|---|---|
 | `menu.png` | Startbildschirm-Kulisse (Speisekammer mit Mäusen am Tisch) | **vom Projektinhaber als Mockup bereitgestellt** (Upload, 2026-06-23), für Web verkleinert (Breite 720) + PNG-optimiert | **vom Projektinhaber bereitgestellt** |
+| `table.png` | Filz-Ovaltisch (Spielbrett + Wurf-Tisch) | **vom Projektinhaber bereitgestellt** (Upload, 2026-06-24), skaliert | **vom Projektinhaber bereitgestellt** |
+| `rug.png` | Karierter Teppich unter dem Tisch | dito, Schachbrett-Hintergrund per Skript freigestellt | dito |
+
+## Sprites aus 2. Lieferung (`public/sprites/*.png`, Upload 2026-06-24)
+
+| Datei | Inhalt | Aufbereitung | Lizenz/Rechte |
+|---|---|---|---|
+| `seat.png` | Sitz-Holztoken (hinter der Maus) | skaliert | **vom Projektinhaber bereitgestellt** |
+| `score-token.png` | Punkte-Münze | skaliert | dito |
+| `banner.png` | Phasen-Holzschild | Bounding-Box-Crop + Eckenfreistellung | dito |
+| `panel.png` | Rangliste-Holzpanel | dito | dito |
+| `hand-0/1/2.png` | werfende Mäusehand (3 Frames) | weißer Hintergrund freigestellt, in 3 Frames geschnitten | dito |
+| `icon-play.png`, `icon-star.png`, `icon-sparkle.png` | Menü-Icons | Schachbrett-Hintergrund freigestellt, skaliert | dito |
 
 > ⚠️ **Zu klären (wie beim Sprite-Sheet):** selbst erstellt, lizenziert gekauft oder
 > KI-generiert? Bitte Herkunft/Lizenz hier präzisieren.
