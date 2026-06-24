@@ -717,3 +717,98 @@
   25% { transform: translateX(-4px); }
   75% { transform: translateX(4px); }
 }
+
+/* ====================== Echte Pixel-Art-Sprites (Overrides) ============== */
+/* Diese Regeln stehen bewusst am Dateiende, damit sie die prozeduralen
+ * Hintergründe oben überschreiben. Die Bild-URLs kommen per Inline-Style
+ * (basis-korrekt) aus KitchenScene.tsx. */
+
+.board__rug {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  border-radius: 0;
+  opacity: 0.95;
+  filter: none;
+}
+.board__felt--img {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.seat__mouse {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  box-shadow: none;
+}
+.seat--active .seat__mouse {
+  box-shadow:
+    0 0 0 3px var(--cheese-300),
+    0 0 18px rgba(244, 197, 66, 0.6);
+}
+.seat__token {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  border: none;
+  color: #3f2a18;
+}
+.phase-banner--img {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  border: none;
+  box-shadow: none;
+  padding: 12px 44px;
+}
+.scoreboard--img {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  border: none;
+  box-shadow: none;
+  padding: 16px 20px;
+}
+.roll-table__felt--img {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Werfende Mäusehand (3 Frames) – schaltet die Pose im Wurf-Takt um. */
+.roll-hand {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 124px;
+  height: 124px;
+  z-index: 3;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+  background-image: var(--hand1);
+  transform: translate(-50%, 120%);
+  display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .roll-hand {
+    display: block;
+    animation: hand-throw 1.35s ease-out both;
+  }
+}
+@keyframes hand-throw {
+  0% { transform: translate(-50%, 120%); background-image: var(--hand0); }
+  30% { transform: translate(-50%, 12%); background-image: var(--hand0); }
+  44% { transform: translate(-50%, -4%); background-image: var(--hand1); }
+  72% { transform: translate(-50%, 55%); background-image: var(--hand1); }
+  82% { transform: translate(-50%, 95%); background-image: var(--hand2); }
+  100% { transform: translate(-50%, 122%); background-image: var(--hand2); }
+}

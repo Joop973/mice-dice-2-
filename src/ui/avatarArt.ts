@@ -34,4 +34,7 @@ export const ICON_SRC: Readonly<Record<string, string | null | undefined>> = {
   cheese: sprite('cheese.png'),
   soundOn: sprite('music-on.png'),
   soundOff: sprite('music-off.png'),
+  play: sprite('icon-play.png'),
+  star: sprite('icon-star.png'),
+  sparkle: sprite('icon-sparkle.png'),
 };

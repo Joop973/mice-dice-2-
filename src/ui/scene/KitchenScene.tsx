@@ -19,6 +19,10 @@ import './scene.css';
 
 const base = import.meta.env.BASE_URL;
 
+/** CSS-`url()` zu einem Asset in public/sprites bzw. public/scenes (basis-korrekt). */
+const spr = (file: string) => `url(${base}sprites/${file})`;
+const scn = (file: string) => `url(${base}scenes/${file})`;
+
 /** Langsam aufsteigende Staubpartikel im Lichtschein (rein dekorativ). */
 function DustMotes({ count = 16 }: { count?: number }) {
   return (
@@ -131,10 +135,12 @@ export function BoardTable({
   const n = players.length;
   return (
     <div className="board">
-      <div className="board__rug" aria-hidden="true" />
-      <div className="board__felt" aria-hidden="true">
-        <span className="board__felt-shine" />
-      </div>
+      <div className="board__rug" aria-hidden="true" style={{ backgroundImage: scn('rug.png') }} />
+      <div
+        className="board__felt board__felt--img"
+        aria-hidden="true"
+        style={{ backgroundImage: scn('table.png') }}
+      />
       {players.map((p, i) => {
         const cls = [
           'seat',
@@ -147,9 +153,9 @@ export function BoardTable({
         const canToggle = swap && !p.isAI ? onToggleClear : undefined;
         return (
           <div key={p.id} className={cls} style={seatStyle(i, n)}>
-            <div className="seat__mouse">
-              <MouseAvatar colorIndex={i} size={48} title={p.name} />
-              <span className="seat__token">
+            <div className="seat__mouse" style={{ backgroundImage: spr('seat.png') }}>
+              <MouseAvatar colorIndex={i} size={44} title={p.name} />
+              <span className="seat__token" style={{ backgroundImage: spr('score-token.png') }}>
                 {p.hasCrown && <PixelIcon name="crown" title="Käse-Krone" />}
                 {p.totalScore}
               </span>
@@ -177,7 +183,7 @@ export function BoardTable({
 /** Wertungs-Banner oben (Holzschild) im Stil der Vorlage. */
 export function PhaseBanner({ phase, hint }: { phase: Phase; hint: string }) {
   return (
-    <div className="phase-banner">
+    <div className="phase-banner phase-banner--img" style={{ backgroundImage: spr('banner.png') }}>
       <span className="phase-banner__title">
         <PixelIcon name="dice" title="" /> {PHASE_LABEL[phase]}
       </span>
@@ -192,7 +198,7 @@ export function Scoreboard({ players }: { players: Player[] }) {
     .map((p, idx) => ({ p, idx }))
     .sort((a, b) => b.p.totalScore - a.p.totalScore);
   return (
-    <div className="scoreboard">
+    <div className="scoreboard scoreboard--img" style={{ backgroundImage: spr('panel.png') }}>
       {ranked.map(({ p, idx }, rank) => (
         <div key={p.id} className="score-row">
           <span className="score-row__rank">{rank + 1}</span>
@@ -269,17 +275,24 @@ export function RollReveal({ players }: { players: Player[] }) {
     <div className="roll-reveal">
       <h2 className="roll-reveal__title">Dein Wurf!</h2>
       <div className="roll-table">
-        <div className="roll-table__felt" aria-hidden="true">
-          <span className="roll-table__shine" />
-        </div>
+        <div
+          className="roll-table__felt roll-table__felt--img"
+          aria-hidden="true"
+          style={{ backgroundImage: scn('table.png') }}
+        />
         <div className="roll-table__dice">
           <DiceView dice={dice} use3d roll />
         </div>
-        <img
-          className="roll-paw"
-          src={`${base}sprites/paw.png`}
-          alt=""
+        <div
+          className="roll-hand"
           aria-hidden="true"
+          style={
+            {
+              ['--hand0']: spr('hand-0.png'),
+              ['--hand1']: spr('hand-1.png'),
+              ['--hand2']: spr('hand-2.png'),
+            } as CSSProperties
+          }
         />
       </div>
     </div>
