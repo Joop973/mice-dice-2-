@@ -2,7 +2,7 @@
 // Die Beschreibung erscheint beim Drüberfahren (Maus) und beim langen Drücken
 // (Touch). Ein langer Druck löst KEINEN Pick aus – er zeigt nur die Info.
 
-import { useRef, useState } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 import type { DieColor, DieVariant } from '../engine';
 import { DIE_COLORS, DIE_DESCRIPTIONS, DIE_LABELS } from './colors';
 import { PixelIcon } from './PixelIcon';
@@ -62,10 +62,15 @@ export function OfferButton({ color, sides, variant, disabled, onPick }: OfferBu
     <span className="offer-wrap">
       <button
         type="button"
-        className="offer"
+        className="offer offer--3d"
         title={desc}
         aria-label={`${DIE_LABELS[color]} W${sides} – ${desc}`}
-        style={{ borderColor: DIE_COLORS[color] }}
+        style={
+          {
+            borderColor: DIE_COLORS[color],
+            ['--die']: DIE_COLORS[color],
+          } as CSSProperties
+        }
         disabled={disabled}
         onClick={handleClick}
         onMouseEnter={show}
@@ -75,13 +80,25 @@ export function OfferButton({ color, sides, variant, disabled, onPick }: OfferBu
         onTouchMove={endPress}
         onTouchCancel={endPress}
       >
-        {DIE_LABELS[color]} W{sides}
-        {variant === 'glitter' && (
-          <>
-            {' '}
-            <PixelIcon name="sparkle" title="Glitzer" />
-          </>
-        )}
+        <span className="offer__cube" aria-hidden="true">
+          <span className="cube3d">
+            <span className="cube3d__face cube3d__f-front">{sides}</span>
+            <span className="cube3d__face cube3d__f-back">{sides}</span>
+            <span className="cube3d__face cube3d__f-right">{sides}</span>
+            <span className="cube3d__face cube3d__f-left">{sides}</span>
+            <span className="cube3d__face cube3d__f-top">{sides}</span>
+            <span className="cube3d__face cube3d__f-bottom">{sides}</span>
+          </span>
+        </span>
+        <span className="offer__label">
+          {DIE_LABELS[color]} W{sides}
+          {variant === 'glitter' && (
+            <>
+              {' '}
+              <PixelIcon name="sparkle" title="Glitzer" />
+            </>
+          )}
+        </span>
       </button>
       {open && (
         <span className="offer__tip" role="tooltip">

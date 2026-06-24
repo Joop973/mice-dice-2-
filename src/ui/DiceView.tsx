@@ -18,6 +18,8 @@ interface DiceViewProps {
   use3d: boolean;
   selectedDieIds?: Set<string>;
   onToggleClear?: (dieId: string) => void;
+  /** Wurf-Modus: Würfel kullern aus der „Hand" über den Tisch (Wurf-Screen). */
+  roll?: boolean;
 }
 
 function TwoD({ dice, selectedDieIds, onToggleClear }: Omit<DiceViewProps, 'use3d'>) {
@@ -40,16 +42,21 @@ function TwoD({ dice, selectedDieIds, onToggleClear }: Omit<DiceViewProps, 'use3
   );
 }
 
-export function DiceView({ dice, use3d, selectedDieIds, onToggleClear }: DiceViewProps) {
+export function DiceView({ dice, use3d, selectedDieIds, onToggleClear, roll }: DiceViewProps) {
   const twoD = <TwoD dice={dice} selectedDieIds={selectedDieIds} onToggleClear={onToggleClear} />;
 
   if (!use3d || dice.length === 0 || !isWebGLAvailable()) return twoD;
 
   return (
-    <div className="dice3d">
+    <div className={`dice3d${roll ? ' dice3d--roll' : ''}`}>
       <DiceErrorBoundary fallback={twoD}>
         <Suspense fallback={twoD}>
-          <DiceCanvas dice={dice} selectedDieIds={selectedDieIds} onToggleClear={onToggleClear} />
+          <DiceCanvas
+            dice={dice}
+            selectedDieIds={selectedDieIds}
+            onToggleClear={onToggleClear}
+            roll={roll}
+          />
         </Suspense>
       </DiceErrorBoundary>
     </div>

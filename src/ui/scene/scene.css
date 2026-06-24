@@ -289,35 +289,74 @@
   font-size: 1.4rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
-.roll-reveal__row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+/* Pokertisch, auf dem die geworfenen Würfel kullern. */
+.roll-table {
+  position: relative;
+  width: min(94vw, 460px);
+  height: min(56vh, 320px);
+  display: grid;
+  place-items: center;
 }
-.roll-reveal__who {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  color: var(--cream-100);
-}
-/* 3D-Wurffläche pro Maus: in eine dunkle Holzschale eingelassen. */
-.roll-reveal__board {
-  width: min(92vw, 420px);
-  height: 168px;
-  border-radius: 14px;
-  padding: 6px;
+.roll-table__felt {
+  position: absolute;
+  inset: 8% 2%;
+  border-radius: 50%;
   background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 70px),
-    linear-gradient(180deg, var(--wood-800), var(--wood-900));
+    radial-gradient(circle at 42% 32%, rgba(255, 235, 195, 0.18), transparent 58%),
+    radial-gradient(circle at 50% 62%, #4f7a3e, #2f5026 70%);
+  border: 8px solid #6b4527;
   box-shadow:
-    inset 0 3px 9px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+    inset 0 6px 0 rgba(255, 235, 195, 0.12),
+    inset 0 -16px 30px rgba(0, 0, 0, 0.55),
+    0 16px 30px rgba(0, 0, 0, 0.5),
+    0 0 0 3px #3f2a18;
 }
-.roll-reveal__board .dice3d {
+.roll-table__shine {
+  position: absolute;
+  top: 16%;
+  left: 24%;
+  width: 42%;
+  height: 24%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.14), transparent 70%);
+}
+/* Die 3D-Würfel füllen die Tischmitte; im Wurf-Modus pixelig hochskaliert. */
+.roll-table__dice {
+  position: absolute;
+  inset: 6% 6% 12%;
+  z-index: 2;
+}
+.roll-table__dice .dice3d {
   width: 100%;
   height: 100%;
+}
+.dice3d--roll .dice-canvas {
+  image-rendering: pixelated;
+}
+/* Mäusehand, die von unten die Würfel wirft. */
+.roll-paw {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 86px;
+  height: 86px;
+  z-index: 3;
+  image-rendering: pixelated;
+  transform: translate(-50%, 130%) rotate(-12deg);
+  display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .roll-paw {
+    display: block;
+    animation: paw-throw 1.3s ease-in-out both;
+  }
+}
+@keyframes paw-throw {
+  0% { transform: translate(-50%, 130%) rotate(-12deg); }
+  22% { transform: translate(-50%, 18%) rotate(-24deg); }
+  38% { transform: translate(-50%, 2%) rotate(12deg); }
+  60% { transform: translate(-50%, 70%) rotate(-4deg); }
+  100% { transform: translate(-50%, 132%) rotate(-12deg); }
 }
 
 /* --- Auswahl-Screen: Würfel aus dem Angebot antippen ------------------- */
@@ -337,15 +376,69 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 .offers--big {
-  gap: 12px;
+  gap: 14px;
   justify-content: center;
   max-width: 92vw;
+  perspective: 600px;
 }
-.offers--big .offer {
-  font-size: 1.05rem;
-  padding: 14px 16px;
-  min-width: 86px;
-  min-height: 60px;
+
+/* Angebots-Würfel mit kleinem rotierenden 3D-Würfel über dem Label. */
+.offer.offer--3d {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+}
+.offers--big .offer.offer--3d {
+  min-width: 92px;
+  min-height: 96px;
+}
+.offer__label {
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.offer__cube {
+  width: 48px;
+  height: 48px;
+  perspective: 320px;
+}
+.cube3d {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  transform-style: preserve-3d;
+  transform: rotateX(-18deg) rotateY(0deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cube3d { animation: cube-spin 4.5s linear infinite; }
+}
+.cube3d__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.55);
+  background: var(--die, var(--cheese-500));
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.2);
+}
+.cube3d__f-front { transform: translateZ(24px); }
+.cube3d__f-back { transform: rotateY(180deg) translateZ(24px); }
+.cube3d__f-right { transform: rotateY(90deg) translateZ(24px); }
+.cube3d__f-left { transform: rotateY(-90deg) translateZ(24px); }
+.cube3d__f-top { transform: rotateX(90deg) translateZ(24px); }
+.cube3d__f-bottom { transform: rotateX(-90deg) translateZ(24px); }
+@keyframes cube-spin {
+  from { transform: rotateX(-18deg) rotateY(0deg); }
+  to { transform: rotateX(-18deg) rotateY(360deg); }
 }
 
 /* ====================== In-Game: Tisch statt Liste ====================== */

@@ -258,23 +258,30 @@ export function GameScreen({
   );
 }
 
-/** „Dein Wurf!"-Screen: die eigenen (menschlichen) Würfel rollen in 3D aus. */
+/**
+ * „Dein Wurf!"-Screen: eine Mäusehand wirft alle eigenen Würfel, die über einen
+ * Filz-/Pokertisch kullern und auf ihrem Wert landen (3D, pixelig upscaled).
+ */
 export function RollReveal({ players }: { players: Player[] }) {
   const humans = players.filter((p) => !p.isAI);
+  const dice = humans.flatMap((p) => p.rolled);
   return (
     <div className="roll-reveal">
       <h2 className="roll-reveal__title">Dein Wurf!</h2>
-      {humans.map((p) => (
-        <div key={p.id} className="roll-reveal__row">
-          <div className="roll-reveal__who">
-            <MouseAvatar colorIndex={players.indexOf(p)} size={36} title={p.name} />
-            <span>{p.name}</span>
-          </div>
-          <div className="roll-reveal__board">
-            <DiceView dice={p.rolled} use3d />
-          </div>
+      <div className="roll-table">
+        <div className="roll-table__felt" aria-hidden="true">
+          <span className="roll-table__shine" />
         </div>
-      ))}
+        <div className="roll-table__dice">
+          <DiceView dice={dice} use3d roll />
+        </div>
+        <img
+          className="roll-paw"
+          src={`${base}sprites/paw.png`}
+          alt=""
+          aria-hidden="true"
+        />
+      </div>
     </div>
   );
 }
