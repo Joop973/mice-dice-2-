@@ -57,8 +57,13 @@ daraus per `scripts/slice-sprites.mjs` ausgeschnitten und freigestellt
 | `hand-0/1/2.png` | werfende Mäusehand (3 Frames) | weißer Hintergrund freigestellt, in 3 Frames geschnitten | dito |
 | `icon-play.png`, `icon-star.png`, `icon-sparkle.png` | Menü-Icons | Schachbrett-Hintergrund freigestellt, skaliert | dito |
 
-> ⚠️ **Zu klären (wie beim Sprite-Sheet):** selbst erstellt, lizenziert gekauft oder
-> KI-generiert? Bitte Herkunft/Lizenz hier präzisieren.
+> **Herkunft geklärt (Projektinhaber, 2026-06-24):** Diese Sprites (und das
+> Sprite-Sheet sowie `menu.png`) sind **KI-generiert** und vom Projektinhaber
+> bereitgestellt. Es handelt sich um eigenständige Motive (Mäuse/Käse/Würfel/Holz),
+> **keine** Nachbildungen geschützter Figuren/Marken. Nutzungsrechte liegen beim
+> Projektinhaber. Hinweis: Bei KI-Bildern ist der urheberrechtliche Schutz­status
+> uneinheitlich; für die Verwendung im Spiel unproblematisch, solange keine
+> geschützten Werke reproduziert werden.
 
 ## Externe Assets (Dritte)
 

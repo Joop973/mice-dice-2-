@@ -421,14 +421,32 @@
   display: grid;
   place-items: center;
   border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: rgba(0, 0, 0, 0.55);
   background: var(--die, var(--cheese-500));
   border: 2px solid rgba(0, 0, 0, 0.35);
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.4),
     inset 0 -5px 0 rgba(0, 0, 0, 0.2);
+}
+/* Echte Augen als 3×3-Raster auf der Würfelseite. */
+.cube3d__pips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  width: 72%;
+  height: 72%;
+}
+.cube3d__pips .pip {
+  border-radius: 1px;
+}
+.cube3d__pips .pip--on {
+  background: var(--pip, #1c1410);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.cube3d__num {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--pip, #1c1410);
 }
 .cube3d__f-front { transform: translateZ(24px); }
 .cube3d__f-back { transform: rotateY(180deg) translateZ(24px); }

@@ -22,9 +22,18 @@ export function dieTexture(value: number, bg: string): THREE.CanvasTexture {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, size, size);
 
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
-  ctx.lineWidth = 8;
-  ctx.strokeRect(6, 6, size - 12, size - 12);
+  // Cel-Bevel: heller Grat oben/links, dunkle Kante unten/rechts (flach, kein Verlauf).
+  const bevel = Math.round(size * 0.06);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+  ctx.fillRect(0, 0, size, bevel);
+  ctx.fillRect(0, 0, bevel, size);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+  ctx.fillRect(0, size - bevel, size, bevel);
+  ctx.fillRect(size - bevel, 0, bevel, size);
+
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(3, 3, size - 6, size - 6);
 
   // Kontrastfarbe je nach Hintergrund.
   const fg = luminance(bg) > 0.5 ? THEME.wood900 : THEME.cream100;
