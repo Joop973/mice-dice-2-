@@ -401,62 +401,35 @@
   gap: 4px;
 }
 .offer__cube {
-  width: 48px;
-  height: 48px;
-  perspective: 320px;
-}
-.cube3d {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  transform-style: preserve-3d;
-  transform: rotateX(-18deg) rotateY(0deg);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .cube3d { animation: cube-spin 4.5s linear infinite; }
-}
-.cube3d__face {
-  position: absolute;
-  inset: 0;
+  width: 54px;
+  height: 54px;
+  perspective: 220px;
   display: grid;
   place-items: center;
-  border-radius: 6px;
+}
+/* Ein EINZELNER, leicht in 3D kippender Würfel (Safari-sicher, kein preserve-3d). */
+.offer__die {
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--pip, #1c1410);
   background: var(--die, var(--cheese-500));
   border: 2px solid rgba(0, 0, 0, 0.35);
   box-shadow:
-    inset 0 3px 0 rgba(255, 255, 255, 0.4),
-    inset 0 -5px 0 rgba(0, 0, 0, 0.2);
+    inset 0 4px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -6px 0 rgba(0, 0, 0, 0.22),
+    0 5px 9px rgba(0, 0, 0, 0.4);
 }
-/* Echte Augen als 3×3-Raster auf der Würfelseite. */
-.cube3d__pips {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 2px;
-  width: 72%;
-  height: 72%;
+@media (prefers-reduced-motion: no-preference) {
+  .offer__die { animation: die-tilt 3.2s ease-in-out infinite; }
 }
-.cube3d__pips .pip {
-  border-radius: 1px;
-}
-.cube3d__pips .pip--on {
-  background: var(--pip, #1c1410);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-.cube3d__num {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: var(--pip, #1c1410);
-}
-.cube3d__f-front { transform: translateZ(24px); }
-.cube3d__f-back { transform: rotateY(180deg) translateZ(24px); }
-.cube3d__f-right { transform: rotateY(90deg) translateZ(24px); }
-.cube3d__f-left { transform: rotateY(-90deg) translateZ(24px); }
-.cube3d__f-top { transform: rotateX(90deg) translateZ(24px); }
-.cube3d__f-bottom { transform: rotateX(-90deg) translateZ(24px); }
-@keyframes cube-spin {
-  from { transform: rotateX(-18deg) rotateY(0deg); }
-  to { transform: rotateX(-18deg) rotateY(360deg); }
+@keyframes die-tilt {
+  0%, 100% { transform: rotateY(-26deg) rotateX(9deg); }
+  50% { transform: rotateY(26deg) rotateX(-7deg); }
 }
 
 /* ====================== In-Game: Tisch statt Liste ====================== */
@@ -864,4 +837,19 @@
 @keyframes pop-in {
   from { opacity: 0; transform: scale(0.6); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* Rundenauswertung: Würfel als kleine Sprites (Farbe + Zahl). */
+.summary__dice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  margin-top: 4px;
+}
+.summary__dice .die-chip {
+  width: 24px;
+  height: 24px;
+  font-size: 0.82rem;
+  border-radius: 5px;
 }

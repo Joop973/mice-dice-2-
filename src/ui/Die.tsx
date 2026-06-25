@@ -4,7 +4,6 @@
 import type { CSSProperties } from 'react';
 import type { RolledDie } from '../engine';
 import { DIE_COLORS, DIE_LABELS } from './colors';
-import { pipsFor } from './dicePips';
 import { THEME, luminance } from './theme';
 
 interface DieProps {
@@ -31,22 +30,13 @@ export function Die({ die, selected, pity, onClick }: DieProps) {
     .join(' ');
 
   const bg = DIE_COLORS[die.color];
-  // Augen-/Zahlfarbe je nach Helligkeit des Würfels (Kontrast).
+  // Zahlfarbe je nach Helligkeit des Würfels (Kontrast).
   const fg = luminance(bg) > 0.5 ? THEME.wood900 : THEME.cream100;
-  const pips = pipsFor(die.value);
   const style = { background: bg, color: fg } as CSSProperties;
 
   const content = (
     <>
-      {pips ? (
-        <span className="die__pips" aria-hidden="true">
-          {Array.from({ length: 9 }, (_, i) => (
-            <span key={i} className={pips.includes(i) ? 'pip pip--on' : 'pip'} />
-          ))}
-        </span>
-      ) : (
-        <span className="die__value">{die.value}</span>
-      )}
+      <span className="die__value">{die.value}</span>
       {pity && <span className="die__tag">Mitleid</span>}
     </>
   );
