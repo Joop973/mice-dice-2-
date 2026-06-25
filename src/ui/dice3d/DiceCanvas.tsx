@@ -41,6 +41,7 @@ export function DiceCanvas({ dice, selectedDieIds, onToggleClear, roll }: DiceCa
             selected={selectedDieIds?.has(d.id)}
             pity={d.isPity}
             roll={roll}
+            index={i}
             onClick={clickable ? () => onToggleClear!(d.id) : undefined}
           />
         );
